@@ -27,7 +27,7 @@ Process engineering mod for Minecraft by Hook Development. Showcased on https://
 - GitHub Actions builds and tests every push.
 
 ## Milestones
-- [ ] M1 · First machine: pipes, tank, centrifugal pump, cavitation when starved
+- [x] M1 · First machine: pipes, tank, centrifugal pump, cavitation when starved (playtested 20 Oct 2026)
 - [ ] M2 · Control: control valve, PID controller with faceplate (SP/PV/OP, auto/manual)
 - [ ] M3 · Control room: DCS screen with overview, trends, alarms
 - [ ] M4 · Pressure: closed vessels, relief valve, overpressure consequences (configurable)
@@ -37,3 +37,7 @@ Process engineering mod for Minecraft by Hook Development. Showcased on https://
 - GitHub repo `ParadiseArchive/setpoint` (public): the owner creates it.
 - Modrinth organisation + CurseForge account named "Hook Development": the owner creates them before the first release.
 - Jade/WTHIT tooltips (flow, pressure), JEI/EMI recipes, spark profiling for big pipe networks.
+
+## Assets
+- `node tools/gen-assets.mjs` regenerates textures, models, blockstates, item models, recipes and the game test structure. Use `--keep-textures` once textures are drawn by hand.
+- `sounds.json` reuses vanilla sound files for now (cavitation = campfire crackle at low pitch + bubbles). Custom .ogg files can replace them later.
