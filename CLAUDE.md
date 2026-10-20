@@ -28,7 +28,7 @@ Process engineering mod for Minecraft by Hook Development. Showcased on https://
 
 ## Milestones
 - [x] M1 · First machine: pipes, tank, centrifugal pump, cavitation when starved (playtested 20 Oct 2026)
-- [ ] M2 · Control: control valve, PID controller with faceplate (SP/PV/OP, auto/manual)
+- [x] M2 · Control: control valve (FC/FO, trip), level transmitter, DCS controller with faceplate (PV/SP/OP, MAN/AUTO/CAS, HI/LO, tuning presets), field communicator. Built 20 Oct 2026, playtest pending
 - [ ] M3 · Control room: DCS screen with overview, trends, alarms
 - [ ] M4 · Pressure: closed vessels, relief valve, overpressure consequences (configurable)
 - [ ] M5 · Distillation: multiblock column, reboiler, condenser
