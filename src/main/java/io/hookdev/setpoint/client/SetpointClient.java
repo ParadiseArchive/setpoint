@@ -17,5 +17,7 @@ public class SetpointClient {
 
     private static void registerScreens(RegisterMenuScreensEvent event) {
         event.register(SetpointContent.FACEPLATE.get(), FaceplateScreen::new);
+        event.register(SetpointContent.GENERATOR_MENU.get(), GeneratorScreen::new);
+        event.register(SetpointContent.TANK_MENU.get(), TankScreen::new);
     }
 }

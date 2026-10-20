@@ -1,10 +1,11 @@
 package io.hookdev.setpoint.block;
 
+import org.jspecify.annotations.Nullable;
+
+import io.hookdev.setpoint.SetpointContent;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -13,6 +14,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
@@ -20,7 +23,7 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 
-/** Atmospheric storage tank. Fill and empty it with buckets, or let a pump do the work. */
+/** Atmospheric storage tank. Click it with a bucket, use the bucket slots on its screen, or let a pump do the work. */
 public class TankBlock extends BaseEntityBlock {
     /** Sight glass level in eighths. */
     public static final IntegerProperty LEVEL = IntegerProperty.create("level", 0, 8);
@@ -52,15 +55,14 @@ public class TankBlock extends BaseEntityBlock {
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof TankBlockEntity tank) {
-            int percent = (int) Math.round(tank.fillFraction() * 100);
-            String contents = tank.amount() == 0 ? "empty" : tank.resource().getFluidType().getDescription().getString();
-            player.sendSystemMessage(Component.empty()
-                    .append(Component.literal(EquipmentTag.of("T", pos) + "  ").withStyle(ChatFormatting.AQUA))
-                    .append(Component.literal("LEVEL " + percent + "%  ").withStyle(ChatFormatting.WHITE))
-                    .append(Component.literal(String.format("%.1f / %.0f B %s", tank.amount() / 1000.0, TankBlockEntity.CAPACITY / 1000.0, contents))
-                            .withStyle(ChatFormatting.GRAY)));
+            player.openMenu(tank, tank::writeOpenData);
         }
         return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        return level.isClientSide() ? null : createTickerHelper(type, SetpointContent.TANK_ENTITY.get(), TankBlockEntity::serverTick);
     }
 
     @Override

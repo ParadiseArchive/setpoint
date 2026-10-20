@@ -36,6 +36,8 @@ public class Setpoint {
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {
         // Tanks hold fluid for buckets, pumps and other mods' pipes.
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, SetpointContent.TANK_ENTITY.get(), (tank, side) -> tank.fluid());
+        // Hoppers can feed the tank's bucket slot and take the result out below.
+        event.registerBlockEntity(Capabilities.Item.BLOCK, SetpointContent.TANK_ENTITY.get(), (tank, side) -> tank.buckets());
         // Pumps take FE from any side; cables from other mods can power them.
         event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.PUMP_ENTITY.get(), (pump, side) -> pump.energy());
         // Generators: cables can pull their FE, hoppers can feed their fuel slot.

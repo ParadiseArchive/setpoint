@@ -40,7 +40,7 @@ public class StirlingEngineBlockEntity extends GeneratorBlockEntity {
     }
 
     @Override
-    protected String fuelName() {
+    public String fuelName() {
         return "coal";
     }
 

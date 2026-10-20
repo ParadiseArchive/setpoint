@@ -18,6 +18,8 @@ import io.hookdev.setpoint.block.entity.StirlingEngineBlockEntity;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
 import io.hookdev.setpoint.item.FieldCommunicatorItem;
 import io.hookdev.setpoint.menu.FaceplateMenu;
+import io.hookdev.setpoint.menu.GeneratorMenu;
+import io.hookdev.setpoint.menu.TankMenu;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -105,6 +107,10 @@ public final class SetpointContent {
 
     public static final DeferredHolder<MenuType<?>, MenuType<FaceplateMenu>> FACEPLATE = MENUS.register("faceplate",
             () -> IMenuTypeExtension.create(FaceplateMenu::new));
+    public static final DeferredHolder<MenuType<?>, MenuType<GeneratorMenu>> GENERATOR_MENU = MENUS.register("generator",
+            () -> IMenuTypeExtension.create(GeneratorMenu::new));
+    public static final DeferredHolder<MenuType<?>, MenuType<TankMenu>> TANK_MENU = MENUS.register("tank",
+            () -> IMenuTypeExtension.create(TankMenu::new));
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> TAB = TABS.register("main", () -> CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.setpoint"))

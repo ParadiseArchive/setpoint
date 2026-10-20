@@ -53,8 +53,8 @@ public class BiogasGeneratorBlockEntity extends GeneratorBlockEntity {
     }
 
     @Override
-    protected String fuelName() {
-        return "organic waste (seeds, crops, leaves, rotten flesh)";
+    public String fuelName() {
+        return "organic waste";
     }
 
     @Override

@@ -3,13 +3,19 @@ package io.hookdev.setpoint.block.entity;
 import java.util.Optional;
 
 import io.hookdev.setpoint.block.GeneratorBlock;
+import io.hookdev.setpoint.menu.GeneratorMenu;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.Containers;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -35,9 +41,12 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
  * and it pushes energy into every neighbour that accepts it. It only burns when the buffer has room,
  * so fuel is never wasted.
  */
-public abstract class GeneratorBlockEntity extends BlockEntity {
+public abstract class GeneratorBlockEntity extends BlockEntity implements MenuProvider {
     public static final int ENERGY_CAPACITY = 20_000;
     public static final int PUSH_PER_SIDE = 1_000;
+
+    // Values shown on the screen (synced as shorts, all well below 32767)
+    public static final int DATA_ENERGY = 0, DATA_RUN_LEFT = 1, DATA_RUN_TOTAL = 2, DATA_RUNNING = 3, DATA_COUNT = 4;
 
     private final SimpleEnergyHandler energy = new SimpleEnergyHandler(ENERGY_CAPACITY, 0, PUSH_PER_SIDE * 6) {
         @Override
@@ -59,7 +68,29 @@ public abstract class GeneratorBlockEntity extends BlockEntity {
     };
 
     private int runTicksLeft;
+    private int runTicksTotal;
     private boolean running;
+
+    private final ContainerData data = new ContainerData() {
+        @Override
+        public int get(int index) {
+            return switch (index) {
+                case DATA_ENERGY -> energy.getAmountAsInt();
+                case DATA_RUN_LEFT -> Math.min(Short.MAX_VALUE, runTicksLeft);
+                case DATA_RUN_TOTAL -> Math.min(Short.MAX_VALUE, runTicksTotal);
+                case DATA_RUNNING -> running ? 1 : 0;
+                default -> 0;
+            };
+        }
+
+        @Override
+        public void set(int index, int value) {}
+
+        @Override
+        public int getCount() {
+            return DATA_COUNT;
+        }
+    };
 
     protected GeneratorBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -74,11 +105,12 @@ public abstract class GeneratorBlockEntity extends BlockEntity {
     /** How many ticks one item keeps the generator running. */
     protected abstract int runTicks(ServerLevel level, ItemStack stack);
 
-    /** What the player should put in, for messages ("coal", "organic waste"). */
-    protected abstract String fuelName();
+    /** What the player should put in, shown on the screen ("coal", "organic waste"). */
+    public abstract String fuelName();
 
     public SimpleEnergyHandler energy() { return energy; }
     public ItemStacksResourceHandler input() { return input; }
+    public ContainerData data() { return data; }
     public boolean running() { return running; }
 
     /** Loot context for resolving item values (burn time, compost chance) as if used at this block. */
@@ -106,6 +138,7 @@ public abstract class GeneratorBlockEntity extends BlockEntity {
                     if (input.extract(0, resource, 1, transaction) == 1) {
                         transaction.commit();
                         runTicksLeft = ticks;
+                        runTicksTotal = ticks;
                     }
                 }
             }
@@ -155,21 +188,30 @@ public abstract class GeneratorBlockEntity extends BlockEntity {
         }
     }
 
-    /** Plain-language status for the player. */
-    public void describe(Player player) {
-        int count = input.getAmountAsInt(0);
-        String fuel = count == 0 ? "empty" : count + " x " + input.getResource(0).toStack().getHoverName().getString();
-        Component status;
-        if (running) {
-            status = Component.literal("Running, " + output() + " FE/t").withStyle(ChatFormatting.AQUA);
-        } else if (count == 0 && runTicksLeft <= 0) {
-            status = Component.literal("Out of fuel: add " + fuelName()).withStyle(ChatFormatting.GOLD);
-        } else {
-            status = Component.literal("Waiting: buffer full, nothing is using power").withStyle(ChatFormatting.GRAY);
+    /** Extra data the client screen needs once, when it opens. */
+    public void writeOpenData(RegistryFriendlyByteBuf buf) {
+        buf.writeUtf(fuelName());
+        buf.writeVarInt(output());
+    }
+
+    @Override
+    public Component getDisplayName() {
+        return getBlockState().getBlock().getName();
+    }
+
+    @Override
+    public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
+        return new GeneratorMenu(containerId, inventory, this);
+    }
+
+    /** Drop the fuel when the block is broken. */
+    @Override
+    public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        super.preRemoveSideEffects(pos, state);
+        if (level != null) {
+            ItemStack fuel = input.getResource(0).toStack(input.getAmountAsInt(0));
+            if (!fuel.isEmpty()) Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), fuel);
         }
-        player.sendSystemMessage(status);
-        player.sendSystemMessage(Component.literal(String.format("Fuel: %s   Buffer: %,d / %,d FE", fuel, energy.getAmountAsInt(), ENERGY_CAPACITY))
-                .withStyle(ChatFormatting.GRAY));
     }
 
     @Override
@@ -178,6 +220,7 @@ public abstract class GeneratorBlockEntity extends BlockEntity {
         energy.serialize(output);
         input.serialize(output);
         output.putInt("run_ticks", runTicksLeft);
+        output.putInt("run_ticks_total", runTicksTotal);
     }
 
     @Override
@@ -186,5 +229,6 @@ public abstract class GeneratorBlockEntity extends BlockEntity {
         energy.deserialize(input);
         this.input.deserialize(input);
         runTicksLeft = input.getIntOr("run_ticks", 0);
+        runTicksTotal = input.getIntOr("run_ticks_total", runTicksLeft);
     }
 }

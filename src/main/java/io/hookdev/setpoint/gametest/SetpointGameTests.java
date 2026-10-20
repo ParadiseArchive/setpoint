@@ -37,6 +37,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.item.ItemResource;
 
 /**
  * In-world tests, run with {@code ./gradlew runGameTestServer} (or {@code /test runall} in a dev client).
@@ -61,6 +62,7 @@ public final class SetpointGameTests {
         test("stirling_engine_runs_a_pump", SetpointGameTests::stirlingEngineRunsAPump, 400);
         test("biogas_generator_runs_on_seeds", SetpointGameTests::biogasGeneratorRunsOnSeeds, 200);
         test("generator_keeps_fuel_when_idle", SetpointGameTests::generatorKeepsFuelWhenIdle, 200);
+        test("tank_bucket_slots", SetpointGameTests::tankBucketSlots, 100);
     }
 
     private static void test(String name, Consumer<GameTestHelper> function, int maxTicks) {
@@ -309,6 +311,25 @@ public final class SetpointGameTests {
         helper.runAfterDelay(100, () -> {
             helper.assertTrue(engine.input().getAmountAsInt(0) == 8, "coal was burnt while the buffer was full");
             helper.assertTrue(!engine.running(), "engine should idle with a full buffer");
+            helper.succeed();
+        });
+    }
+
+    /** A water bucket in the top slot fills the tank; an empty bucket comes back full. */
+    private static void tankBucketSlots(GameTestHelper helper) {
+        helper.setBlock(1, 1, 1, SetpointContent.TANK.get());
+        TankBlockEntity tank = helper.getBlockEntity(new BlockPos(1, 1, 1), TankBlockEntity.class);
+        tank.buckets().set(TankBlockEntity.SLOT_IN, ItemResource.of(Items.WATER_BUCKET), 2);
+        helper.runAfterDelay(5, () -> {
+            helper.assertTrue(tank.amount() == 2_000, "two water buckets should give 2000 mB, got " + tank.amount());
+            helper.assertTrue(tank.buckets().getResource(TankBlockEntity.SLOT_OUT).is(Items.BUCKET)
+                    && tank.buckets().getAmountAsInt(TankBlockEntity.SLOT_OUT) == 2, "two empty buckets expected in the output");
+            tank.buckets().set(TankBlockEntity.SLOT_OUT, ItemResource.EMPTY, 0);
+            tank.buckets().set(TankBlockEntity.SLOT_IN, ItemResource.of(Items.BUCKET), 1);
+        });
+        helper.runAfterDelay(10, () -> {
+            helper.assertTrue(tank.amount() == 1_000, "filling a bucket should take 1000 mB, left " + tank.amount());
+            helper.assertTrue(tank.buckets().getResource(TankBlockEntity.SLOT_OUT).is(Items.WATER_BUCKET), "a water bucket expected in the output");
             helper.succeed();
         });
     }
