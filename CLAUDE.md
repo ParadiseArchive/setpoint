@@ -34,7 +34,7 @@ Process engineering mod for Minecraft by Hook Development. Showcased on https://
 - [ ] M5 · Distillation: multiblock column, reboiler, condenser
 
 ## Backlog
-- GitHub repo `ParadiseArchive/setpoint` (public): the owner creates it.
+- GitHub repo https://github.com/ParadiseArchive/setpoint (public) is live; Actions builds and runs all tests on every push.
 - Modrinth organisation + CurseForge account named "Hook Development": the owner creates them before the first release.
 - Jade/WTHIT tooltips (flow, pressure), JEI/EMI recipes, spark profiling for big pipe networks.
 
