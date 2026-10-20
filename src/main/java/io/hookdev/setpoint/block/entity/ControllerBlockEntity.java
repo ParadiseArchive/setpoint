@@ -9,10 +9,12 @@ import io.hookdev.setpoint.control.PidController.Action;
 import io.hookdev.setpoint.control.PidController.Mode;
 import io.hookdev.setpoint.control.PidController.Tuning;
 import io.hookdev.setpoint.control.TagDirectory;
+import io.hookdev.setpoint.hydraulics.LoopFinder;
 import io.hookdev.setpoint.menu.FaceplateMenu;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.MenuProvider;
@@ -29,6 +31,10 @@ import net.minecraft.world.level.storage.ValueOutput;
 /**
  * A DCS controller (LIC). Reads its PV from a transmitter tag, drives a valve tag, and in CAS
  * takes its setpoint from another controller's output.
+ *
+ * <p>Out of the box it links itself: placed against a tank it measures that tank, finds the control
+ * valve in the tank's pipe runs, picks reverse or direct action from where the valve sits, and goes
+ * to AUTO. Linking by hand with the field communicator switches that off.
  */
 public class ControllerBlockEntity extends InstrumentBlockEntity implements MenuProvider {
     public static final double DT = 0.05; // one tick
@@ -57,6 +63,8 @@ public class ControllerBlockEntity extends InstrumentBlockEntity implements Menu
     private double hiLimit = 90;
     private double loLimit = 10;
     private double pv = Double.NaN;
+    private boolean autoLink = true;
+    private boolean autoAction = true;
     private double valvePosition = -1;
     private int alarms;
 
@@ -107,6 +115,8 @@ public class ControllerBlockEntity extends InstrumentBlockEntity implements Menu
     public double pv() { return pv; }
 
     public void setPvTag(String tag) { pvTag = tag; setChanged(); }
+    public void setAutoLink(boolean autoLink) { this.autoLink = autoLink; setChanged(); }
+    public boolean autoLink() { return autoLink; }
     public void setMvTag(String tag) { mvTag = tag; setChanged(); }
     public void setCasTag(String tag) { casTag = tag; setChanged(); }
     public void setMode(Mode mode) { this.mode = mode; setChanged(); }
@@ -118,9 +128,8 @@ public class ControllerBlockEntity extends InstrumentBlockEntity implements Menu
     }
 
     private void tick(Level level, BlockPos pos, BlockState state) {
-        LevelTransmitterBlockEntity transmitter = TagDirectory.find(level, pvTag, LevelTransmitterBlockEntity.class);
-        Double measured = transmitter == null ? null : transmitter.percent();
-        pv = measured == null ? Double.NaN : measured;
+        pv = measure(level);
+        if (autoLink && level.getGameTime() % 20 == 0) discover(level);
         boolean badPv = Double.isNaN(pv);
         if (badPv && mode != Mode.MAN) mode = Mode.MAN; // shed to manual on a bad PV, like a real DCS
 
@@ -154,6 +163,53 @@ public class ControllerBlockEntity extends InstrumentBlockEntity implements Menu
         if (level.getGameTime() % 20 == 0) setChanged();
     }
 
+    private @Nullable TankBlockEntity adjacentTank(Level level) {
+        for (Direction direction : Direction.values()) {
+            if (level.getBlockEntity(worldPosition.relative(direction)) instanceof TankBlockEntity tank) return tank;
+        }
+        return null;
+    }
+
+    /** PV in percent: from the transmitter tag, or straight from the tank this controller sits against. */
+    private double measure(Level level) {
+        if (!pvTag.isEmpty()) {
+            LevelTransmitterBlockEntity transmitter = TagDirectory.find(level, pvTag, LevelTransmitterBlockEntity.class);
+            Double measured = transmitter == null ? null : transmitter.percent();
+            return measured == null ? Double.NaN : measured;
+        }
+        TankBlockEntity tank = adjacentTank(level);
+        return tank == null ? Double.NaN : tank.fillFraction() * 100.0;
+    }
+
+    /** Self-linking: find the tank to measure and the valve that moves its level. */
+    private void discover(Level level) {
+        TankBlockEntity tank = adjacentTank(level);
+        if (tank == null) {
+            LevelTransmitterBlockEntity transmitter = pvTag.isEmpty()
+                    ? TagDirectory.nearest(level, worldPosition, 8, LevelTransmitterBlockEntity.class)
+                    : TagDirectory.find(level, pvTag, LevelTransmitterBlockEntity.class);
+            if (transmitter == null) return;
+            pvTag = transmitter.tag();
+            tank = transmitter.tank();
+        } else {
+            pvTag = ""; // measure the tank we sit against
+        }
+        if (tank == null) return;
+        LoopFinder.ValveLink link = LoopFinder.findValve(level, tank.getBlockPos());
+        if (link == null || !(level.getBlockEntity(link.valve()) instanceof ControlValveBlockEntity valve)) return;
+        boolean newLink = !valve.tag().equals(mvTag);
+        mvTag = valve.tag();
+        if (autoAction) action = link.feedsTank() ? Action.REVERSE : Action.DIRECT;
+        if (newLink && mode == Mode.MAN && !Double.isNaN(pv)) mode = Mode.AUTO;
+        setChanged();
+    }
+
+    /** Where the PV comes from, for the faceplate footer. */
+    public String pvSource() {
+        if (!pvTag.isEmpty()) return pvTag;
+        return level != null && adjacentTank(level) != null ? "LOCAL" : "";
+    }
+
     /** A faceplate button was pressed. */
     public void handleButton(int button) {
         switch (button) {
@@ -169,7 +225,10 @@ public class ControllerBlockEntity extends InstrumentBlockEntity implements Menu
             case BUTTON_OP_UP_1 -> nudgeOutput(1);
             case BUTTON_OP_UP_10 -> nudgeOutput(10);
             case BUTTON_TUNING -> tuning = tuning.next();
-            case BUTTON_ACTION -> action = action == Action.DIRECT ? Action.REVERSE : Action.DIRECT;
+            case BUTTON_ACTION -> {
+                action = action == Action.DIRECT ? Action.REVERSE : Action.DIRECT;
+                autoAction = false; // the engineer knows better
+            }
             case BUTTON_HI_DOWN -> hiLimit = Math.max(loLimit + 5, hiLimit - 5);
             case BUTTON_HI_UP -> hiLimit = Math.min(100, hiLimit + 5);
             case BUTTON_LO_DOWN -> loLimit = Math.max(0, loLimit - 5);
@@ -191,7 +250,7 @@ public class ControllerBlockEntity extends InstrumentBlockEntity implements Menu
     public void writeOpenData(RegistryFriendlyByteBuf buf) {
         buf.writeBlockPos(worldPosition);
         buf.writeUtf(tag());
-        buf.writeUtf(pvTag);
+        buf.writeUtf(pvSource());
         buf.writeUtf(mvTag);
         buf.writeUtf(casTag);
     }
@@ -213,7 +272,7 @@ public class ControllerBlockEntity extends InstrumentBlockEntity implements Menu
                 .append(Component.literal(mode + "  ").withStyle(ChatFormatting.WHITE))
                 .append(Component.literal(String.format("%s  SP %.1f %%  OP %.1f %%", pvText, sp, pid.output())).withStyle(ChatFormatting.GRAY)));
         player.sendSystemMessage(Component.literal(String.format("PV %s  MV %s  CAS %s",
-                pvTag.isEmpty() ? "-" : pvTag, mvTag.isEmpty() ? "-" : mvTag, casTag.isEmpty() ? "-" : casTag)).withStyle(ChatFormatting.DARK_GRAY));
+                pvSource().isEmpty() ? "-" : pvSource(), mvTag.isEmpty() ? "-" : mvTag, casTag.isEmpty() ? "-" : casTag)).withStyle(ChatFormatting.DARK_GRAY));
     }
 
     @Override
@@ -229,6 +288,8 @@ public class ControllerBlockEntity extends InstrumentBlockEntity implements Menu
         output.putDouble("op", pid.output());
         output.putDouble("hi", hiLimit);
         output.putDouble("lo", loLimit);
+        output.putBoolean("auto_link", autoLink);
+        output.putBoolean("auto_action", autoAction);
     }
 
     @Override
@@ -244,6 +305,8 @@ public class ControllerBlockEntity extends InstrumentBlockEntity implements Menu
         pid.setOutput(input.getDoubleOr("op", 0));
         hiLimit = input.getDoubleOr("hi", 90);
         loLimit = input.getDoubleOr("lo", 10);
+        autoLink = input.getBooleanOr("auto_link", true);
+        autoAction = input.getBooleanOr("auto_action", true);
     }
 
     private static <E extends Enum<E>> E parse(Class<E> type, String name, E fallback) {

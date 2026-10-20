@@ -8,6 +8,11 @@ Process engineering mod for Minecraft by Hook Development. Showcased on https://
 - **Privacy:** this repository is public. Never add the owner's name or personal details anywhere (code, docs, metadata, Modrinth/CurseForge pages, commit messages). The author is "Hook Development".
 - Ideas go in the backlog below instead of being built all at once.
 
+## Design principle (owner feedback after the M2 playtest)
+Easy by default, depth for those who want it. A normal Minecraft player must be able to use every machine without knowing process engineering: things link and configure themselves, sensible defaults, plain-language messages. The realistic layer (tuning, MAN/CAS, fail actions, NPSH numbers, field communicator) stays, but is optional.
+- Pumps run by themselves; a redstone signal stops them.
+- A controller placed against a tank measures it, finds the control valve in that tank's pipe runs, picks reverse/direct action and goes to AUTO at 50 %. Linking with the field communicator turns self-linking off.
+
 ## Decisions (20 Oct 2026)
 - Name **Setpoint**, mod id `setpoint` (permanent after first release), package `io.hookdev.setpoint`.
 - Minecraft **26.3**, **NeoForge** (ModDevGradle), **Java 25** (Temurin 25 installed locally).
@@ -28,7 +33,7 @@ Process engineering mod for Minecraft by Hook Development. Showcased on https://
 
 ## Milestones
 - [x] M1 · First machine: pipes, tank, centrifugal pump, cavitation when starved (playtested 20 Oct 2026)
-- [x] M2 · Control: control valve (FC/FO, trip), level transmitter, DCS controller with faceplate (PV/SP/OP, MAN/AUTO/CAS, HI/LO, tuning presets), field communicator. Built 20 Oct 2026, playtest pending
+- [x] M2 · Control: control valve (FC/FO, trip), level transmitter, DCS controller with faceplate (PV/SP/OP, MAN/AUTO/CAS, HI/LO, tuning presets), field communicator. Playtested 20 Oct 2026; then made self-linking
 - [ ] M3 · Control room: DCS screen with overview, trends, alarms
 - [ ] M4 · Pressure: closed vessels, relief valve, overpressure consequences (configurable)
 - [ ] M5 · Distillation: multiblock column, reboiler, condenser

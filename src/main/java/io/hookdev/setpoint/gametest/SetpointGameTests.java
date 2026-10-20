@@ -45,13 +45,14 @@ public final class SetpointGameTests {
 
     static {
         test("pump_moves_water", SetpointGameTests::pumpMovesWater, 200);
-        test("pump_needs_run_signal", SetpointGameTests::pumpNeedsRunSignal, 200);
+        test("pump_stops_on_redstone", SetpointGameTests::pumpStopsOnRedstone, 200);
         test("empty_source_runs_dry", SetpointGameTests::emptySourceRunsDry, 200);
         test("suction_lift_cavitates", SetpointGameTests::suctionLiftCavitates, 200);
         test("shut_valve_blocks_flow", SetpointGameTests::shutValveBlocksFlow, 200);
         test("fail_open_valve_passes_flow", SetpointGameTests::failOpenValvePassesFlow, 300);
         test("bad_pv_sheds_to_manual", SetpointGameTests::badPvShedsToManual, 100);
         test("level_loop_holds_setpoint", SetpointGameTests::levelLoopHoldsSetpoint, 2400);
+        test("controller_links_itself", SetpointGameTests::controllerLinksItself, 2400);
     }
 
     private static void test(String name, Consumer<GameTestHelper> function, int maxTicks) {
@@ -78,15 +79,15 @@ public final class SetpointGameTests {
         }
     }
 
-    /** Tank, pipe, pump, pipe, tank in a row, with power below the pump and a redstone block on top. */
-    private static void buildLine(GameTestHelper helper, boolean runSignal) {
+    /** Tank, pipe, pump, pipe, tank in a row, with power below the pump; optionally a redstone stop signal on top. */
+    private static void buildLine(GameTestHelper helper, boolean stopped) {
         helper.setBlock(SOURCE, SetpointContent.TANK.get());
         helper.setBlock(2, 1, 1, SetpointContent.PIPE.get());
         helper.setBlock(PUMP, SetpointContent.PUMP.get().defaultBlockState().setValue(PumpBlock.FACING, Direction.EAST));
         helper.setBlock(4, 1, 1, SetpointContent.PIPE.get());
         helper.setBlock(DESTINATION, SetpointContent.TANK.get());
         helper.setBlock(3, 0, 1, SetpointContent.CREATIVE_GENERATOR.get());
-        if (runSignal) {
+        if (stopped) {
             helper.setBlock(3, 2, 1, Blocks.REDSTONE_BLOCK);
         }
     }
@@ -96,7 +97,7 @@ public final class SetpointGameTests {
     }
 
     private static void pumpMovesWater(GameTestHelper helper) {
-        buildLine(helper, true);
+        buildLine(helper, false);
         fill(helper, SOURCE, 8_000);
         helper.succeedWhen(() -> {
             TankBlockEntity source = helper.getBlockEntity(SOURCE, TankBlockEntity.class);
@@ -107,18 +108,18 @@ public final class SetpointGameTests {
         });
     }
 
-    private static void pumpNeedsRunSignal(GameTestHelper helper) {
-        buildLine(helper, false);
+    private static void pumpStopsOnRedstone(GameTestHelper helper) {
+        buildLine(helper, true);
         fill(helper, SOURCE, 8_000);
         helper.runAfterDelay(60, () -> {
-            helper.assertTrue(helper.getBlockEntity(DESTINATION, TankBlockEntity.class).amount() == 0, "pump moved water without a run signal");
+            helper.assertTrue(helper.getBlockEntity(DESTINATION, TankBlockEntity.class).amount() == 0, "pump kept running with a stop signal");
             helper.assertTrue(helper.getBlockState(PUMP).getValue(PumpBlock.STATUS) == PumpStatus.OFF, "pump should be OFF");
             helper.succeed();
         });
     }
 
     private static void emptySourceRunsDry(GameTestHelper helper) {
-        buildLine(helper, true);
+        buildLine(helper, false);
         helper.succeedWhen(() -> {
             PumpModel.Result result = helper.getBlockEntity(PUMP, PumpBlockEntity.class).lastResult();
             helper.assertTrue(result != null && result.state() == PumpModel.State.DRY_RUN, "pump should be running dry");
@@ -138,7 +139,6 @@ public final class SetpointGameTests {
         helper.setBlock(4, 8, 1, SetpointContent.PIPE.get());
         helper.setBlock(5, 8, 1, SetpointContent.TANK.get());
         helper.setBlock(3, 7, 1, SetpointContent.CREATIVE_GENERATOR.get());
-        helper.setBlock(3, 9, 1, Blocks.REDSTONE_BLOCK);
         fill(helper, SOURCE, 8_000);
         helper.succeedWhen(() -> {
             PumpBlockEntity entity = helper.getBlockEntity(pump, PumpBlockEntity.class);
@@ -151,7 +151,7 @@ public final class SetpointGameTests {
     // ---------- M2: valves and control ----------
 
     private static ControlValveBlockEntity valveInDischarge(GameTestHelper helper) {
-        buildLine(helper, true);
+        buildLine(helper, false);
         helper.setBlock(4, 1, 1, SetpointContent.CONTROL_VALVE.get().defaultBlockState().setValue(ControlValveBlock.AXIS, Direction.Axis.X));
         fill(helper, SOURCE, 8_000);
         return helper.getBlockEntity(new BlockPos(4, 1, 1), ControlValveBlockEntity.class);
@@ -208,8 +208,6 @@ public final class SetpointGameTests {
         // power and run signals
         helper.setBlock(2, 0, 1, SetpointContent.CREATIVE_GENERATOR.get());
         helper.setBlock(5, 0, 1, SetpointContent.CREATIVE_GENERATOR.get());
-        helper.setBlock(2, 1, 0, Blocks.REDSTONE_BLOCK);
-        helper.setBlock(5, 1, 0, Blocks.REDSTONE_BLOCK);
         helper.setBlock(0, 1, 0, SetpointContent.CONTROLLER.get());
 
         fill(helper, t2, 4_000);
@@ -231,6 +229,42 @@ public final class SetpointGameTests {
         helper.runAfterDelay(2_000, () -> {
             double pv = lic.pv();
             helper.assertTrue(Math.abs(pv - 50) < 4, String.format("level should hold at 50 %%, is %.1f %% (OP %.1f %%)", pv, lic.output()));
+            helper.succeed();
+        });
+    }
+
+    /**
+     * Same two-tank loop, but nothing is configured: the controller sits against T-2,
+     * must find LV-1 by itself, choose reverse action and go to AUTO at 50 %.
+     */
+    private static void controllerLinksItself(GameTestHelper helper) {
+        BlockPos t2 = new BlockPos(1, 1, 1), t1 = new BlockPos(4, 1, 1);
+        helper.setBlock(t2, SetpointContent.TANK.get());
+        helper.setBlock(2, 1, 1, SetpointContent.PUMP.get().defaultBlockState().setValue(PumpBlock.FACING, Direction.EAST));
+        helper.setBlock(3, 1, 1, SetpointContent.CONTROL_VALVE.get().defaultBlockState().setValue(ControlValveBlock.AXIS, Direction.Axis.X));
+        helper.setBlock(t1, SetpointContent.TANK.get());
+        helper.setBlock(5, 1, 1, SetpointContent.PUMP.get().defaultBlockState().setValue(PumpBlock.FACING, Direction.EAST));
+        helper.setBlock(6, 1, 1, SetpointContent.PIPE.get());
+        helper.setBlock(6, 2, 1, SetpointContent.PIPE.get());
+        helper.setBlock(6, 2, 2, SetpointContent.PIPE.get());
+        helper.setBlock(5, 2, 2, SetpointContent.CONTROL_VALVE.get().defaultBlockState().setValue(ControlValveBlock.AXIS, Direction.Axis.X));
+        for (int x = 4; x >= 1; x--) helper.setBlock(x, 2, 2, SetpointContent.PIPE.get());
+        helper.setBlock(1, 1, 2, SetpointContent.PIPE.get());
+        helper.setBlock(2, 0, 1, SetpointContent.CREATIVE_GENERATOR.get());
+        helper.setBlock(5, 0, 1, SetpointContent.CREATIVE_GENERATOR.get());
+        helper.setBlock(0, 1, 1, SetpointContent.CONTROLLER.get()); // against T-2, nothing else set
+
+        fill(helper, t2, 4_000);
+        fill(helper, t1, 12_000);
+        ControlValveBlockEntity lv = helper.getBlockEntity(new BlockPos(5, 2, 2), ControlValveBlockEntity.class);
+        ControlValveBlockEntity returnValve = helper.getBlockEntity(new BlockPos(3, 1, 1), ControlValveBlockEntity.class);
+        ControllerBlockEntity lic = helper.getBlockEntity(new BlockPos(0, 1, 1), ControllerBlockEntity.class);
+        helper.onEachTick(() -> returnValve.command(0.4, helper.getLevel().getGameTime()));
+
+        helper.runAfterDelay(2_000, () -> {
+            helper.assertTrue(lic.mvTag().equals(lv.tag()), "controller should have found the feed valve, has '" + lic.mvTag() + "'");
+            helper.assertTrue(lic.mode() == PidController.Mode.AUTO, "controller should be in AUTO");
+            helper.assertTrue(Math.abs(lic.pv() - 50) < 4, String.format("level should hold at 50 %%, is %.1f %%", lic.pv()));
             helper.succeed();
         });
     }

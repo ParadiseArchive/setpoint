@@ -66,6 +66,7 @@ public class FieldCommunicatorItem extends Item {
 
     private static void link(Level level, ControllerBlockEntity controller, List<BlockPos> devices, Player player) {
         String loop = controller.loopNumber();
+        controller.setAutoLink(false); // linked by hand from now on
         List<String> done = new ArrayList<>();
         for (BlockPos pos : devices) {
             if (!(level.getBlockEntity(pos) instanceof InstrumentBlockEntity device) || device == controller) continue;

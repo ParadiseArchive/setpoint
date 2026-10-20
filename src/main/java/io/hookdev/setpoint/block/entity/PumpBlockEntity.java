@@ -94,7 +94,7 @@ public class PumpBlockEntity extends BlockEntity {
                 suction != null ? suction.valveResistance(level) : 0,
                 discharge != null ? discharge.valveResistance(level) : 0));
 
-        commanded = level.hasNeighborSignal(pos);
+        commanded = !level.hasNeighborSignal(pos); // runs by itself; a redstone signal is the stop button
         powered = energy.getAmountAsInt() >= result.power();
         boolean running = commanded && powered;
         if (running) {
@@ -175,7 +175,7 @@ public class PumpBlockEntity extends BlockEntity {
 
         if (!commanded) {
             line1.append(Component.literal("STOPPED").withStyle(ChatFormatting.GRAY))
-                    .append(Component.literal("  (needs a redstone run signal)").withStyle(ChatFormatting.DARK_GRAY));
+                    .append(Component.literal("  (redstone stop signal)").withStyle(ChatFormatting.DARK_GRAY));
         } else if (!powered) {
             line1.append(Component.literal("NO POWER").withStyle(ChatFormatting.GOLD));
         } else if (r == null || r.state() == PumpModel.State.OK) {
