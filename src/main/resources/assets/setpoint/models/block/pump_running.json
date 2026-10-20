@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "north": "setpoint:block/pump_discharge",
+    "south": "setpoint:block/pump_suction",
+    "east": "setpoint:block/pump_side_running",
+    "west": "setpoint:block/pump_side_running",
+    "up": "setpoint:block/pump_top",
+    "down": "setpoint:block/pump_bottom",
+    "particle": "setpoint:block/pump_side_off"
+  }
+}

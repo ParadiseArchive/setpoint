@@ -4,9 +4,14 @@ import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;
 
+import io.hookdev.setpoint.gametest.SetpointGameTests;
+
+import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 
 /**
  * Setpoint: process engineering for Minecraft. Pumps, tanks, valves and control loops
@@ -18,6 +23,20 @@ public class Setpoint {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public Setpoint(IEventBus modEventBus, ModContainer modContainer) {
+        SetpointContent.register(modEventBus);
+        SetpointGameTests.register(modEventBus);
+        modEventBus.addListener(Setpoint::registerCapabilities);
         LOGGER.info("Setpoint loaded. Holding steady.");
+    }
+
+    public static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(MODID, path);
+    }
+
+    private static void registerCapabilities(RegisterCapabilitiesEvent event) {
+        // Tanks hold fluid for buckets, pumps and other mods' pipes.
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, SetpointContent.TANK_ENTITY.get(), (tank, side) -> tank.fluid());
+        // Pumps take FE from any side; cables from other mods can power them.
+        event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.PUMP_ENTITY.get(), (pump, side) -> pump.energy());
     }
 }

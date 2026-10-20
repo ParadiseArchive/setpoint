@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "side": "setpoint:block/tank_side_5",
+    "top": "setpoint:block/tank_top",
+    "bottom": "setpoint:block/tank_bottom"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "variants": {
+    "level=0": {
+      "model": "setpoint:block/tank_0"
+    },
+    "level=1": {
+      "model": "setpoint:block/tank_1"
+    },
+    "level=2": {
+      "model": "setpoint:block/tank_2"
+    },
+    "level=3": {
+      "model": "setpoint:block/tank_3"
+    },
+    "level=4": {
+      "model": "setpoint:block/tank_4"
+    },
+    "level=5": {
+      "model": "setpoint:block/tank_5"
+    },
+    "level=6": {
+      "model": "setpoint:block/tank_6"
+    },
+    "level=7": {
+      "model": "setpoint:block/tank_7"
+    },
+    "level=8": {
+      "model": "setpoint:block/tank_8"
+    }
+  }
+}

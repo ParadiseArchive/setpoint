@@ -1,0 +1,49 @@
+{
+  "variants": {
+    "facing=north,status=off": {
+      "model": "setpoint:block/pump_off"
+    },
+    "facing=north,status=running": {
+      "model": "setpoint:block/pump_running"
+    },
+    "facing=north,status=alarm": {
+      "model": "setpoint:block/pump_alarm"
+    },
+    "facing=east,status=off": {
+      "model": "setpoint:block/pump_off",
+      "y": 90
+    },
+    "facing=east,status=running": {
+      "model": "setpoint:block/pump_running",
+      "y": 90
+    },
+    "facing=east,status=alarm": {
+      "model": "setpoint:block/pump_alarm",
+      "y": 90
+    },
+    "facing=south,status=off": {
+      "model": "setpoint:block/pump_off",
+      "y": 180
+    },
+    "facing=south,status=running": {
+      "model": "setpoint:block/pump_running",
+      "y": 180
+    },
+    "facing=south,status=alarm": {
+      "model": "setpoint:block/pump_alarm",
+      "y": 180
+    },
+    "facing=west,status=off": {
+      "model": "setpoint:block/pump_off",
+      "y": 270
+    },
+    "facing=west,status=running": {
+      "model": "setpoint:block/pump_running",
+      "y": 270
+    },
+    "facing=west,status=alarm": {
+      "model": "setpoint:block/pump_alarm",
+      "y": 270
+    }
+  }
+}

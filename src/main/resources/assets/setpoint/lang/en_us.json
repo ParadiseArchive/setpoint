@@ -1,3 +1,7 @@
 {
-  "itemGroup.setpoint": "Setpoint"
+  "itemGroup.setpoint": "Setpoint",
+  "block.setpoint.pipe": "Pipe",
+  "block.setpoint.tank": "Tank",
+  "block.setpoint.centrifugal_pump": "Centrifugal Pump",
+  "block.setpoint.creative_generator": "Creative Generator"
 }
