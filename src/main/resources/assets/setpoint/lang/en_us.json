@@ -4,5 +4,9 @@
   "block.setpoint.tank": "Tank",
   "block.setpoint.centrifugal_pump": "Centrifugal Pump",
   "block.setpoint.creative_generator": "Creative Generator",
-  "subtitles.setpoint.block.centrifugal_pump.cavitate": "Pump cavitates"
+  "subtitles.setpoint.block.centrifugal_pump.cavitate": "Pump cavitates",
+  "block.setpoint.level_transmitter": "Level Transmitter",
+  "block.setpoint.control_valve": "Control Valve",
+  "block.setpoint.controller": "DCS Controller",
+  "item.setpoint.field_communicator": "Field Communicator"
 }

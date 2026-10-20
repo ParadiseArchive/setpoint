@@ -1,0 +1,59 @@
+{
+  "variants": {
+    "axis=x,open=0": {
+      "model": "setpoint:block/control_valve_0",
+      "y": 90
+    },
+    "axis=x,open=1": {
+      "model": "setpoint:block/control_valve_1",
+      "y": 90
+    },
+    "axis=x,open=2": {
+      "model": "setpoint:block/control_valve_2",
+      "y": 90
+    },
+    "axis=x,open=3": {
+      "model": "setpoint:block/control_valve_3",
+      "y": 90
+    },
+    "axis=x,open=4": {
+      "model": "setpoint:block/control_valve_4",
+      "y": 90
+    },
+    "axis=y,open=0": {
+      "model": "setpoint:block/control_valve_0",
+      "x": 90
+    },
+    "axis=y,open=1": {
+      "model": "setpoint:block/control_valve_1",
+      "x": 90
+    },
+    "axis=y,open=2": {
+      "model": "setpoint:block/control_valve_2",
+      "x": 90
+    },
+    "axis=y,open=3": {
+      "model": "setpoint:block/control_valve_3",
+      "x": 90
+    },
+    "axis=y,open=4": {
+      "model": "setpoint:block/control_valve_4",
+      "x": 90
+    },
+    "axis=z,open=0": {
+      "model": "setpoint:block/control_valve_0"
+    },
+    "axis=z,open=1": {
+      "model": "setpoint:block/control_valve_1"
+    },
+    "axis=z,open=2": {
+      "model": "setpoint:block/control_valve_2"
+    },
+    "axis=z,open=3": {
+      "model": "setpoint:block/control_valve_3"
+    },
+    "axis=z,open=4": {
+      "model": "setpoint:block/control_valve_4"
+    }
+  }
+}

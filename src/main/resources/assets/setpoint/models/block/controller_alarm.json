@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/orientable_with_bottom",
+  "textures": {
+    "front": "setpoint:block/controller_front_alarm",
+    "side": "setpoint:block/controller_side",
+    "top": "setpoint:block/controller_top",
+    "bottom": "setpoint:block/controller_top"
+  }
+}

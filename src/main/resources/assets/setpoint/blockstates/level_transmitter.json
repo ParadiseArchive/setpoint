@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "setpoint:block/level_transmitter"
+    },
+    "facing=east": {
+      "model": "setpoint:block/level_transmitter",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "setpoint:block/level_transmitter",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "setpoint:block/level_transmitter",
+      "y": 270
+    }
+  }
+}

@@ -84,4 +84,29 @@ class PumpModelTest {
         double worn = PumpModel.solve(new Inputs(0.5, 4, 3, 3, true, true, 1)).flow();
         assertTrue(worn < fresh);
     }
+
+    @Test
+    void throttlingTheDischargeValveCutsFlow() {
+        double open = PumpModel.solve(new Inputs(0.5, 2, 3, 3, true, true, 0, 0, 2e-4)).flow();
+        double throttled = PumpModel.solve(new Inputs(0.5, 2, 3, 3, true, true, 0, 0, 2e-3)).flow();
+        assertTrue(throttled < open);
+    }
+
+    @Test
+    void shutDischargeValveDeadheads() {
+        Result r = PumpModel.solve(new Inputs(0.5, 2, 3, 3, true, true, 0, 0, Double.POSITIVE_INFINITY));
+        assertEquals(State.DEADHEAD, r.state());
+    }
+
+    @Test
+    void shutSuctionValveStarvesThePump() {
+        Result r = PumpModel.solve(new Inputs(0.5, 2, 3, 3, true, true, 0, Double.POSITIVE_INFINITY, 0));
+        assertEquals(State.DRY_RUN, r.state());
+    }
+
+    @Test
+    void throttledSuctionValveCausesCavitation() {
+        Result r = PumpModel.solve(new Inputs(0, 1, 2, 2, true, true, 0, 2e-3, 0));
+        assertEquals(State.CAVITATING, r.state(), "throttling the suction should starve the pump of NPSH");
+    }
 }

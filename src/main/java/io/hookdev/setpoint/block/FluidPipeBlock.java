@@ -67,6 +67,9 @@ public class FluidPipeBlock extends Block {
         if (neighbour.getBlock() instanceof PumpBlock) {
             return neighbour.getValue(PumpBlock.FACING).getAxis() == direction.getAxis();
         }
+        if (neighbour.getBlock() instanceof ControlValveBlock) {
+            return neighbour.getValue(ControlValveBlock.AXIS) == direction.getAxis();
+        }
         return false;
     }
 

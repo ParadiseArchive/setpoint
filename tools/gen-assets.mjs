@@ -45,8 +45,8 @@ function png(pixels) { // pixels: 16 rows of 16 '#rrggbb' or null (transparent)
   ihdr.writeUInt32BE(16, 0); ihdr.writeUInt32BE(16, 4); ihdr[8] = 8; ihdr[9] = 6;
   return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), chunk('IDAT', deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]);
 }
-function texture(name, draw) {
-  const path = join(ASSETS, 'textures/block', name + '.png');
+function texture(name, draw, folder = 'block') {
+  const path = join(ASSETS, 'textures', folder, name + '.png');
   if (KEEP_TEXTURES && existsSync(path)) return;
   const px = Array.from({ length: 16 }, () => Array(16).fill(null));
   const set = (x, y, c) => { if (x >= 0 && x < 16 && y >= 0 && y < 16) px[y][x] = c; };
@@ -215,6 +215,125 @@ const recipe = (name, pattern, key, id, count = 1) => json(join(DATA, 'recipe', 
 recipe('pipe', ['CCC'], { C: 'minecraft:copper_ingot' }, 'setpoint:pipe', 6);
 recipe('tank', ['IGI', 'G G', 'IGI'], { I: 'minecraft:iron_ingot', G: 'minecraft:glass' }, 'setpoint:tank');
 recipe('centrifugal_pump', [' C ', 'IRI', 'IPI'], { C: 'minecraft:copper_ingot', I: 'minecraft:iron_ingot', R: 'minecraft:redstone', P: 'minecraft:piston' }, 'setpoint:centrifugal_pump');
+
+// =====================================================================================
+// M2: level transmitter, control valve, controller, field communicator
+// =====================================================================================
+
+// level transmitter: housing with a little display and a tag plate
+texture('transmitter_front', (p) => {
+  p.rect(0, 0, 16, 16, C.steel1);
+  p.rect(2, 2, 12, 7, C.outline); p.rect(3, 3, 10, 5, '#0d1a1c');           // display
+  p.rect(4, 5, 2, 1, C.cyan); p.rect(7, 5, 2, 1, C.cyan); p.rect(10, 5, 2, 1, C.cyan); // digits
+  p.rect(4, 4, 1, 1, C.cyanDark); p.rect(7, 4, 1, 1, C.cyanDark);
+  p.rect(4, 11, 8, 2, C.amber); p.rect(5, 12, 6, 1, '#c98a2c');              // tag plate
+  p.set(2, 14, C.steel4); p.set(13, 14, C.steel4);
+});
+texture('transmitter_side', (p) => { p.rect(0, 0, 16, 16, C.steel1); p.rect(0, 0, 16, 1, C.steel3); p.rect(0, 15, 16, 1, C.steel0); p.rect(7, 2, 2, 12, C.steel0); });
+texture('transmitter_top', (p) => { p.rect(0, 0, 16, 16, C.steel2); p.rect(5, 5, 6, 6, C.steel0); p.rect(6, 6, 4, 4, C.steel3); });
+
+// control valve: body in steel, actuator with a position bar (0..4 quarters lit)
+texture('valve_body', (p) => {
+  plate(p, C.steel2);
+  p.rect(3, 3, 10, 10, C.steel1); p.rect(5, 5, 6, 6, C.steel3);
+  rivets(p, [[1, 1], [13, 1], [1, 13], [13, 13]]);
+});
+for (let open = 0; open <= 4; open++) {
+  texture('valve_actuator_' + open, (p) => {
+    p.rect(0, 0, 16, 16, C.steel1);
+    p.rect(0, 0, 16, 1, C.steel3); p.rect(0, 15, 16, 1, C.steel0);
+    p.rect(3, 1, 10, 2, C.outline);                         // position indicator window (top rows show on the actuator side)
+    for (let q = 0; q < open; q++) p.rect(3 + q * 2 + (q > 1 ? 2 : 0), 1, 2, 2, C.cyan);
+    p.rect(2, 5, 12, 1, C.steel0); p.rect(2, 9, 12, 1, C.steel0); // diaphragm housing seams
+  });
+}
+texture('valve_actuator_top', (p) => { p.rect(0, 0, 16, 16, C.steel2); p.rect(4, 4, 8, 8, C.steel1); p.rect(7, 7, 2, 2, C.amber); });
+
+// controller cabinet: front with a small faceplate and status light
+function cabinetFront(led, ledDark) {
+  return (p) => {
+    plate(p, C.steel1);
+    p.rect(2, 2, 12, 8, C.outline); p.rect(3, 3, 10, 6, '#151923');            // screen
+    p.rect(4, 4, 2, 4, '#5d6472'); p.rect(4, 6, 2, 2, C.steel4);               // PV bar
+    p.rect(8, 4, 4, 1, C.steel3); p.rect(8, 6, 3, 1, C.steel3);                // numbers
+    p.rect(2, 12, 2, 2, ledDark); p.set(2, 12, led); p.set(3, 12, led);        // status light
+    p.rect(6, 12, 8, 2, C.steel0); p.rect(7, 12, 2, 1, C.steel3); p.rect(10, 12, 2, 1, C.steel3); // keys
+  };
+}
+texture('controller_front', cabinetFront(C.cyan, C.cyanDark));
+texture('controller_front_alarm', cabinetFront(C.magenta, C.magentaDark));
+texture('controller_side', (p) => { plate(p, C.steel1); for (let y = 3; y <= 12; y += 3) p.rect(4, y, 8, 1, C.steel0); });
+texture('controller_top', (p) => { plate(p, C.steel2); rivets(p, [[2, 2], [12, 2], [2, 12], [12, 12]]); });
+
+// field communicator (item sprite, transparent background)
+texture('field_communicator', (p) => {
+  p.rect(4, 1, 8, 14, C.outline);
+  p.rect(5, 2, 6, 12, '#2a2f3a');
+  p.rect(6, 3, 4, 4, '#0d1a1c'); p.rect(6, 4, 3, 1, C.cyan); p.rect(6, 6, 2, 1, C.cyanDark); // screen
+  for (const [x, y] of [[6, 8], [8, 8], [6, 10], [8, 10], [6, 12], [8, 12]]) p.set(x, y, C.steel4); // keys
+  p.set(9, 12, C.magenta);
+  p.rect(5, 0, 2, 1, C.amber); p.rect(9, 0, 2, 1, C.amber); // test leads
+  p.rect(5, 1, 1, 1, '#c98a2c'); p.rect(10, 1, 1, 1, '#c98a2c');
+}, 'item');
+
+M('level_transmitter', {
+  parent: 'minecraft:block/block',
+  textures: { front: tex('transmitter_front'), side: tex('transmitter_side'), top: tex('transmitter_top'), particle: tex('transmitter_side') },
+  elements: [box([4, 1, 4], [12, 13, 12], {
+    north: { uv: [4, 2, 12, 14], texture: '#front' }, south: { uv: [4, 2, 12, 14], texture: '#side' },
+    east: { uv: [4, 2, 12, 14], texture: '#side' }, west: { uv: [4, 2, 12, 14], texture: '#side' },
+    up: { uv: [4, 4, 12, 12], texture: '#top' }, down: { uv: [4, 4, 12, 12], texture: '#top', cullface: 'down' },
+  })],
+});
+const allFaces = (uv, texture, skip = []) => Object.fromEntries(['north', 'south', 'east', 'west', 'up', 'down']
+  .filter((f) => !skip.includes(f)).map((f) => [f, { uv, texture }]));
+for (let open = 0; open <= 4; open++) {
+  M('control_valve_' + open, { // flow along Z, actuator on top
+    parent: 'minecraft:block/block',
+    textures: { pipe: tex('pipe'), body: tex('valve_body'), actuator: tex('valve_actuator_' + open), cap: tex('valve_actuator_top'), particle: tex('valve_body') },
+    elements: [
+      box([5, 5, 0], [11, 11, 16], {
+        north: { uv: [5, 5, 11, 11], texture: '#pipe', cullface: 'north' }, south: { uv: [5, 5, 11, 11], texture: '#pipe', cullface: 'south' },
+        east: face([0, 5, 16, 11]), west: face([0, 5, 16, 11]), down: face([5, 0, 11, 16]),
+      }),
+      box([4, 4, 4], [12, 12, 12], allFaces([4, 4, 12, 12], '#body')),
+      box([7, 12, 7], [9, 13, 9], allFaces([7, 7, 9, 9], '#cap', ['down'])),
+      box([3, 13, 3], [13, 16, 13], {
+        north: { uv: [3, 0, 13, 3], texture: '#actuator' }, south: { uv: [3, 0, 13, 3], texture: '#actuator' },
+        east: { uv: [3, 0, 13, 3], texture: '#actuator' }, west: { uv: [3, 0, 13, 3], texture: '#actuator' },
+        up: { uv: [3, 3, 13, 13], texture: '#cap' }, down: { uv: [3, 3, 13, 13], texture: '#cap' },
+      }),
+    ],
+  });
+}
+for (const alarm of [false, true]) {
+  M('controller' + (alarm ? '_alarm' : ''), {
+    parent: 'minecraft:block/orientable_with_bottom',
+    textures: { front: tex(alarm ? 'controller_front_alarm' : 'controller_front'), side: tex('controller_side'), top: tex('controller_top'), bottom: tex('controller_top') },
+  });
+}
+
+BS('level_transmitter', { variants: Object.fromEntries(Object.entries(yaw).map(([f, y]) => [`facing=${f}`, { model: 'setpoint:block/level_transmitter', ...(y ? { y } : {}) }])) });
+const axisRotation = { x: { y: 90 }, y: { x: 90 }, z: {} };
+BS('control_valve', {
+  variants: Object.fromEntries(Object.entries(axisRotation).flatMap(([axis, rot]) =>
+    [0, 1, 2, 3, 4].map((open) => [`axis=${axis},open=${open}`, { model: 'setpoint:block/control_valve_' + open, ...rot }]))),
+});
+BS('controller', {
+  variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => [false, true].map((alarm) =>
+    [`alarm=${alarm},facing=${f}`, { model: 'setpoint:block/controller' + (alarm ? '_alarm' : ''), ...(y ? { y } : {}) }]))),
+});
+
+item('level_transmitter', 'setpoint:block/level_transmitter');
+item('control_valve', 'setpoint:block/control_valve_2');
+item('controller', 'setpoint:block/controller');
+json(join(ASSETS, 'models/item/field_communicator.json'), { parent: 'minecraft:item/generated', textures: { layer0: 'setpoint:item/field_communicator' } });
+item('field_communicator', 'setpoint:item/field_communicator');
+
+recipe('level_transmitter', ['IGI', 'ICI'], { I: 'minecraft:iron_ingot', G: 'minecraft:glass_pane', C: 'minecraft:comparator' }, 'setpoint:level_transmitter');
+recipe('control_valve', [' P ', 'CIC'], { P: 'minecraft:piston', C: 'minecraft:copper_ingot', I: 'minecraft:iron_ingot' }, 'setpoint:control_valve');
+recipe('controller', ['IGI', 'RCR', 'III'], { I: 'minecraft:iron_ingot', G: 'minecraft:glass_pane', R: 'minecraft:redstone', C: 'minecraft:comparator' }, 'setpoint:controller');
+recipe('field_communicator', [' G ', 'IRI', 'ICI'], { G: 'minecraft:glass_pane', I: 'minecraft:iron_ingot', R: 'minecraft:redstone', C: 'minecraft:copper_ingot' }, 'setpoint:field_communicator');
 
 // ---------- empty game test structure (NBT) ----------
 function nbt() {

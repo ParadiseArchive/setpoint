@@ -90,7 +90,9 @@ public class PumpBlockEntity extends BlockEntity {
                 destination != null ? destination.surfaceY() - centreline : 0,
                 suction != null ? suction.length() : 0,
                 discharge != null ? discharge.length() : 0,
-                hasSource, hasDestination, wear));
+                hasSource, hasDestination, wear,
+                suction != null ? suction.valveResistance(level) : 0,
+                discharge != null ? discharge.valveResistance(level) : 0));
 
         commanded = level.hasNeighborSignal(pos);
         powered = energy.getAmountAsInt() >= result.power();

@@ -48,9 +48,17 @@ public final class PumpModel {
      * @param hasSource        a source with liquid is connected
      * @param hasDestination   a destination with room is connected
      * @param wear             impeller wear, 0 (new) to 1 (worn out)
+     * @param suctionValveK    extra resistance of valves in the suction line (head = k * Q^2), infinite when one is shut
+     * @param dischargeValveK  same for the discharge line
      */
     public record Inputs(double suctionSurface, double dischargeSurface, double suctionLength, double dischargeLength,
-                         boolean hasSource, boolean hasDestination, double wear) {}
+                         boolean hasSource, boolean hasDestination, double wear, double suctionValveK, double dischargeValveK) {
+        /** A line without valves. */
+        public Inputs(double suctionSurface, double dischargeSurface, double suctionLength, double dischargeLength,
+                      boolean hasSource, boolean hasDestination, double wear) {
+            this(suctionSurface, dischargeSurface, suctionLength, dischargeLength, hasSource, hasDestination, wear, 0, 0);
+        }
+    }
 
     /**
      * @param flow       mB/t
@@ -80,7 +88,11 @@ public final class PumpModel {
     }
 
     public static double npshAvailable(double suctionSurface, double suctionLength, double flow) {
-        return ATMOSPHERIC_HEAD + suctionSurface - FRICTION * suctionLength * flow * flow - VAPOUR_HEAD;
+        return npshAvailable(suctionSurface, suctionLength, 0, flow);
+    }
+
+    public static double npshAvailable(double suctionSurface, double suctionLength, double suctionValveK, double flow) {
+        return ATMOSPHERIC_HEAD + suctionSurface - (FRICTION * suctionLength + suctionValveK) * flow * flow - VAPOUR_HEAD;
     }
 
     public static int power(double flow, double head) {
@@ -89,16 +101,17 @@ public final class PumpModel {
 
     public static Result solve(Inputs in) {
         double h0 = shutoffHead(in.wear());
-        if (!in.hasSource()) {
+        // A shut suction valve starves the pump just like an empty source.
+        if (!in.hasSource() || Double.isInfinite(in.suctionValveK())) {
             return new Result(State.DRY_RUN, 0, h0, 0, npshRequired(0), 1.0, power(0, h0));
         }
-        if (!in.hasDestination()) {
+        if (!in.hasDestination() || Double.isInfinite(in.dischargeValveK())) {
             return new Result(State.DEADHEAD, 0, h0, npshAvailable(in.suctionSurface(), in.suctionLength(), 0), npshRequired(0), 0, power(0, h0));
         }
 
         // Operating point: pump curve h0 * (1 - (Q/Qmax)^2) meets system curve static + k * Q^2.
         double staticHead = in.dischargeSurface() - in.suctionSurface();
-        double k = FRICTION * (in.suctionLength() + in.dischargeLength());
+        double k = FRICTION * (in.suctionLength() + in.dischargeLength()) + in.suctionValveK() + in.dischargeValveK();
         double flow = 0;
         if (h0 > staticHead) {
             flow = Math.sqrt((h0 - staticHead) / (h0 / (MAX_FLOW * MAX_FLOW) + k));
@@ -107,7 +120,7 @@ public final class PumpModel {
             return new Result(State.DEADHEAD, 0, h0, npshAvailable(in.suctionSurface(), in.suctionLength(), 0), npshRequired(0), 0, power(0, h0));
         }
 
-        double npshA = npshAvailable(in.suctionSurface(), in.suctionLength(), flow);
+        double npshA = npshAvailable(in.suctionSurface(), in.suctionLength(), in.suctionValveK(), flow);
         double npshR = npshRequired(flow);
         double cavitation = 0;
         State state = State.OK;
