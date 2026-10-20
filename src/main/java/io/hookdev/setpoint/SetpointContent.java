@@ -4,14 +4,17 @@ import io.hookdev.setpoint.block.ControlValveBlock;
 import io.hookdev.setpoint.block.ControllerBlock;
 import io.hookdev.setpoint.block.CreativeGeneratorBlock;
 import io.hookdev.setpoint.block.FluidPipeBlock;
+import io.hookdev.setpoint.block.GeneratorBlock;
 import io.hookdev.setpoint.block.LevelTransmitterBlock;
 import io.hookdev.setpoint.block.PumpBlock;
 import io.hookdev.setpoint.block.TankBlock;
+import io.hookdev.setpoint.block.entity.BiogasGeneratorBlockEntity;
 import io.hookdev.setpoint.block.entity.ControlValveBlockEntity;
 import io.hookdev.setpoint.block.entity.ControllerBlockEntity;
 import io.hookdev.setpoint.block.entity.CreativeGeneratorBlockEntity;
 import io.hookdev.setpoint.block.entity.LevelTransmitterBlockEntity;
 import io.hookdev.setpoint.block.entity.PumpBlockEntity;
+import io.hookdev.setpoint.block.entity.StirlingEngineBlockEntity;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
 import io.hookdev.setpoint.item.FieldCommunicatorItem;
 import io.hookdev.setpoint.menu.FaceplateMenu;
@@ -62,10 +65,19 @@ public final class SetpointContent {
     public static final DeferredBlock<ControllerBlock> CONTROLLER = BLOCKS.registerBlock("controller", ControllerBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
 
+    public static final DeferredBlock<GeneratorBlock> STIRLING_ENGINE = BLOCKS.registerBlock("stirling_engine",
+            p -> new GeneratorBlock(p, StirlingEngineBlockEntity::new, () -> SetpointContent.STIRLING_ENGINE_ENTITY.get()),
+            p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<GeneratorBlock> BIOGAS_GENERATOR = BLOCKS.registerBlock("biogas_generator",
+            p -> new GeneratorBlock(p, BiogasGeneratorBlockEntity::new, () -> SetpointContent.BIOGAS_GENERATOR_ENTITY.get()),
+            p -> p.mapColor(MapColor.COLOR_GREEN).strength(3.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+
     public static final DeferredItem<BlockItem> PIPE_ITEM = ITEMS.registerSimpleBlockItem(PIPE);
     public static final DeferredItem<BlockItem> TANK_ITEM = ITEMS.registerSimpleBlockItem(TANK);
     public static final DeferredItem<BlockItem> PUMP_ITEM = ITEMS.registerSimpleBlockItem(PUMP);
     public static final DeferredItem<BlockItem> CREATIVE_GENERATOR_ITEM = ITEMS.registerSimpleBlockItem(CREATIVE_GENERATOR);
+    public static final DeferredItem<BlockItem> STIRLING_ENGINE_ITEM = ITEMS.registerSimpleBlockItem(STIRLING_ENGINE);
+    public static final DeferredItem<BlockItem> BIOGAS_GENERATOR_ITEM = ITEMS.registerSimpleBlockItem(BIOGAS_GENERATOR);
     public static final DeferredItem<BlockItem> LEVEL_TRANSMITTER_ITEM = ITEMS.registerSimpleBlockItem(LEVEL_TRANSMITTER);
     public static final DeferredItem<BlockItem> CONTROL_VALVE_ITEM = ITEMS.registerSimpleBlockItem(CONTROL_VALVE);
     public static final DeferredItem<BlockItem> CONTROLLER_ITEM = ITEMS.registerSimpleBlockItem(CONTROLLER);
@@ -86,6 +98,11 @@ public final class SetpointContent {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ControllerBlockEntity>> CONTROLLER_ENTITY = BLOCK_ENTITIES.register("controller",
             () -> new BlockEntityType<>(ControllerBlockEntity::new, CONTROLLER.get()));
 
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<StirlingEngineBlockEntity>> STIRLING_ENGINE_ENTITY = BLOCK_ENTITIES.register("stirling_engine",
+            () -> new BlockEntityType<>(StirlingEngineBlockEntity::new, STIRLING_ENGINE.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BiogasGeneratorBlockEntity>> BIOGAS_GENERATOR_ENTITY = BLOCK_ENTITIES.register("biogas_generator",
+            () -> new BlockEntityType<>(BiogasGeneratorBlockEntity::new, BIOGAS_GENERATOR.get()));
+
     public static final DeferredHolder<MenuType<?>, MenuType<FaceplateMenu>> FACEPLATE = MENUS.register("faceplate",
             () -> IMenuTypeExtension.create(FaceplateMenu::new));
 
@@ -97,6 +114,8 @@ public final class SetpointContent {
                 output.accept(PIPE_ITEM.get());
                 output.accept(TANK_ITEM.get());
                 output.accept(PUMP_ITEM.get());
+                output.accept(STIRLING_ENGINE_ITEM.get());
+                output.accept(BIOGAS_GENERATOR_ITEM.get());
                 output.accept(LEVEL_TRANSMITTER_ITEM.get());
                 output.accept(CONTROL_VALVE_ITEM.get());
                 output.accept(CONTROLLER_ITEM.get());

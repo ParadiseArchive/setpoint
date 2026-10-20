@@ -9,10 +9,13 @@ import io.hookdev.setpoint.SetpointContent;
 import io.hookdev.setpoint.block.ControlValveBlock;
 import io.hookdev.setpoint.block.PumpBlock;
 import io.hookdev.setpoint.block.PumpStatus;
+import io.hookdev.setpoint.block.entity.BiogasGeneratorBlockEntity;
 import io.hookdev.setpoint.block.entity.ControlValveBlockEntity;
 import io.hookdev.setpoint.block.entity.ControllerBlockEntity;
 import io.hookdev.setpoint.block.entity.LevelTransmitterBlockEntity;
+import io.hookdev.setpoint.block.entity.GeneratorBlockEntity;
 import io.hookdev.setpoint.block.entity.PumpBlockEntity;
+import io.hookdev.setpoint.block.entity.StirlingEngineBlockEntity;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
 import io.hookdev.setpoint.control.PidController;
 import io.hookdev.setpoint.physics.PumpModel;
@@ -26,6 +29,8 @@ import net.minecraft.gametest.framework.FunctionGameTestInstance;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.TestData;
 import net.minecraft.gametest.framework.TestEnvironmentDefinition;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.bus.api.IEventBus;
@@ -53,6 +58,9 @@ public final class SetpointGameTests {
         test("bad_pv_sheds_to_manual", SetpointGameTests::badPvShedsToManual, 100);
         test("level_loop_holds_setpoint", SetpointGameTests::levelLoopHoldsSetpoint, 2400);
         test("controller_links_itself", SetpointGameTests::controllerLinksItself, 2400);
+        test("stirling_engine_runs_a_pump", SetpointGameTests::stirlingEngineRunsAPump, 400);
+        test("biogas_generator_runs_on_seeds", SetpointGameTests::biogasGeneratorRunsOnSeeds, 200);
+        test("generator_keeps_fuel_when_idle", SetpointGameTests::generatorKeepsFuelWhenIdle, 200);
     }
 
     private static void test(String name, Consumer<GameTestHelper> function, int maxTicks) {
@@ -265,6 +273,42 @@ public final class SetpointGameTests {
             helper.assertTrue(lic.mvTag().equals(lv.tag()), "controller should have found the feed valve, has '" + lic.mvTag() + "'");
             helper.assertTrue(lic.mode() == PidController.Mode.AUTO, "controller should be in AUTO");
             helper.assertTrue(Math.abs(lic.pv() - 50) < 4, String.format("level should hold at 50 %%, is %.1f %%", lic.pv()));
+            helper.succeed();
+        });
+    }
+
+    // ---------- power ----------
+
+    /** The pump line, but powered by a Stirling engine on coal instead of the creative generator. */
+    private static void stirlingEngineRunsAPump(GameTestHelper helper) {
+        buildLine(helper, false);
+        helper.setBlock(3, 0, 1, SetpointContent.STIRLING_ENGINE.get());
+        StirlingEngineBlockEntity engine = helper.getBlockEntity(new BlockPos(3, 0, 1), StirlingEngineBlockEntity.class);
+        engine.insertFromHand(new ItemStack(Items.COAL, 4));
+        fill(helper, SOURCE, 8_000);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(engine.running(), "engine should be running on coal");
+            helper.assertTrue(helper.getBlockEntity(DESTINATION, TankBlockEntity.class).amount() >= 1_000, "the engine should power the pump");
+        });
+    }
+
+    private static void biogasGeneratorRunsOnSeeds(GameTestHelper helper) {
+        helper.setBlock(1, 1, 1, SetpointContent.BIOGAS_GENERATOR.get());
+        BiogasGeneratorBlockEntity generator = helper.getBlockEntity(new BlockPos(1, 1, 1), BiogasGeneratorBlockEntity.class);
+        helper.assertTrue(generator.insertFromHand(new ItemStack(Items.WHEAT_SEEDS, 32)) == 32, "seeds should go in");
+        helper.assertTrue(generator.insertFromHand(new ItemStack(Items.STONE, 1)) == 0, "stone is not organic");
+        helper.succeedWhen(() -> helper.assertTrue(generator.energy().getAmountAsInt() >= 1_000, "biogas should make power from seeds"));
+    }
+
+    /** With nothing drawing power the buffer fills up and the generator stops burning, so fuel is not wasted. */
+    private static void generatorKeepsFuelWhenIdle(GameTestHelper helper) {
+        helper.setBlock(1, 1, 1, SetpointContent.STIRLING_ENGINE.get());
+        StirlingEngineBlockEntity engine = helper.getBlockEntity(new BlockPos(1, 1, 1), StirlingEngineBlockEntity.class);
+        engine.energy().set(GeneratorBlockEntity.ENERGY_CAPACITY);
+        engine.insertFromHand(new ItemStack(Items.COAL, 8));
+        helper.runAfterDelay(100, () -> {
+            helper.assertTrue(engine.input().getAmountAsInt(0) == 8, "coal was burnt while the buffer was full");
+            helper.assertTrue(!engine.running(), "engine should idle with a full buffer");
             helper.succeed();
         });
     }

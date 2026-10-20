@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "G": "minecraft:glass",
+    "C": "minecraft:copper_ingot",
+    "X": "minecraft:composter"
+  },
+  "pattern": [
+    "IGI",
+    "CXC",
+    "III"
+  ],
+  "result": {
+    "id": "setpoint:biogas_generator"
+  }
+}

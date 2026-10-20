@@ -8,5 +8,7 @@
   "block.setpoint.level_transmitter": "Level Transmitter",
   "block.setpoint.control_valve": "Control Valve",
   "block.setpoint.controller": "DCS Controller",
-  "item.setpoint.field_communicator": "Field Communicator"
+  "item.setpoint.field_communicator": "Field Communicator",
+  "block.setpoint.stirling_engine": "Stirling Engine",
+  "block.setpoint.biogas_generator": "Biogas Generator"
 }

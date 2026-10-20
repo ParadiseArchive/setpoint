@@ -1,0 +1,199 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "side": "setpoint:block/biogas_side",
+    "top": "setpoint:block/biogas_top",
+    "front": "setpoint:block/biogas_front_off",
+    "pipe": "setpoint:block/pipe",
+    "particle": "setpoint:block/biogas_side"
+  },
+  "elements": [
+    {
+      "from": [
+        1,
+        0,
+        1
+      ],
+      "to": [
+        15,
+        11,
+        15
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            5,
+            15,
+            16
+          ],
+          "texture": "#front"
+        },
+        "south": {
+          "uv": [
+            1,
+            5,
+            15,
+            16
+          ],
+          "texture": "#side"
+        },
+        "east": {
+          "uv": [
+            1,
+            5,
+            15,
+            16
+          ],
+          "texture": "#side"
+        },
+        "west": {
+          "uv": [
+            1,
+            5,
+            15,
+            16
+          ],
+          "texture": "#side"
+        },
+        "up": {
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ],
+          "texture": "#top"
+        },
+        "down": {
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ],
+          "texture": "#side",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "from": [
+        3,
+        11,
+        3
+      ],
+      "to": [
+        13,
+        14,
+        13
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ],
+          "texture": "#top"
+        },
+        "south": {
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ],
+          "texture": "#top"
+        },
+        "east": {
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ],
+          "texture": "#top"
+        },
+        "west": {
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ],
+          "texture": "#top"
+        },
+        "up": {
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ],
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "from": [
+        7,
+        14,
+        7
+      ],
+      "to": [
+        9,
+        16,
+        9
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5,
+            5,
+            7,
+            7
+          ],
+          "texture": "#pipe"
+        },
+        "south": {
+          "uv": [
+            5,
+            5,
+            7,
+            7
+          ],
+          "texture": "#pipe"
+        },
+        "east": {
+          "uv": [
+            5,
+            5,
+            7,
+            7
+          ],
+          "texture": "#pipe"
+        },
+        "west": {
+          "uv": [
+            5,
+            5,
+            7,
+            7
+          ],
+          "texture": "#pipe"
+        },
+        "up": {
+          "uv": [
+            5,
+            5,
+            7,
+            7
+          ],
+          "texture": "#pipe"
+        }
+      }
+    }
+  ]
+}

@@ -38,5 +38,10 @@ public class Setpoint {
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, SetpointContent.TANK_ENTITY.get(), (tank, side) -> tank.fluid());
         // Pumps take FE from any side; cables from other mods can power them.
         event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.PUMP_ENTITY.get(), (pump, side) -> pump.energy());
+        // Generators: cables can pull their FE, hoppers can feed their fuel slot.
+        event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.STIRLING_ENGINE_ENTITY.get(), (generator, side) -> generator.energy());
+        event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.BIOGAS_GENERATOR_ENTITY.get(), (generator, side) -> generator.energy());
+        event.registerBlockEntity(Capabilities.Item.BLOCK, SetpointContent.STIRLING_ENGINE_ENTITY.get(), (generator, side) -> generator.input());
+        event.registerBlockEntity(Capabilities.Item.BLOCK, SetpointContent.BIOGAS_GENERATOR_ENTITY.get(), (generator, side) -> generator.input());
     }
 }

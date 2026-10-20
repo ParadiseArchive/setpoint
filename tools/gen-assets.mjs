@@ -335,6 +335,89 @@ recipe('control_valve', [' P ', 'CIC'], { P: 'minecraft:piston', C: 'minecraft:c
 recipe('controller', ['IGI', 'RCR', 'III'], { I: 'minecraft:iron_ingot', G: 'minecraft:glass_pane', R: 'minecraft:redstone', C: 'minecraft:comparator' }, 'setpoint:controller');
 recipe('field_communicator', [' G ', 'IRI', 'ICI'], { G: 'minecraft:glass_pane', I: 'minecraft:iron_ingot', R: 'minecraft:redstone', C: 'minecraft:copper_ingot' }, 'setpoint:field_communicator');
 
+// =====================================================================================
+// Power: Stirling engine (early) and biogas generator
+// =====================================================================================
+
+texture('stirling_base', (p) => { plate(p, C.steel1); rivets(p, [[1, 1], [13, 1], [1, 13], [13, 13]]); });
+texture('stirling_cylinder', (p) => {
+  const shade = [C.cu1, C.cu2, C.cu3, C.cu4, C.cu3, C.cu2, C.cu2, C.cu1, C.cu1, C.cu1, C.cu0, C.cu0, C.cu1, C.cu2, C.cu1, C.cu0];
+  for (let y = 0; y < 16; y++) p.rect(0, y, 16, 1, shade[y]);
+  for (let x = 1; x < 16; x += 3) p.rect(x, 0, 1, 16, C.cu0); // cooling fins
+});
+texture('stirling_hot_off', (p) => { p.rect(0, 0, 16, 16, C.steel0); p.rect(2, 2, 12, 12, '#2a2e36'); p.rect(4, 4, 8, 8, C.steel1); });
+texture('stirling_hot_on', (p) => {
+  p.rect(0, 0, 16, 16, '#7a2a10'); p.rect(2, 2, 12, 12, '#c2451a'); p.rect(4, 4, 8, 8, '#f07a2a'); p.rect(6, 6, 4, 4, '#ffc06a');
+});
+texture('stirling_flywheel', (p) => {
+  p.rect(0, 0, 16, 16, null);
+  p.rect(2, 0, 12, 16, C.steel0); p.rect(0, 2, 16, 12, C.steel0);        // rim
+  p.rect(3, 2, 10, 12, '#1d2027'); p.rect(2, 3, 12, 10, '#1d2027');      // inside
+  p.rect(7, 2, 2, 12, C.steel2); p.rect(2, 7, 12, 2, C.steel2);          // spokes
+  p.rect(6, 6, 4, 4, C.steel3); p.rect(7, 7, 2, 2, C.amber);              // hub
+});
+
+texture('biogas_side', (p) => {
+  p.rect(0, 0, 16, 16, '#3c5a3a');
+  p.rect(0, 0, 16, 1, '#58805a'); p.rect(0, 15, 16, 1, '#26381f');
+  for (let y = 4; y <= 12; y += 4) p.rect(0, y, 16, 1, '#2f4a2d');   // plate seams
+  rivets(p, [[2, 2], [12, 2], [2, 12], [12, 12]]);
+});
+texture('biogas_top', (p) => { p.rect(0, 0, 16, 16, '#4a6e47'); p.rect(3, 3, 10, 10, '#3c5a3a'); p.rect(6, 6, 4, 4, '#2f4a2d'); });
+function biogasFront(led, ledDark, flame) {
+  return (p) => {
+    p.rect(0, 0, 16, 16, '#3c5a3a');
+    p.rect(0, 0, 16, 1, '#58805a'); p.rect(0, 15, 16, 1, '#26381f');
+    p.rect(3, 3, 10, 7, C.outline); p.rect(4, 4, 8, 5, '#151923');          // engine window
+    if (flame) { p.rect(6, 6, 4, 2, '#3a7bff'); p.rect(7, 5, 2, 1, '#9ad0ff'); } // gas flame
+    p.rect(3, 12, 2, 2, ledDark); p.set(3, 12, led);                         // status light
+    p.rect(7, 12, 6, 2, C.amber); p.rect(8, 13, 4, 1, '#c98a2c');            // nameplate
+  };
+}
+texture('biogas_front_off', biogasFront(C.ledOff, C.outline, false));
+texture('biogas_front_on', biogasFront(C.cyan, C.cyanDark, true));
+
+for (const lit of [false, true]) {
+  M('stirling_engine' + (lit ? '_on' : ''), {
+    parent: 'minecraft:block/block',
+    textures: { base: tex('stirling_base'), cylinder: tex('stirling_cylinder'), hot: tex(lit ? 'stirling_hot_on' : 'stirling_hot_off'),
+      flywheel: tex('stirling_flywheel'), particle: tex('stirling_base') },
+    elements: [
+      box([0, 0, 0], [16, 3, 16], allFaces([0, 0, 16, 16], '#base')),
+      box([4, 3, 5], [11, 10, 11], allFaces([0, 3, 16, 10], '#cylinder')),
+      box([1, 3, 4], [4, 11, 12], allFaces([2, 2, 14, 14], '#hot')),
+      box([11, 7, 7], [12, 9, 9], allFaces([7, 7, 9, 9], '#base')),
+      box([12, 1, 1], [14, 15, 15], {
+        east: { uv: [0, 0, 16, 16], texture: '#flywheel' }, west: { uv: [0, 0, 16, 16], texture: '#flywheel' },
+        north: { uv: [0, 0, 2, 14], texture: '#base' }, south: { uv: [0, 0, 2, 14], texture: '#base' },
+        up: { uv: [0, 0, 2, 14], texture: '#base' }, down: { uv: [0, 0, 2, 14], texture: '#base' },
+      }),
+    ],
+  });
+  M('biogas_generator' + (lit ? '_on' : ''), {
+    parent: 'minecraft:block/block',
+    textures: { side: tex('biogas_side'), top: tex('biogas_top'), front: tex(lit ? 'biogas_front_on' : 'biogas_front_off'), pipe: tex('pipe'), particle: tex('biogas_side') },
+    elements: [
+      box([1, 0, 1], [15, 11, 15], {
+        north: { uv: [1, 5, 15, 16], texture: '#front' }, south: { uv: [1, 5, 15, 16], texture: '#side' },
+        east: { uv: [1, 5, 15, 16], texture: '#side' }, west: { uv: [1, 5, 15, 16], texture: '#side' },
+        up: { uv: [1, 1, 15, 15], texture: '#top' }, down: { uv: [1, 1, 15, 15], texture: '#side', cullface: 'down' },
+      }),
+      box([3, 11, 3], [13, 14, 13], allFaces([3, 3, 13, 13], '#top', ['down'])),
+      box([7, 14, 7], [9, 16, 9], allFaces([5, 5, 7, 7], '#pipe', ['down'])),
+    ],
+  });
+}
+for (const name of ['stirling_engine', 'biogas_generator']) {
+  BS(name, {
+    variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => [false, true].map((lit) =>
+      [`facing=${f},lit=${lit}`, { model: 'setpoint:block/' + name + (lit ? '_on' : ''), ...(y ? { y } : {}) }]))),
+  });
+  item(name, 'setpoint:block/' + name + '_on');
+}
+recipe('stirling_engine', [' C ', 'IPI', 'III'], { C: 'minecraft:copper_ingot', I: 'minecraft:iron_ingot', P: 'minecraft:piston' }, 'setpoint:stirling_engine');
+recipe('biogas_generator', ['IGI', 'CXC', 'III'], { I: 'minecraft:iron_ingot', G: 'minecraft:glass', C: 'minecraft:copper_ingot', X: 'minecraft:composter' }, 'setpoint:biogas_generator');
+
 // ---------- empty game test structure (NBT) ----------
 function nbt() {
   const parts = [];
