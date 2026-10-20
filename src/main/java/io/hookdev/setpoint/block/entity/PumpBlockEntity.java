@@ -16,7 +16,6 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -144,10 +143,12 @@ public class PumpBlockEntity extends BlockEntity {
 
     private static void effects(ServerLevel level, BlockPos pos, PumpModel.Result result) {
         long time = level.getGameTime();
+        // Cavitation crackles; the worse it gets, the more often it pops.
+        if (result.cavitation() > 0 && time % 4 == 0 && level.getRandom().nextFloat() < 0.35f + 0.65f * result.cavitation()) {
+            float volume = 0.35f + 0.45f * (float) result.cavitation();
+            level.playSound(null, pos, SetpointContent.PUMP_CAVITATE.get(), SoundSource.BLOCKS, volume, 0.9f + level.getRandom().nextFloat() * 0.2f);
+        }
         if (result.cavitation() > 0 && time % 6 == 0) {
-            // Cavitation sounds like gravel going through the pump.
-            float volume = 0.25f + 0.45f * (float) result.cavitation();
-            level.playSound(null, pos, SoundEvents.GRAVEL_HIT, SoundSource.BLOCKS, volume, 0.6f + level.getRandom().nextFloat() * 0.4f);
             level.sendParticles(ParticleTypes.BUBBLE_POP, pos.getX() + 0.5, pos.getY() + 0.7, pos.getZ() + 0.5, 4, 0.3, 0.2, 0.3, 0.02);
         }
         if (result.state() == PumpModel.State.DEADHEAD && time % 20 == 0) {

@@ -1,0 +1,15 @@
+{
+  "block.centrifugal_pump.cavitate": {
+    "subtitle": "subtitles.setpoint.block.centrifugal_pump.cavitate",
+    "sounds": [
+      { "name": "minecraft:block/campfire/crackle1", "pitch": 0.7 },
+      { "name": "minecraft:block/campfire/crackle2", "pitch": 0.75 },
+      { "name": "minecraft:block/campfire/crackle3", "pitch": 0.7 },
+      { "name": "minecraft:block/campfire/crackle4", "pitch": 0.8 },
+      { "name": "minecraft:block/campfire/crackle5", "pitch": 0.75 },
+      { "name": "minecraft:block/campfire/crackle6", "pitch": 0.7 },
+      { "name": "minecraft:block/bubble_column/bubble1", "pitch": 0.6, "volume": 0.6 },
+      { "name": "minecraft:block/bubble_column/bubble2", "pitch": 0.6, "volume": 0.6 }
+    ]
+  }
+}
