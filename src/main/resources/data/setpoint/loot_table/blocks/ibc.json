@@ -18,7 +18,8 @@
             "source": "block_entity",
             "include": [
               "minecraft:custom_name",
-              "setpoint:fluid_contents"
+              "setpoint:fluid_contents",
+              "minecraft:dyed_color"
             ]
           }
         }

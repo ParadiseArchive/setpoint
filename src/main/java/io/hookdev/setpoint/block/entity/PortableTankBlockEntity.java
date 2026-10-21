@@ -17,6 +17,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
@@ -27,6 +28,8 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeColor;
+import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -50,6 +53,12 @@ public class PortableTankBlockEntity extends BlockEntity implements Vessel, Name
     private final GravityFlow gravity = new GravityFlow();
     /** Client side: the liquid you see through the tote, for its colour. */
     private Fluid shownFluid = Fluids.EMPTY;
+    /** Painted with a dye, or null for its own colour (a blue drum, a white IBC). */
+    private @Nullable DyeColor colour;
+
+    /** The drum's own blue, as the tint of its grey steel. */
+    public static final int DRUM_BLUE = 0xFF3B79DE;
+    public static final int IBC_WHITE = 0xFFFFFFFF, IBC_BLACK = 0xFF2A2C2F;
 
     public PortableTankBlockEntity(BlockPos pos, BlockState state) {
         super(SetpointContent.PORTABLE_TANK_ENTITY.get(), pos, state);
@@ -86,6 +95,32 @@ public class PortableTankBlockEntity extends BlockEntity implements Vessel, Name
     }
 
     @Override public Fluid shownFluid() { return shownFluid; }
+
+    public @Nullable DyeColor colour() { return colour; }
+
+    public boolean isIbc() {
+        return getBlockState().getBlock() instanceof IbcBlock;
+    }
+
+    /** The colour its body is drawn in: the drum's steel, the IBC's tote. */
+    public int bodyColour() {
+        if (isIbc()) return colour == DyeColor.BLACK ? IBC_BLACK : IBC_WHITE;
+        return colour == null ? DRUM_BLUE : 0xFF000000 | colour.getTextureDiffuseColor();
+    }
+
+    /**
+     * Right-click with a dye: a drum takes any colour, an IBC comes in white or black (a black one keeps the light
+     * out, so you cannot see the liquid in it). False if this dye does not go on it.
+     */
+    public boolean dye(DyeColor dye) {
+        if (isIbc() && dye != DyeColor.WHITE && dye != DyeColor.BLACK) return false;
+        DyeColor next = isIbc() && dye == DyeColor.WHITE ? null : dye;
+        if (next == colour) return false;
+        colour = next;
+        setChanged();
+        if (level != null && !level.isClientSide()) level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
+        return true;
+    }
 
     /** The base block and its parts. */
     @Override
@@ -131,6 +166,7 @@ public class PortableTankBlockEntity extends BlockEntity implements Vessel, Name
     protected void collectImplicitComponents(DataComponentMap.Builder components) {
         super.collectImplicitComponents(components);
         if (amount() > 0) components.set(SetpointContent.FLUID_CONTENTS.get(), SimpleFluidContent.copyOf(resource().toStack(amount())));
+        if (colour != null) components.set(DataComponents.DYED_COLOR, new DyedItemColor(colour.getTextureDiffuseColor() & 0xFFFFFF));
     }
 
     @Override
@@ -141,6 +177,10 @@ public class PortableTankBlockEntity extends BlockEntity implements Vessel, Name
             FluidStack stack = contents.copy();
             fluid.set(0, FluidResource.of(stack), Math.min(capacity(), stack.getAmount()));
         }
+        DyedItemColor dyed = components.get(DataComponents.DYED_COLOR);
+        if (dyed != null) {
+            for (DyeColor dye : DyeColor.values()) if ((dye.getTextureDiffuseColor() & 0xFFFFFF) == (dyed.rgb() & 0xFFFFFF)) colour = dye;
+        }
     }
 
     @Override
@@ -148,6 +188,7 @@ public class PortableTankBlockEntity extends BlockEntity implements Vessel, Name
         super.saveAdditional(output);
         fluid.serialize(output);
         name.save(output);
+        if (colour != null) output.putString("colour", colour.getSerializedName());
     }
 
     @Override
@@ -155,6 +196,7 @@ public class PortableTankBlockEntity extends BlockEntity implements Vessel, Name
         super.loadAdditional(input);
         fluid.deserialize(input);
         name.load(input);
+        colour = DyeColor.byName(input.getStringOr("colour", ""), null);
     }
 
     // ---------- the client sees which liquid it is ----------
@@ -162,6 +204,7 @@ public class PortableTankBlockEntity extends BlockEntity implements Vessel, Name
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
         tag.putString("shown_fluid", BuiltInRegistries.FLUID.getKey(resource().getFluid()).toString());
+        if (colour != null) tag.putString("colour", colour.getSerializedName());
         return tag;
     }
 
@@ -183,6 +226,7 @@ public class PortableTankBlockEntity extends BlockEntity implements Vessel, Name
     private void readShownFluid(ValueInput input) {
         Identifier id = Identifier.tryParse(input.getStringOr("shown_fluid", "minecraft:empty"));
         shownFluid = id == null ? Fluids.EMPTY : BuiltInRegistries.FLUID.getValue(id);
+        colour = DyeColor.byName(input.getStringOr("colour", ""), null);
         if (level != null) level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS); // redraw
     }
 }

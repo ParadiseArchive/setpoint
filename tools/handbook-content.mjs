@@ -77,6 +77,7 @@ export const HANDBOOK = {
         ['h', 'Drum and IBC'],
         ['p', 'Containers you can carry. A **drum** holds 4 buckets and stands one and a half blocks high; an **IBC** holds 20 and takes two by two by two blocks. A real drum holds 200 kg and an IBC 1000 kg; here 1 kg is 20 mB. You see the liquid through the white tote of an IBC.'],
         ['p', 'An IBC reaches to your left and away from you from where you place it, so leave room. Pipes fit on any of its blocks.'],
+        ['p', '**Colours.** Right-click a drum with any dye to paint it. An IBC is white, or black with black dye (a black one keeps the light out, so you cannot see the liquid). They keep their colour when you carry them away.'],
         ['p', 'They work like a tank with buckets, pipes, pumps and controllers. Break one and the liquid goes along in the item; place it somewhere else and it is all still there.'],
         ['craft', 'setpoint:drum'],
         ['craft', 'setpoint:ibc'],

@@ -289,6 +289,10 @@
         },
         {
           "type": "p",
+          "text": "**Colours.** Right-click a drum with any dye to paint it. An IBC is white, or black with black dye (a black one keeps the light out, so you cannot see the liquid). They keep their colour when you carry them away."
+        },
+        {
+          "type": "p",
           "text": "They work like a tank with buckets, pipes, pumps and controllers. Break one and the liquid goes along in the item; place it somewhere else and it is all still there."
         },
         {

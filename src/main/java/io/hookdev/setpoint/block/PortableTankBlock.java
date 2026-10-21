@@ -10,13 +10,20 @@ import io.hookdev.setpoint.block.entity.TankPartBlockEntity;
 import io.hookdev.setpoint.hydraulics.Vessel;
 import io.hookdev.setpoint.hydraulics.VesselBlock;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
@@ -98,9 +105,26 @@ public abstract class PortableTankBlock extends BaseEntityBlock implements Vesse
         return level.isClientSide() ? null : createTickerHelper(type, SetpointContent.PORTABLE_TANK_ENTITY.get(), PortableTankBlockEntity::serverTick);
     }
 
+    /** A dye paints it: the drum any colour, the IBC white or black. */
+    public static InteractionResult dye(ItemStack itemStack, Level level, BlockPos base, Player player) {
+        DyeColor dye = itemStack.get(DataComponents.DYE);
+        if (dye == null || !(level.getBlockEntity(base) instanceof PortableTankBlockEntity tank)) return InteractionResult.PASS;
+        if (level.isClientSide()) return InteractionResult.SUCCESS;
+        if (!tank.dye(dye)) {
+            if (tank.isIbc() && dye != DyeColor.WHITE && dye != DyeColor.BLACK && player instanceof ServerPlayer serverPlayer) {
+                serverPlayer.sendSystemMessage(Component.literal("IBCs come in white or black.").withStyle(ChatFormatting.GRAY), true);
+            }
+            return InteractionResult.SUCCESS;
+        }
+        level.playSound(null, base, SoundEvents.DYE_USE, SoundSource.BLOCKS, 1.0f, 1.0f);
+        itemStack.consume(1, player);
+        return InteractionResult.SUCCESS;
+    }
+
     @Override
     protected InteractionResult useItemOn(ItemStack itemStack, BlockState state, Level level, BlockPos pos, Player player,
                                           InteractionHand hand, BlockHitResult hitResult) {
+        if (itemStack.has(DataComponents.DYE)) return dye(itemStack, level, pos, player);
         if (FluidUtil.interactWithFluidHandler(player, hand, level, pos, hitResult.getDirection(), null)) {
             return InteractionResult.SUCCESS;
         }

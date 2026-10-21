@@ -15,6 +15,7 @@ import io.hookdev.setpoint.block.CheckValveBlock;
 import io.hookdev.setpoint.block.DrainValveBlock;
 import io.hookdev.setpoint.block.IbcBlock;
 import io.hookdev.setpoint.block.PidBoardBlock;
+import io.hookdev.setpoint.block.PortableTankBlock;
 import io.hookdev.setpoint.block.SafetyValveBlock;
 import io.hookdev.setpoint.block.entity.PidBoardBlockEntity;
 import io.hookdev.setpoint.block.entity.PortableTankBlockEntity;
@@ -116,6 +117,7 @@ public final class SetpointGameTests {
         test("pump_fills_an_ibc", SetpointGameTests::pumpFillsAnIbc, 300);
         test("a_broken_drum_keeps_its_liquid", SetpointGameTests::aBrokenDrumKeepsItsLiquid, 40);
         test("an_ibc_takes_eight_blocks_and_breaks_whole", SetpointGameTests::anIbcTakesEightBlocksAndBreaksWhole, 40);
+        test("dye_paints_drums_and_ibcs", SetpointGameTests::dyePaintsDrumsAndIbcs, 20);
         test("high_pressure_trips_the_burner", SetpointGameTests::highPressureTripsTheBurner, 400);
         test("safety_valve_saves_the_boiler", SetpointGameTests::safetyValveSavesTheBoiler, 300);
         test("overpressure_bursts_an_unprotected_boiler", SetpointGameTests::overpressureBurstsAnUnprotectedBoiler, 100);
@@ -1067,6 +1069,32 @@ public final class SetpointGameTests {
             helper.assertTrue(contents != null && contents.copy().getAmount() == 5_000, "the IBC should drop with its water");
             helper.succeed();
         });
+    }
+
+    /** A dye paints a drum any colour and keeps it in the item; an IBC only takes black or white; a part shows as its IBC. */
+    private static void dyePaintsDrumsAndIbcs(GameTestHelper helper) {
+        BlockPos drumPos = new BlockPos(1, 1, 1), ibcPos = new BlockPos(4, 1, 1);
+        helper.setBlock(drumPos, SetpointContent.DRUM.get());
+        BlockState ibcState = SetpointContent.IBC.get().defaultBlockState().setValue(IbcBlock.FACING, Direction.NORTH);
+        helper.setBlock(ibcPos, ibcState);
+        BlockPos ibcAbs = helper.absolutePos(ibcPos);
+        ibcState.getBlock().setPlacedBy(helper.getLevel(), ibcAbs, helper.getLevel().getBlockState(ibcAbs), null, new ItemStack(SetpointContent.IBC_ITEM.get()));
+        PortableTankBlockEntity drum = helper.getBlockEntity(drumPos, PortableTankBlockEntity.class), ibc = helper.getBlockEntity(ibcPos, PortableTankBlockEntity.class);
+        helper.assertTrue(drum.bodyColour() == PortableTankBlockEntity.DRUM_BLUE, "a new drum should be blue");
+        var player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack red = new ItemStack(Items.DYE.red(), 2);
+        PortableTankBlock.dye(red, helper.getLevel(), helper.absolutePos(drumPos), player);
+        helper.assertTrue(drum.colour() == net.minecraft.world.item.DyeColor.RED && red.getCount() == 1, "red dye should paint the drum red and be used up");
+        PortableTankBlock.dye(red, helper.getLevel(), ibcAbs, player);
+        helper.assertTrue(ibc.colour() == null && red.getCount() == 1, "an IBC should not take red dye");
+        PortableTankBlock.dye(new ItemStack(Items.DYE.black()), helper.getLevel(), ibcAbs, player);
+        helper.assertTrue(ibc.bodyColour() == PortableTankBlockEntity.IBC_BLACK, "black dye should make the IBC black");
+        var drops = Block.getDrops(helper.getBlockState(drumPos), helper.getLevel(), helper.absolutePos(drumPos), drum, null, new ItemStack(Items.IRON_PICKAXE));
+        helper.assertTrue(drops.size() == 1 && drops.get(0).has(net.minecraft.core.component.DataComponents.DYED_COLOR), "a red drum should drop red");
+        BlockPos part = ibcAbs.east().above();
+        ItemStack picked = helper.getLevel().getBlockState(part).getCloneItemStack(helper.getLevel(), part, false);
+        helper.assertTrue(picked.is(SetpointContent.IBC_ITEM.get()), "a part of an IBC should show as an IBC, got " + picked);
+        helper.succeed();
     }
 
     /** Break a drum with lava in it: the drum item carries the lava, and placing it back puts the lava back. */

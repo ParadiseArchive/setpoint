@@ -9,6 +9,7 @@ import io.hookdev.setpoint.hydraulics.VesselBlock;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -16,6 +17,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.RenderShape;
@@ -63,6 +65,7 @@ public class TankPartBlock extends BaseEntityBlock implements VesselBlock {
     protected InteractionResult useItemOn(ItemStack itemStack, BlockState state, Level level, BlockPos pos, Player player,
                                           InteractionHand hand, BlockHitResult hitResult) {
         BlockPos base = base(level, pos);
+        if (base != null && itemStack.has(DataComponents.DYE)) return PortableTankBlock.dye(itemStack, level, base, player);
         if (base != null && FluidUtil.interactWithFluidHandler(player, hand, level, base, hitResult.getDirection(), null)) {
             return InteractionResult.SUCCESS;
         }
@@ -74,6 +77,13 @@ public class TankPartBlock extends BaseEntityBlock implements VesselBlock {
         BlockPos base = base(level, pos);
         if (!level.isClientSide() && base != null && level.getBlockEntity(base) instanceof PortableTankBlockEntity tank) tank.describe(player);
         return InteractionResult.SUCCESS;
+    }
+
+    /** Middle-click (and Jade) see the drum or IBC it belongs to, not this part. */
+    @Override
+    protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
+        BlockPos base = base(level, pos);
+        return base == null ? ItemStack.EMPTY : level.getBlockState(base).getCloneItemStack(level, base, includeData);
     }
 
     /** Broken in creative: the whole container goes, without a drop. */

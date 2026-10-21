@@ -4,6 +4,7 @@ import java.util.List;
 
 import io.hookdev.setpoint.Setpoint;
 import io.hookdev.setpoint.SetpointContent;
+import io.hookdev.setpoint.block.entity.PortableTankBlockEntity;
 import io.hookdev.setpoint.block.entity.ShowsFluid;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
 import io.hookdev.setpoint.menu.ConsoleMenu;
@@ -20,6 +21,7 @@ import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -120,7 +122,32 @@ public class SetpointClient {
             public int colorInWorld(BlockState state, BlockAndTintGetter level, BlockPos pos) {
                 return level.getBlockEntity(pos) instanceof ShowsFluid tank ? FluidColours.of(tank.shownFluid()) : FluidColours.WATER;
             }
-        }), SetpointContent.TANK.get(), SetpointContent.IBC.get());
+        }), SetpointContent.TANK.get());
+        BlockTintSource body = new BlockTintSource() {
+            @Override
+            public int color(BlockState state) {
+                return state.is(SetpointContent.IBC.get()) ? PortableTankBlockEntity.IBC_WHITE : PortableTankBlockEntity.DRUM_BLUE;
+            }
+
+            @Override
+            public int colorInWorld(BlockState state, BlockAndTintGetter level, BlockPos pos) {
+                return level.getBlockEntity(pos) instanceof PortableTankBlockEntity tank ? tank.bodyColour() : color(state);
+            }
+        };
+        BlockTintSource liquid = new BlockTintSource() {
+            @Override
+            public int color(BlockState state) {
+                return FluidColours.WATER;
+            }
+
+            @Override
+            public int colorInWorld(BlockState state, BlockAndTintGetter level, BlockPos pos) {
+                if (!(level.getBlockEntity(pos) instanceof PortableTankBlockEntity tank)) return FluidColours.WATER;
+                return tank.colour() == DyeColor.BLACK ? PortableTankBlockEntity.IBC_BLACK : FluidColours.of(tank.shownFluid()); // a black tote keeps it hidden
+            }
+        };
+        event.register(List.of(body), SetpointContent.DRUM.get());
+        event.register(List.of(liquid, body), SetpointContent.IBC.get());
     }
 
     private static void registerScreens(RegisterMenuScreensEvent event) {

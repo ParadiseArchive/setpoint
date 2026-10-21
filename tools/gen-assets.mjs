@@ -929,21 +929,22 @@ function shrunk(elements, centre, factor) {
 
 // drum: a blue steel barrel, one and a half blocks high. Its round side is a pixel circle: slices that step in towards
 // the front and back, so from every side it looks round. Two hoops are pressed into the steel; the label sits on the front.
+// The steel is grey: the tint gives it its colour, the drum's own blue or the colour of a dye.
 texture('drum_side', (p) => { // the lower block: bottom chime, a hoop, room for the label
-  p.rect(0, 0, 16, 16, '#2e5fae');
-  p.rect(0, 15, 16, 1, '#1f417a');                                         // bottom chime
-  p.rect(0, 7, 16, 1, '#3f70c2'); p.rect(0, 8, 16, 1, '#1f417a');         // pressed hoop
-  p.rect(1, 0, 1, 15, '#3f70c2');                                          // highlight
+  p.rect(0, 0, 16, 16, '#c8c8c8');
+  p.rect(0, 15, 16, 1, '#8a8a8a');                                         // bottom chime
+  p.rect(0, 7, 16, 1, '#e0e0e0'); p.rect(0, 8, 16, 1, '#8a8a8a');         // pressed hoop
+  p.rect(1, 0, 1, 15, '#e0e0e0');                                          // highlight
 });
 texture('drum_side_top', (p) => { // the upper half block (rows 8 to 15 are used): top chime and the second hoop
-  p.rect(0, 0, 16, 16, '#2e5fae');
-  p.rect(0, 8, 16, 1, '#4a7ccc'); p.rect(0, 9, 16, 1, '#24498a');         // top chime
-  p.rect(0, 12, 16, 1, '#3f70c2'); p.rect(0, 13, 16, 1, '#1f417a');       // pressed hoop
-  p.rect(1, 10, 1, 6, '#3f70c2');
+  p.rect(0, 0, 16, 16, '#c8c8c8');
+  p.rect(0, 8, 16, 1, '#f8f8f8'); p.rect(0, 9, 16, 1, '#9c9c9c');         // top chime
+  p.rect(0, 12, 16, 1, '#e0e0e0'); p.rect(0, 13, 16, 1, '#8a8a8a');       // pressed hoop
+  p.rect(1, 10, 1, 6, '#e0e0e0');
 });
 texture('drum_top', (p) => {
-  p.rect(0, 0, 16, 16, '#2b58a3');
-  p.rect(2, 2, 12, 12, '#3466b6');                                         // the lid inside its rim
+  p.rect(0, 0, 16, 16, '#bababa');
+  p.rect(2, 2, 12, 12, '#d2d2d2');                                         // the lid inside its rim
   p.rect(5, 4, 2, 2, C.steel3); p.rect(10, 10, 2, 2, C.steel3);            // bungs
   p.set(5, 4, C.steel4); p.set(10, 10, C.steel4);
 });
@@ -959,14 +960,15 @@ texture('drum_bung', (p) => { p.rect(0, 0, 16, 16, C.steel3); p.rect(0, 0, 16, 1
   const bands = [[1, 2, 5, 11], [2, 3, 3, 13], [3, 5, 2, 14], [5, 11, 1, 15], [11, 13, 2, 14], [13, 14, 3, 13], [14, 15, 5, 11]];
   const elements = bands.flatMap(([z1, z2, x1, x2]) => tiled([x1, 0, z1], [x2, H, z2],
     (face, piece) => face === 'up' || face === 'down' ? '#top' : piece.from[1] >= 16 ? '#side_top' : '#side',
-    (face) => (face === 'down' ? { cullface: 'down' } : {})));
+    (face) => (face === 'down' ? { cullface: 'down', tintindex: 0 } : { tintindex: 0 })));
   elements.push(box([5.5, 9, 0.9], [10.5, 13, 1], { north: { uv: [0, 0, 16, 16], texture: '#label' } }));        // the label on the front
   elements.push(box([5, H, 4], [7, H + 0.5, 6], allFaces([0, 0, 2, 2], '#bung', ['down'])), box([10, H, 10], [12, H + 0.5, 12], allFaces([0, 0, 2, 2], '#bung', ['down'])));
   const textures = { side: tex('drum_side'), side_top: tex('drum_side_top'), top: tex('drum_top'), label: tex('drum_label'), bung: tex('drum_bung'), particle: tex('drum_side') };
   M('drum', { parent: 'minecraft:block/block', textures, elements });
   M('drum_item', { parent: 'minecraft:block/block', textures, elements: shrunk(elements, [8, (H + 0.5) / 2, 8], 16 / (H + 0.5)) });
   BS('drum', { variants: Object.fromEntries(Object.entries(yaw).map(([f, y]) => [`facing=${f}`, { model: 'setpoint:block/drum', ...(y ? { y } : {}) }])) });
-  item('drum', 'setpoint:block/drum_item');
+  json(join(ASSETS, 'items', 'drum.json'), { model: { type: 'minecraft:model', model: 'setpoint:block/drum_item',
+    tints: [{ type: 'minecraft:dye', default: 0xFF3B79DE | 0 }] } }); // its own blue, or the dye it was painted with
 }
 recipe('drum', ['I I', 'IDI', 'III'], { I: 'minecraft:iron_ingot', D: 'minecraft:blue_dye' }, 'setpoint:drum');
 
@@ -995,7 +997,7 @@ texture('ibc_liquid', (p) => {
   const ibc = (level) => {
     const elements = [
       ...tiled([0, 0, 0], [32, 3, 32], all('#pallet'), (face) => (face === 'down' ? { cullface: 'down' } : {})),
-      ...tiled([2, 3, 2], [30, 30, 30], (face) => (face === 'down' ? null : '#tote')),
+      ...tiled([2, 3, 2], [30, 30, 30], (face) => (face === 'down' ? null : '#tote'), () => ({ tintindex: 1 })), // white, or black when dyed
     ];
     if (level > 0) { // the liquid behind the tote: its surface row only at the top
       const top = 3 + Math.round(27 * level / 8);
@@ -1028,7 +1030,7 @@ texture('ibc_liquid', (p) => {
   BS('ibc', { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => Array.from({ length: 9 }, (_, l) =>
     [`facing=${f},level=${l}`, { model: 'setpoint:block/ibc_' + l, ...(y ? { y } : {}) }]))) });
   json(join(ASSETS, 'items', 'ibc.json'), { model: { type: 'minecraft:model', model: 'setpoint:block/ibc_item',
-    tints: [{ type: 'minecraft:constant', value: -12618012 }] } }); // water blue in the inventory
+    tints: [{ type: 'minecraft:constant', value: -12618012 }, { type: 'minecraft:dye', default: -1 }] } }); // water blue; a white or black tote
 }
 // the rest of a drum or IBC: nothing to draw (the base block's model reaches over it), only break particles
 M('tank_part', { textures: { particle: tex('ibc_tote') } });
@@ -1233,7 +1235,7 @@ for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) loot
 for (const name of ['drum', 'ibc']) json(join(DATA, 'loot_table/blocks', name + '.json'), {
   type: 'minecraft:block', random_sequence: 'setpoint:blocks/' + name,
   pools: [{ rolls: 1, conditions: [{ condition: 'minecraft:survives_explosion' }], entries: [{ type: 'minecraft:item', name: 'setpoint:' + name,
-    modifier: { type: 'minecraft:copy_components', source: 'block_entity', include: ['minecraft:custom_name', 'setpoint:fluid_contents'] } }] }],
+    modifier: { type: 'minecraft:copy_components', source: 'block_entity', include: ['minecraft:custom_name', 'setpoint:fluid_contents', 'minecraft:dyed_color'] } }] }],
 });
 lootOre('hookonium_ore', 'setpoint:raw_hookonium');
 lootOre('deepslate_hookonium_ore', 'setpoint:raw_hookonium');

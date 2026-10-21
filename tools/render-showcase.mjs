@@ -168,7 +168,7 @@ const SHADE = { up: 1, down: 0.5, north: 0.8, south: 0.8, east: 0.6, west: 0.6 }
 /** parts: [{ model, at: [bx, by, bz] (blocks), y: rotation }] */
 function render(file, parts, scale = 4, pad = 2, outline = true) {
   const quads = [];
-  for (const { model: name, at = [0, 0, 0], y = 0 } of parts) {
+  for (const { model: name, at = [0, 0, 0], y = 0, tints = [TINT, [255, 255, 255]] } of parts) {
     for (const e of model(name)) {
       for (const [face, f] of Object.entries(e.faces)) {
         const q = faceQuad(face, e.from, e.to);
@@ -183,7 +183,7 @@ function render(file, parts, scale = 4, pad = 2, outline = true) {
         if (-(n[0] * VIEW[0] + n[1] * VIEW[1] + n[2] * VIEW[2]) <= 1e-9) continue;
         const axis = Math.abs(n[1]) > Math.abs(n[0]) && Math.abs(n[1]) > Math.abs(n[2]) ? (n[1] < 0 ? 'up' : 'down')
           : Math.abs(n[0]) > Math.abs(n[2]) ? (n[0] < 0 ? 'east' : 'west') : (n[2] < 0 ? 'south' : 'north');
-        quads.push({ o, u, v, uv: f.uv || q.uv, tex: texture(f.texture), shade: SHADE[axis], tint: f.tintindex === undefined ? null : TINT });
+        quads.push({ o, u, v, uv: f.uv || q.uv, tex: texture(f.texture), shade: SHADE[axis], tint: f.tintindex === undefined ? null : tints[f.tintindex] || TINT });
       }
     }
   }
@@ -269,7 +269,12 @@ render('safety_valve', [{ model: 'safety_valve' }], 6);
 render('drain_valve', [{ model: 'drain_valve_open', y: 90 }], 6);
 render('check_valve', [{ model: 'check_valve', y: 90 }], 6);
 render('pid_board', [{ model: 'pid_board', y: S }]);
-render('drum', [{ model: 'drum', y: S }], 6);
+render('drum', [{ model: 'drum', y: S, tints: [[0x3b, 0x79, 0xde]] }], 6);
+render('drum_colours', [
+  { model: 'drum', y: S, at: [0, 0, 0], tints: [[0xb0, 0x2e, 0x26]] }, { model: 'drum', y: S, at: [1, 0, 0], tints: [[0xfe, 0xd8, 0x3d]] },
+  { model: 'drum', y: S, at: [2, 0, 0], tints: [[0x5e, 0x7c, 0x16]] }, { model: 'drum', y: S, at: [3, 0, 0], tints: [[0x1d, 0x1d, 0x21]] },
+], 4);
+render('ibc_black', [{ model: 'ibc_5', y: S, tints: [[0x2a, 0x2c, 0x2f], [0x2a, 0x2c, 0x2f]] }], 4);
 render('ibc', [{ model: 'ibc_5', y: S }], 4);
 // gravity: a full tall tank runs into a low one through a check valve, until both stand at the same level
 render('gravity_line', [
