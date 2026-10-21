@@ -10,8 +10,9 @@ displayURL="https://hookdev.io/projects/minecraft-mods/setpoint/"
 bannerFile="logo.png"
 authors="Hook Development"
 description='''
-Process engineering for Minecraft. Pumps that cavitate, controllers that hold a tank
-level by themselves, power from coal and steam, and Hookonium, a purple endgame ore.
+Process engineering for Minecraft. Build a plant of pumps, tanks, valves and
+controllers, run it from a DCS console and draw it as a live P&ID. Steam with real
+pressure, gases, logistics, and Hookonium, a purple endgame ore.
 Easy by default, real physics underneath.
 '''
 
