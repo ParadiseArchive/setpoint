@@ -1,0 +1,67 @@
+{
+  "criteria": {
+    "handbook": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "setpoint:handbook"
+          }
+        ]
+      }
+    },
+    "pipe": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "setpoint:pipe"
+          }
+        ]
+      }
+    },
+    "tank": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "setpoint:tank"
+          }
+        ]
+      }
+    },
+    "centrifugal_pump": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "setpoint:centrifugal_pump"
+          }
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "setpoint:handbook"
+    },
+    "frame": "task",
+    "title": {
+      "translate": "advancements.setpoint.root.title"
+    },
+    "description": {
+      "translate": "advancements.setpoint.root.description"
+    },
+    "background": "minecraft:gui/advancements/backgrounds/stone",
+    "show_toast": false,
+    "announce_to_chat": false
+  },
+  "requirements": [
+    [
+      "handbook",
+      "pipe",
+      "tank",
+      "centrifugal_pump"
+    ]
+  ]
+}

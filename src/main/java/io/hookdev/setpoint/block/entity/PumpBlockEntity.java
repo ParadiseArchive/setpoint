@@ -3,6 +3,7 @@ package io.hookdev.setpoint.block.entity;
 import org.jspecify.annotations.Nullable;
 
 import io.hookdev.setpoint.SetpointContent;
+import io.hookdev.setpoint.advancement.PlantEventTrigger;
 import io.hookdev.setpoint.block.EquipmentTag;
 import io.hookdev.setpoint.block.PumpBlock;
 import io.hookdev.setpoint.block.PumpStatus;
@@ -118,6 +119,7 @@ public class PumpBlockEntity extends BlockEntity {
             if (result.cavitation() > 0) {
                 wear = Math.min(1.0, wear + result.cavitation() * WEAR_PER_TICK);
                 setChanged();
+                if (level.getGameTime() % 40 == 0) PlantEventTrigger.near(level, pos, PlantEventTrigger.CAVITATION);
             }
             effects(level, pos, result);
         } else {

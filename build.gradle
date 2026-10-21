@@ -28,6 +28,11 @@ sourceSets.main.resources {
 
 repositories {
     mavenCentral()
+    // Modrinth's maven, for Jade (optional: Setpoint shows extra info in Jade when a player has it)
+    exclusiveContent {
+        forRepository { maven { url = "https://api.modrinth.com/maven" } }
+        filter { includeGroup "maven.modrinth" }
+    }
 }
 
 // Plain JUnit tests for the physics and control maths (no Minecraft needed)
@@ -120,6 +125,10 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.junit.jupiter:junit-jupiter-params'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // Jade: compile against it, run it in the dev client, but never require it
+    compileOnly "maven.modrinth:jade:${jade_version}"
+    localRuntime "maven.modrinth:jade:${jade_version}"
 
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime

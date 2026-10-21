@@ -1,0 +1,43 @@
+{
+  "parent": "setpoint:root",
+  "criteria": {
+    "stirling_engine": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "setpoint:stirling_engine"
+          }
+        ]
+      }
+    },
+    "biogas_generator": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "setpoint:biogas_generator"
+          }
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "setpoint:stirling_engine"
+    },
+    "frame": "task",
+    "title": {
+      "translate": "advancements.setpoint.power_to_the_plant.title"
+    },
+    "description": {
+      "translate": "advancements.setpoint.power_to_the_plant.description"
+    }
+  },
+  "requirements": [
+    [
+      "stirling_engine",
+      "biogas_generator"
+    ]
+  ]
+}

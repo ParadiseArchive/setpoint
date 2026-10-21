@@ -1,0 +1,28 @@
+{
+  "parent": "setpoint:mission_control",
+  "criteria": {
+    "alarm_acknowledged": {
+      "trigger": "setpoint:plant_event",
+      "conditions": {
+        "event": "alarm_acknowledged"
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "setpoint:dcs_console"
+    },
+    "frame": "goal",
+    "title": {
+      "translate": "advancements.setpoint.acknowledged.title"
+    },
+    "description": {
+      "translate": "advancements.setpoint.acknowledged.description"
+    }
+  },
+  "requirements": [
+    [
+      "alarm_acknowledged"
+    ]
+  ]
+}

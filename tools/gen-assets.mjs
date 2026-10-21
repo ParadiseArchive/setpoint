@@ -1,9 +1,10 @@
 // Generates Setpoint's client assets (textures, models, blockstates, item models), recipes and the
 // empty game test structure. Run from the project root:  node tools/gen-assets.mjs
 // Pass --keep-textures to leave existing PNGs alone (for when textures are drawn by hand).
-import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdirSync, writeFileSync, existsSync, readdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { deflateSync, gzipSync } from 'node:zlib';
+import { HANDBOOK } from './handbook-content.mjs';
 
 const ROOT = 'src/main/resources';
 const ASSETS = join(ROOT, 'assets/setpoint');
@@ -786,5 +787,96 @@ for (let y = 0; y < H; y++) for (let z = 0; z < D; z++) for (let x = 0; x < W; x
 n.named(9, 'entities'); n.u8(0); n.i32(0);
 n.end();
 write(join(DATA, 'structure/bench.nbt'), gzipSync(Buffer.concat(n.parts)));
+
+// =====================================================================================
+// The Setpoint Handbook: item, recipe, and the book's content with every recipe filled in
+// =====================================================================================
+texture('handbook', (p) => {
+  p.rect(3, 1, 10, 14, '#1e222a');                       // cover
+  p.rect(3, 1, 2, 14, C.cyanDark); p.rect(3, 1, 1, 14, C.cyan); // spine
+  p.rect(12, 2, 1, 12, '#e9e4d4');                       // page edges
+  p.rect(6, 3, 5, 1, C.steel3);                          // title lines
+  p.rect(6, 5, 4, 1, C.steel2);
+  // a small yellow S on the cover
+  for (const [x, y] of [[7, 8], [8, 8], [9, 8], [7, 9], [7, 10], [8, 10], [9, 10], [9, 11], [7, 12], [8, 12], [9, 12]]) p.set(x, y, '#ffd23f');
+  p.rect(10, 0, 1, 3, C.magenta);                        // bookmark
+}, 'item');
+json(join(ASSETS, 'models/item/handbook.json'), { parent: 'minecraft:item/generated', textures: { layer0: 'setpoint:item/handbook' } });
+item('handbook', 'setpoint:item/handbook');
+shapeless('handbook', ['minecraft:book', 'minecraft:copper_ingot'], 'setpoint:handbook', 1);
+
+{
+  const recipes = {}, cooking = {};
+  for (const file of readdirSync(join(DATA, 'recipe'))) {
+    const r = JSON.parse(readFileSync(join(DATA, 'recipe', file), 'utf8'));
+    if (r.type === 'minecraft:crafting_shaped') {
+      const rows = r.pattern.length === 1 ? ['   ', r.pattern[0], '   '] : r.pattern;
+      const grid = [];
+      for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) {
+        const c = (rows[y] || '')[x];
+        grid.push(c && c !== ' ' ? [].concat(r.key[c])[0] : '');
+      }
+      recipes[r.result.id] = { grid, count: r.result.count || 1 };
+    } else if (r.type === 'minecraft:crafting_shapeless' && !recipes[r.result.id]) {
+      const grid = Array(9).fill('');
+      r.ingredients.forEach((ing, i) => { grid[i] = [].concat(ing)[0]; });
+      recipes[r.result.id] = { grid, count: r.result.count || 1 };
+    } else if (r.type === 'minecraft:smelting') {
+      cooking[r.ingredient] = { result: r.result.id, seconds: r.cookingtime / 20 };
+    }
+  }
+  const chapters = HANDBOOK.chapters.map((chapter) => ({
+    id: chapter.id, title: chapter.title, icon: chapter.icon,
+    content: chapter.content.map(([type, ...args]) => {
+      if (type === 'craft') {
+        const r = recipes[args[0]];
+        if (!r) throw new Error('handbook: no crafting recipe for ' + args[0]);
+        return { type, result: args[0], grid: r.grid, count: r.count };
+      }
+      if (type === 'cook') {
+        const c = cooking[args[0]];
+        if (!c) throw new Error('handbook: no smelting recipe for ' + args[0]);
+        return { type, input: args[0], result: c.result, seconds: c.seconds };
+      }
+      if (type === 'items') return { type, items: args };
+      return { type, text: args[0] };
+    }),
+  }));
+  json(join(ASSETS, 'handbook/en_us.json'), { title: HANDBOOK.title, chapters });
+}
+
+// =====================================================================================
+// Advancements: a Setpoint tab that walks a new player through the mod
+// =====================================================================================
+{
+  const has = (...items) => Object.fromEntries(items.map((id) => [id.split(':')[1],
+    { trigger: 'minecraft:inventory_changed', conditions: { items: [{ items: id }] } }]));
+  const happened = (event) => ({ [event]: { trigger: 'setpoint:plant_event', conditions: { event } } });
+  const ADV = [
+    ['root', null, 'setpoint:handbook', 'task', has('setpoint:handbook', 'setpoint:pipe', 'setpoint:tank', 'setpoint:centrifugal_pump'),
+      { background: 'minecraft:gui/advancements/backgrounds/stone', show_toast: false, announce_to_chat: false }],
+    ['moving_water', 'root', 'setpoint:centrifugal_pump', 'task', has('setpoint:centrifugal_pump')],
+    ['hear_that_crackle', 'moving_water', 'setpoint:centrifugal_pump', 'goal', happened('cavitation')],
+    ['hands_off', 'moving_water', 'setpoint:controller', 'goal', happened('loop_holding')],
+    ['power_to_the_plant', 'root', 'setpoint:stirling_engine', 'task', has('setpoint:stirling_engine', 'setpoint:biogas_generator')],
+    ['full_steam', 'power_to_the_plant', 'setpoint:steam_turbine', 'goal', happened('turbine_rated')],
+    ['mission_control', 'hands_off', 'setpoint:dcs_console', 'task', has('setpoint:dcs_console')],
+    ['acknowledged', 'mission_control', 'setpoint:dcs_console', 'goal', happened('alarm_acknowledged')],
+    ['deep_purple', 'root', 'setpoint:raw_hookonium', 'challenge', has('setpoint:raw_hookonium')],
+  ];
+  for (const [name, parent, icon, frame, criteria, extra = {}] of ADV) {
+    json(join(DATA, 'advancement', name + '.json'), {
+      ...(parent ? { parent: 'setpoint:' + parent } : {}),
+      criteria,
+      display: {
+        icon: { id: icon }, frame,
+        title: { translate: `advancements.setpoint.${name}.title` },
+        description: { translate: `advancements.setpoint.${name}.description` },
+        ...extra,
+      },
+      requirements: [Object.keys(criteria)], // any one of them
+    });
+  }
+}
 
 console.log('assets generated' + (KEEP_TEXTURES ? ' (kept existing textures)' : ''));

@@ -1,0 +1,28 @@
+{
+  "parent": "setpoint:moving_water",
+  "criteria": {
+    "cavitation": {
+      "trigger": "setpoint:plant_event",
+      "conditions": {
+        "event": "cavitation"
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "setpoint:centrifugal_pump"
+    },
+    "frame": "goal",
+    "title": {
+      "translate": "advancements.setpoint.hear_that_crackle.title"
+    },
+    "description": {
+      "translate": "advancements.setpoint.hear_that_crackle.description"
+    }
+  },
+  "requirements": [
+    [
+      "cavitation"
+    ]
+  ]
+}

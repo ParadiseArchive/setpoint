@@ -5,6 +5,7 @@ import java.util.List;
 import org.jspecify.annotations.Nullable;
 
 import io.hookdev.setpoint.SetpointContent;
+import io.hookdev.setpoint.advancement.PlantEventTrigger;
 import io.hookdev.setpoint.block.entity.ConsoleBlockEntity;
 import io.hookdev.setpoint.block.entity.ControllerBlockEntity;
 import io.hookdev.setpoint.console.Reading;
@@ -65,6 +66,9 @@ public class ConsoleMenu extends AbstractContainerMenu {
         if (console == null) return true;
         List<Reading> readings = console.readings();
         if (buttonId == BUTTON_ACK) {
+            if (console.alarms().hasUnacknowledged() && player instanceof ServerPlayer serverPlayer) {
+                SetpointContent.PLANT_EVENT.get().trigger(serverPlayer, PlantEventTrigger.ALARM_ACKNOWLEDGED);
+            }
             console.acknowledge();
         } else if (buttonId >= BUTTON_FACEPLATE) {
             int row = buttonId - BUTTON_FACEPLATE;

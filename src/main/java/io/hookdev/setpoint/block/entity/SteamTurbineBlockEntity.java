@@ -1,6 +1,7 @@
 package io.hookdev.setpoint.block.entity;
 
 import io.hookdev.setpoint.SetpointContent;
+import io.hookdev.setpoint.advancement.PlantEventTrigger;
 import io.hookdev.setpoint.block.EquipmentTag;
 import io.hookdev.setpoint.block.SteamTurbineBlock;
 import io.hookdev.setpoint.physics.TurbineModel;
@@ -70,6 +71,7 @@ public class SteamTurbineBlockEntity extends BlockEntity {
         EnergyPush.push(level, pos, energy);
 
         boolean running = speed > 100;
+        if (speed > TurbineModel.RATED_SPEED * 0.97 && level.getGameTime() % 100 == 0) PlantEventTrigger.near(level, pos, PlantEventTrigger.TURBINE_RATED);
         if (state.getValue(SteamTurbineBlock.RUNNING) != running) {
             level.setBlock(pos, state.setValue(SteamTurbineBlock.RUNNING, running), Block.UPDATE_CLIENTS);
         }

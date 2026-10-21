@@ -1,0 +1,28 @@
+{
+  "parent": "setpoint:power_to_the_plant",
+  "criteria": {
+    "turbine_rated": {
+      "trigger": "setpoint:plant_event",
+      "conditions": {
+        "event": "turbine_rated"
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "setpoint:steam_turbine"
+    },
+    "frame": "goal",
+    "title": {
+      "translate": "advancements.setpoint.full_steam.title"
+    },
+    "description": {
+      "translate": "advancements.setpoint.full_steam.description"
+    }
+  },
+  "requirements": [
+    [
+      "turbine_rated"
+    ]
+  ]
+}

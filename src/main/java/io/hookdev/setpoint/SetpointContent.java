@@ -1,5 +1,6 @@
 package io.hookdev.setpoint;
 
+import io.hookdev.setpoint.advancement.PlantEventTrigger;
 import io.hookdev.setpoint.block.BoilerBlock;
 import io.hookdev.setpoint.block.ConsoleBlock;
 import io.hookdev.setpoint.block.ControlValveBlock;
@@ -23,11 +24,14 @@ import io.hookdev.setpoint.block.entity.SteamTurbineBlockEntity;
 import io.hookdev.setpoint.block.entity.StirlingEngineBlockEntity;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
 import io.hookdev.setpoint.item.FieldCommunicatorItem;
+import io.hookdev.setpoint.item.HandbookItem;
 import io.hookdev.setpoint.menu.BoilerMenu;
 import io.hookdev.setpoint.menu.ConsoleMenu;
 import io.hookdev.setpoint.menu.FaceplateMenu;
 import io.hookdev.setpoint.menu.GeneratorMenu;
 import io.hookdev.setpoint.menu.TankMenu;
+
+import com.mojang.serialization.Codec;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
@@ -45,6 +49,8 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.attachment.AttachmentType;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -59,6 +65,13 @@ public final class SetpointContent {
     public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, Setpoint.MODID);
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(Registries.MENU, Setpoint.MODID);
     public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(Registries.SOUND_EVENT, Setpoint.MODID);
+    public static final DeferredRegister<net.minecraft.advancements.triggers.CriterionTrigger<?>> TRIGGERS = DeferredRegister.create(Registries.TRIGGER_TYPE, Setpoint.MODID);
+    public static final DeferredHolder<net.minecraft.advancements.triggers.CriterionTrigger<?>, PlantEventTrigger> PLANT_EVENT = TRIGGERS.register("plant_event", PlantEventTrigger::new);
+    public static final DeferredRegister<AttachmentType<?>> ATTACHMENTS = DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, Setpoint.MODID);
+
+    /** Whether a player already got their handbook (kept through death). */
+    public static final DeferredHolder<AttachmentType<?>, AttachmentType<Boolean>> HANDBOOK_GIVEN = ATTACHMENTS.register("handbook_given",
+            () -> AttachmentType.builder(() -> false).serialize(Codec.BOOL.fieldOf("given")).copyOnDeath().build());
 
     /** Crackling vapour bubbles collapsing in the impeller (sound files listed in sounds.json). */
     public static final DeferredHolder<SoundEvent, SoundEvent> PUMP_CAVITATE = SOUNDS.register("block.centrifugal_pump.cavitate",
@@ -128,6 +141,7 @@ public final class SetpointContent {
     public static final DeferredItem<BlockItem> RAW_HOOKONIUM_BLOCK_ITEM = ITEMS.registerSimpleBlockItem(RAW_HOOKONIUM_BLOCK);
     public static final DeferredItem<Item> RAW_HOOKONIUM = ITEMS.registerSimpleItem("raw_hookonium");
     public static final DeferredItem<Item> HOOKONIUM_INGOT = ITEMS.registerSimpleItem("hookonium_ingot", p -> p.rarity(Rarity.RARE));
+    public static final DeferredItem<HandbookItem> HANDBOOK = ITEMS.registerItem("handbook", HandbookItem::new, p -> p.stacksTo(1));
     public static final DeferredItem<FieldCommunicatorItem> FIELD_COMMUNICATOR = ITEMS.registerItem("field_communicator", FieldCommunicatorItem::new,
             p -> p.stacksTo(1));
 
@@ -172,6 +186,7 @@ public final class SetpointContent {
             .withTabsBefore(CreativeModeTabs.SPAWN_EGGS)
             .icon(() -> PUMP_ITEM.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
+                output.accept(HANDBOOK.get());
                 output.accept(PIPE_ITEM.get());
                 output.accept(TANK_ITEM.get());
                 output.accept(PUMP_ITEM.get());
@@ -203,5 +218,7 @@ public final class SetpointContent {
         TABS.register(modEventBus);
         SOUNDS.register(modEventBus);
         MENUS.register(modEventBus);
+        ATTACHMENTS.register(modEventBus);
+        TRIGGERS.register(modEventBus);
     }
 }

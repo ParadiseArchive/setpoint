@@ -37,7 +37,8 @@ Easy by default, depth for those who want it. A normal Minecraft player must be 
 - [x] Power 1 · Stirling engine (any furnace fuel, coal is the sensible one, 20 FE/t) and biogas generator (anything compostable + rotten flesh, 30 FE/t). Both have a hopper-fed fuel slot, a 20k FE buffer, push FE to neighbours and only burn when the buffer has room.
 - [x] Power 2 · Steam (built and playtested 21 Oct 2026): coal-fired boiler (water drum 8 B, steam 4 B, heats to 100 °C in 10 s, 20 mB/t steam) and steam turbine (place against a boiler, spins up to 3000 rpm, 60 FE/t: three times the FE per coal of a Stirling engine). The drum is a Vessel, so pumps feed it and a controller against it holds the drum level by itself. Low-low level trip on by default (config `boiler.lowLevelTrip`); with it off a dry drum overheats and bursts, and water on a red-hot drum flashes.
 - [x] Ore · Hookonium (built and playtested 21 Oct 2026): endgame ore, purple. Stone and deepslate variants, needs a diamond pickaxe, drops Raw Hookonium (Fortune works, Silk Touch gives the ore, 3 to 7 XP), smelts or blasts into a Hookonium Ingot (1 XP). Storage blocks for ingots and raw. Worldgen copies diamond's four vein types exactly (small/medium/large/buried, y 16 to bedrock) through a NeoForge biome modifier on #minecraft:is_overworld. The ore model lays a transparent overlay over vanilla stone/deepslate textures (no Mojang textures copied into the mod).
-- [ ] Endgame · Hookonium machines: to be designed with the owner.
+- [x] Foundations 1 · Help (built 21 Oct 2026): Setpoint Handbook item (own screen, content in tools/handbook-content.mjs, recipes filled in by gen-assets into assets/setpoint/handbook/en_us.json; given on first join via a player attachment, config handbook.giveOnFirstJoin; craft: book + copper ingot), item tooltips (lang tooltip.setpoint.<id> and .more for Shift), advancement tab (data/setpoint/advancement, custom trigger setpoint:plant_event: cavitation, loop_holding, turbine_rated, alarm_acknowledged), comparator output on tanks and boilers (Vessel.comparatorSignal), Jade plugin (compat/jade, compileOnly + localRuntime from Modrinth maven; WTHIT has no 26.3 build yet).
+- [ ] Foundations · more: the owner wants the base complete before big new things. Ask what is next.
 - [ ] Power 3 · Diesel generator, running on diesel from the M5 distillation column (late game).
 - [x] M3 · Control room (built and playtested 21 Oct 2026): DCS console block. Scans all equipment within 32 blocks every second (console/PlantScanner reads each block entity into a Reading), keeps 5 min trends per tag (TrendBuffer), runs an ISA-style alarm list (AlarmList: NEW / ACK / RTN). New alarms chime (note bell, quiet) and the console front flashes (animated texture) until ACK. Screen tabs OVERVIEW / TRENDS / ALARMS; a selected controller opens its faceplate from the console. Live data goes to the open screen as a ConsoleSnapshot payload twice a second.
 - [ ] M4 · Pressure: closed vessels, relief valve, overpressure consequences (configurable)
@@ -54,8 +55,11 @@ Early Stirling engine / biogas, mid steam, late diesel from your own distillatio
 ## Content notes
 - Every block has a loot table (gen-assets writes them) and is in `mineable/pickaxe`; a game test checks that every block drops itself.
 - Ores are listed from least to most rare on the docs page; give each new ore a rank there.
+- Handbook: when a block, item or recipe changes, update tools/handbook-content.mjs too (recipes fill in by themselves), then run gen-assets.
 
 ## Backlog
+- Endgame · Hookonium machines: parked by the owner on 21 Oct 2026 until the foundations are done. Ideas so far: a stronger pump, a wireless transmitter or controller, a reactor with its own control loop, a multiblock mega tank.
+- WTHIT support once WTHIT has a build for 26.3.
 - GitHub repo https://github.com/ParadiseArchive/setpoint (public) is live; Actions builds and runs all tests on every push.
 - Modrinth organisation + CurseForge account named "Hook Development": the owner creates them before the first release.
 - Jade/WTHIT tooltips (flow, pressure), JEI/EMI recipes, spark profiling for big pipe networks.

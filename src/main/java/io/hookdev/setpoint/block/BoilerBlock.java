@@ -4,6 +4,7 @@ import org.jspecify.annotations.Nullable;
 
 import io.hookdev.setpoint.SetpointContent;
 import io.hookdev.setpoint.block.entity.BoilerBlockEntity;
+import io.hookdev.setpoint.hydraulics.Vessel;
 import io.hookdev.setpoint.hydraulics.VesselBlock;
 
 import net.minecraft.core.BlockPos;
@@ -80,6 +81,17 @@ public class BoilerBlock extends BaseEntityBlock implements VesselBlock {
     @Override
     protected BlockState mirror(BlockState state, Mirror mirror) {
         return state.rotate(mirror.getRotation(state.getValue(FACING)));
+    }
+
+    @Override
+    protected boolean hasAnalogOutputSignal(BlockState state) {
+        return true;
+    }
+
+    /** A comparator reads the level: 0 when empty, 15 when full. */
+    @Override
+    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) {
+        return level.getBlockEntity(pos) instanceof Vessel vessel ? Vessel.comparatorSignal(vessel.fillFraction()) : 0;
     }
 
     @Override

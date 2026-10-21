@@ -1,0 +1,142 @@
+// The in-game Setpoint Handbook. English, plain words, short paragraphs.
+// gen-assets.mjs turns this into assets/setpoint/handbook/en_us.json and fills in the recipes from the mod's
+// own recipe files, so the book never shows an old recipe. The screen lays the elements out into pages itself.
+//
+// Elements:  ['h', 'Heading']   ['p', 'Paragraph, **bold** works']   ['items', 'id', 'id', ...]
+//            ['craft', 'result item id']   ['cook', 'input item id']   ['tip', 'A highlighted tip']
+// Keep it in step with the website docs (../hook-development/projects/minecraft-mods/setpoint/).
+
+export const HANDBOOK = {
+  title: 'Setpoint Handbook',
+  chapters: [
+    {
+      id: 'welcome', title: 'Welcome', icon: 'setpoint:handbook',
+      content: [
+        ['h', 'Welcome to Setpoint'],
+        ['p', 'Setpoint adds the machines of a real process plant: pumps, tanks, control valves, controllers, generators and a control room.'],
+        ['p', '**Easy by default.** Every machine works the moment you place it. Pumps start by themselves and controllers find their own valve.'],
+        ['p', '**Depth if you want it.** Underneath runs real physics: pump curves, cavitation and PID control. Ignore it, or dive in.'],
+        ['tip', 'Right-click any Setpoint machine with an empty hand to read its status.'],
+        ['h', 'Using this book'],
+        ['p', 'Use the arrows to turn pages, or Contents to jump to a chapter. Hover an item to see its name.'],
+        ['p', 'Lost the book? Craft a new one:'],
+        ['craft', 'setpoint:handbook'],
+      ],
+    },
+    {
+      id: 'first_loop', title: 'Your first loop', icon: 'setpoint:controller',
+      content: [
+        ['h', 'A tank that holds its own level'],
+        ['p', '**1.** Craft two tanks, some pipes, a centrifugal pump, a control valve, a DCS controller and a Stirling engine.'],
+        ['p', '**2.** Fill the first tank with water buckets.'],
+        ['p', '**3.** Stand on the side of the full tank and place the pump: its suction faces you. Connect both sides with pipes.'],
+        ['p', '**4.** Put the Stirling engine against the pump and give it coal. The pump starts by itself.'],
+        ['p', '**5.** Put a control valve in the line to the second tank, and a DCS controller against that tank.'],
+        ['p', '**6.** Done. The controller finds the valve and holds the tank at 50 %. Right-click it to change the setpoint.'],
+        ['tip', 'Bonus: a DCS console within 32 blocks shows the whole plant on one screen.'],
+      ],
+    },
+    {
+      id: 'pipes_tanks', title: 'Pipes and tanks', icon: 'setpoint:tank',
+      content: [
+        ['h', 'Pipe'],
+        ['p', 'Copper pipe connects itself to tanks, pumps, valves and boilers. Longer runs mean more friction and less flow. A run can be 512 pipes long.'],
+        ['craft', 'setpoint:pipe'],
+        ['h', 'Tank'],
+        ['p', 'Holds 16 buckets of one fluid. The sight glass shows the level. Click it with a bucket, or open it and use the bucket slots: full bucket in at the top, empty bucket out below.'],
+        ['p', 'A comparator next to a tank gives a redstone signal from 0 (empty) to 15 (full).'],
+        ['craft', 'setpoint:tank'],
+      ],
+    },
+    {
+      id: 'pumps', title: 'Pumps', icon: 'setpoint:centrifugal_pump',
+      content: [
+        ['h', 'Centrifugal pump'],
+        ['p', 'Moves fluid from the tank on its suction side to the tank on its discharge side. Runs on FE: 4 to 20 FE/t, depending on how hard it works.'],
+        ['p', 'It starts by itself. A redstone signal stops it, like a stop button.'],
+        ['craft', 'setpoint:centrifugal_pump'],
+        ['h', 'Cavitation'],
+        ['p', 'A pump needs enough pressure at its suction. Pull from a tank far below the pump, or through a long suction line, and it starts to **cavitate**: it crackles, loses flow and wears its impeller.'],
+        ['p', 'Fix the wear by right-clicking the pump with an iron ingot. Better: put the source tank higher, or the pump closer.'],
+        ['tip', 'Right-click a pump to see flow, head, NPSH and wear.'],
+      ],
+    },
+    {
+      id: 'control', title: 'Control', icon: 'setpoint:control_valve',
+      content: [
+        ['h', 'Control valve'],
+        ['p', 'Throttles the flow in a pipe line. The bar on the actuator shows how far it is open. It lines up with the pipe you click on.'],
+        ['p', 'Sneak-click to choose its fail position: fail close (FC) or fail open (FO). A redstone signal trips it to that position.'],
+        ['craft', 'setpoint:control_valve'],
+        ['h', 'DCS controller'],
+        ['p', 'Place it against a tank or boiler: it measures the level, finds the control valve and holds the level at 50 % in AUTO.'],
+        ['p', 'Right-click for the **faceplate**: change the setpoint, switch MAN / AUTO / CAS, pick a tuning, set HI and LO alarm limits.'],
+        ['craft', 'setpoint:controller'],
+        ['h', 'Level transmitter'],
+        ['p', 'Measures the tank it is mounted on. Only needed when the controller has to stand somewhere else.'],
+        ['craft', 'setpoint:level_transmitter'],
+        ['h', 'Field communicator'],
+        ['p', 'For wiring loops by hand: sneak-click transmitters and valves to collect them, then click a controller to link them.'],
+        ['craft', 'setpoint:field_communicator'],
+      ],
+    },
+    {
+      id: 'power', title: 'Power', icon: 'setpoint:stirling_engine',
+      content: [
+        ['h', 'Stirling engine'],
+        ['p', 'Your first power: 20 FE/t from anything that burns in a furnace. Coal is the sensible choice. One engine runs one pump.'],
+        ['craft', 'setpoint:stirling_engine'],
+        ['h', 'Biogas generator'],
+        ['p', '30 FE/t from anything a composter takes, plus rotten flesh. Richer waste runs longer.'],
+        ['craft', 'setpoint:biogas_generator'],
+        ['p', 'Generators hold 20,000 FE, power every block they touch and only burn fuel while there is room for more.'],
+        ['h', 'Boiler'],
+        ['p', 'A coal-fired firebox under a water drum. It heats to 100 °C in about ten seconds, then makes 20 mB of steam per tick.'],
+        ['craft', 'setpoint:boiler'],
+        ['h', 'Steam turbine'],
+        ['p', 'Place it against a boiler. It spins up to 3000 rpm and makes 60 FE/t: three times the power per coal of a Stirling engine.'],
+        ['craft', 'setpoint:steam_turbine'],
+        ['h', 'Keeping the boiler fed'],
+        ['p', 'Pump water in from a tank through a control valve, and put a DCS controller against the boiler. It holds the drum at 50 %.'],
+        ['tip', 'Below 10 % drum level the burner trips, so a boiler can never run dry. A comparator reads the drum level.'],
+      ],
+    },
+    {
+      id: 'control_room', title: 'Control room', icon: 'setpoint:dcs_console',
+      content: [
+        ['h', 'DCS console'],
+        ['p', 'Sees every Setpoint machine within 32 blocks, without any wiring.'],
+        ['craft', 'setpoint:dcs_console'],
+        ['p', '**OVERVIEW** lists every tag with its status and value. Grey is normal, amber needs attention, magenta is an alarm.'],
+        ['p', '**TRENDS** shows the last five minutes of a tag: click it on the overview. For a controller you see PV, SP and OP, and a button opens its faceplate.'],
+        ['p', '**ALARMS** keeps the alarm list. A new alarm chimes and makes the console flash until you press **ACK**.'],
+        ['h', 'Alarm states'],
+        ['p', '**NEW**: not acknowledged yet. **ACK**: acknowledged, the problem is still there. **RTN**: the problem went away before anyone looked; acknowledge to clear it.'],
+      ],
+    },
+    {
+      id: 'ores', title: 'Ores', icon: 'setpoint:raw_hookonium',
+      content: [
+        ['h', 'Hookonium'],
+        ['p', 'A purple ore, as rare as diamond. Found deep in the Overworld, from y 16 down to bedrock, mostly in deepslate.'],
+        ['items', 'setpoint:hookonium_ore', 'setpoint:deepslate_hookonium_ore', 'setpoint:raw_hookonium', 'setpoint:hookonium_ingot'],
+        ['p', 'It needs a **diamond pickaxe**. It drops Raw Hookonium; Fortune gives more, Silk Touch gives the ore.'],
+        ['cook', 'setpoint:raw_hookonium'],
+        ['p', 'Nine ingots make a block, and back. Hookonium is saved for machines that are still being designed.'],
+      ],
+    },
+    {
+      id: 'curious', title: 'For the curious', icon: 'minecraft:comparator',
+      content: [
+        ['h', 'Pump curve'],
+        ['p', 'A pump makes 12 m of head with its discharge shut and up to 120 mB/t running free. Flow settles where the pump curve meets the pipe curve.'],
+        ['h', 'NPSH'],
+        ['p', 'Net positive suction head: the pressure margin at the suction. Available NPSH must beat required NPSH, or the pump cavitates.'],
+        ['h', 'PID control'],
+        ['p', 'Controllers run a PI loop with three tunings: SLOW, NORMAL and FAST. They pick reverse or direct action themselves.'],
+        ['h', 'Modes'],
+        ['p', 'MAN: you set the valve. AUTO: the controller holds its setpoint. CAS: another controller sets the setpoint. A bad measurement drops a controller to MAN.'],
+      ],
+    },
+  ],
+};

@@ -26,4 +26,9 @@ public interface Vessel {
     boolean canAccept(FluidResource incoming);
 
     BlockPos getBlockPos();
+
+    /** Comparator signal for a level: 0 when empty, 1 to 15 otherwise, like a vanilla container. */
+    static int comparatorSignal(double fillFraction) {
+        return fillFraction <= 0 ? 0 : Math.max(1, (int) Math.round(fillFraction * 15));
+    }
 }

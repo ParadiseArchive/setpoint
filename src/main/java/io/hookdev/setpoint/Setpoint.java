@@ -8,12 +8,16 @@ import io.hookdev.setpoint.gametest.SetpointGameTests;
 import io.hookdev.setpoint.network.ConsoleSnapshot;
 
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.Prediction;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 /**
@@ -31,11 +35,21 @@ public class Setpoint {
         SetpointGameTests.register(modEventBus);
         modEventBus.addListener(Setpoint::registerCapabilities);
         modEventBus.addListener(Setpoint::registerPayloads);
+        NeoForge.EVENT_BUS.addListener(Setpoint::giveHandbook);
         LOGGER.info("Setpoint loaded. Holding steady.");
     }
 
     public static Identifier id(String path) {
         return Identifier.fromNamespaceAndPath(MODID, path);
+    }
+
+    /** New players get the handbook once, unless the config says not to. */
+    private static void giveHandbook(PlayerEvent.PlayerLoggedInEvent event) {
+        var player = event.getEntity();
+        if (player.level().isClientSide() || !SetpointConfig.giveHandbook() || player.getData(SetpointContent.HANDBOOK_GIVEN)) return;
+        player.setData(SetpointContent.HANDBOOK_GIVEN, true);
+        ItemStack book = new ItemStack(SetpointContent.HANDBOOK.get());
+        if (!player.getInventory().add(book)) player.drop(book, false, Prediction.SERVER_ONLY);
     }
 
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {

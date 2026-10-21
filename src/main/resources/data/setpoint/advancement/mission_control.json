@@ -1,0 +1,32 @@
+{
+  "parent": "setpoint:hands_off",
+  "criteria": {
+    "dcs_console": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "setpoint:dcs_console"
+          }
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "setpoint:dcs_console"
+    },
+    "frame": "task",
+    "title": {
+      "translate": "advancements.setpoint.mission_control.title"
+    },
+    "description": {
+      "translate": "advancements.setpoint.mission_control.description"
+    }
+  },
+  "requirements": [
+    [
+      "dcs_console"
+    ]
+  ]
+}

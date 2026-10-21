@@ -1,0 +1,32 @@
+{
+  "parent": "setpoint:root",
+  "criteria": {
+    "raw_hookonium": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "setpoint:raw_hookonium"
+          }
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "setpoint:raw_hookonium"
+    },
+    "frame": "challenge",
+    "title": {
+      "translate": "advancements.setpoint.deep_purple.title"
+    },
+    "description": {
+      "translate": "advancements.setpoint.deep_purple.description"
+    }
+  },
+  "requirements": [
+    [
+      "raw_hookonium"
+    ]
+  ]
+}

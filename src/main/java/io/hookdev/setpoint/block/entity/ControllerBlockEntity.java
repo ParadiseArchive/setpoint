@@ -3,6 +3,7 @@ package io.hookdev.setpoint.block.entity;
 import org.jspecify.annotations.Nullable;
 
 import io.hookdev.setpoint.SetpointContent;
+import io.hookdev.setpoint.advancement.PlantEventTrigger;
 import io.hookdev.setpoint.block.ControllerBlock;
 import io.hookdev.setpoint.control.PidController;
 import io.hookdev.setpoint.control.PidController.Action;
@@ -15,6 +16,7 @@ import io.hookdev.setpoint.menu.FaceplateMenu;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -163,6 +165,11 @@ public class ControllerBlockEntity extends InstrumentBlockEntity implements Menu
             level.setBlock(pos, state.setValue(ControllerBlock.ALARM, alarmLight), Block.UPDATE_CLIENTS);
         }
         if (level.getGameTime() % 20 == 0) setChanged();
+        // a loop that really holds its setpoint, with the valve somewhere in the middle
+        if (level.getGameTime() % 100 == 0 && mode == Mode.AUTO && !badPv && valve != null && Math.abs(pv - sp) < 1.0
+                && valvePosition > 0.02 && valvePosition < 0.98 && level instanceof ServerLevel server) {
+            PlantEventTrigger.near(server, pos, PlantEventTrigger.LOOP_HOLDING);
+        }
     }
 
     private @Nullable Vessel adjacentTank(Level level) {

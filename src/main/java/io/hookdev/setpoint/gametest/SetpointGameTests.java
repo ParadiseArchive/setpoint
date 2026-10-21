@@ -83,6 +83,7 @@ public final class SetpointGameTests {
         test("hookonium_generates_in_the_overworld", SetpointGameTests::hookoniumGeneratesInTheOverworld, 20);
         test("machines_drop_themselves", SetpointGameTests::machinesDropThemselves, 20);
         test("console_raises_and_acknowledges_alarms", SetpointGameTests::consoleRaisesAndAcknowledgesAlarms, 200);
+        test("comparator_reads_levels", SetpointGameTests::comparatorReadsLevels, 20);
     }
 
     private static void test(String name, Consumer<GameTestHelper> function, int maxTicks) {
@@ -503,5 +504,19 @@ public final class SetpointGameTests {
                 helper.succeed();
             });
         });
+    }
+
+    /** A comparator reads tanks and boiler drums: 0 empty, 15 full. */
+    private static void comparatorReadsLevels(GameTestHelper helper) {
+        BlockPos tankPos = new BlockPos(1, 1, 1), boilerPos = new BlockPos(4, 1, 1);
+        helper.setBlock(tankPos, SetpointContent.TANK.get());
+        boiler(helper, boilerPos, 4_000, 0);
+        var level = helper.getLevel();
+        helper.assertTrue(level.getBlockState(helper.absolutePos(tankPos)).getAnalogOutputSignal(level, helper.absolutePos(tankPos), Direction.NORTH) == 0, "an empty tank gives 0");
+        fill(helper, tankPos, 16_000);
+        helper.assertTrue(level.getBlockState(helper.absolutePos(tankPos)).getAnalogOutputSignal(level, helper.absolutePos(tankPos), Direction.NORTH) == 15, "a full tank gives 15");
+        int drum = level.getBlockState(helper.absolutePos(boilerPos)).getAnalogOutputSignal(level, helper.absolutePos(boilerPos), Direction.NORTH);
+        helper.assertTrue(drum == 8, "a half-full drum gives 8, got " + drum);
+        helper.succeed();
     }
 }

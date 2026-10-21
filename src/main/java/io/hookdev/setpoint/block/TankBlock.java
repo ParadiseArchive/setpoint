@@ -4,9 +4,11 @@ import org.jspecify.annotations.Nullable;
 
 import io.hookdev.setpoint.SetpointContent;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
+import io.hookdev.setpoint.hydraulics.Vessel;
 import io.hookdev.setpoint.hydraulics.VesselBlock;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -64,6 +66,17 @@ public class TankBlock extends BaseEntityBlock implements VesselBlock {
     @Override
     public <T extends BlockEntity> @Nullable BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return level.isClientSide() ? null : createTickerHelper(type, SetpointContent.TANK_ENTITY.get(), TankBlockEntity::serverTick);
+    }
+
+    @Override
+    protected boolean hasAnalogOutputSignal(BlockState state) {
+        return true;
+    }
+
+    /** A comparator reads the level: 0 when empty, 15 when full. */
+    @Override
+    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) {
+        return level.getBlockEntity(pos) instanceof Vessel vessel ? Vessel.comparatorSignal(vessel.fillFraction()) : 0;
     }
 
     @Override

@@ -1,0 +1,28 @@
+{
+  "parent": "setpoint:moving_water",
+  "criteria": {
+    "loop_holding": {
+      "trigger": "setpoint:plant_event",
+      "conditions": {
+        "event": "loop_holding"
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "setpoint:controller"
+    },
+    "frame": "goal",
+    "title": {
+      "translate": "advancements.setpoint.hands_off.title"
+    },
+    "description": {
+      "translate": "advancements.setpoint.hands_off.description"
+    }
+  },
+  "requirements": [
+    [
+      "loop_holding"
+    ]
+  ]
+}

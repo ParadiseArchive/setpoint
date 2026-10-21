@@ -1,0 +1,32 @@
+{
+  "parent": "setpoint:root",
+  "criteria": {
+    "centrifugal_pump": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "setpoint:centrifugal_pump"
+          }
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "setpoint:centrifugal_pump"
+    },
+    "frame": "task",
+    "title": {
+      "translate": "advancements.setpoint.moving_water.title"
+    },
+    "description": {
+      "translate": "advancements.setpoint.moving_water.description"
+    }
+  },
+  "requirements": [
+    [
+      "centrifugal_pump"
+    ]
+  ]
+}
