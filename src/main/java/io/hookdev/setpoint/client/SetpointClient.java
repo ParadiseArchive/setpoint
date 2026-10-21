@@ -4,6 +4,7 @@ import io.hookdev.setpoint.Setpoint;
 import io.hookdev.setpoint.SetpointContent;
 import io.hookdev.setpoint.menu.ConsoleMenu;
 import io.hookdev.setpoint.network.ConsoleSnapshot;
+import io.hookdev.setpoint.pid.PidCapture;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -44,7 +45,7 @@ public class SetpointClient {
         if (corner == null) return;
         BlockPos target = mc.hitResult instanceof BlockHitResult hit && hit.getType() == HitResult.Type.BLOCK ? hit.getBlockPos() : corner;
         double x0 = Math.min(corner.getX(), target.getX()), y0 = Math.min(corner.getY(), target.getY()), z0 = Math.min(corner.getZ(), target.getZ());
-        double x1 = Math.max(corner.getX(), target.getX()) + 1, y1 = Math.max(corner.getY(), target.getY()) + 1, z1 = Math.max(corner.getZ(), target.getZ()) + 1;
+        double x1 = Math.max(corner.getX(), target.getX()) + 1, y1 = y0 + PidCapture.HEIGHT, z1 = Math.max(corner.getZ(), target.getZ()) + 1;
         DustParticleOptions dust = new DustParticleOptions(0x2DE2E6, 0.7f);
         double[][] ends = {{x0, y0, z0, x1, y0, z0}, {x0, y1, z0, x1, y1, z0}, {x0, y0, z1, x1, y0, z1}, {x0, y1, z1, x1, y1, z1},
                 {x0, y0, z0, x0, y1, z0}, {x1, y0, z0, x1, y1, z0}, {x0, y0, z1, x0, y1, z1}, {x1, y0, z1, x1, y1, z1},

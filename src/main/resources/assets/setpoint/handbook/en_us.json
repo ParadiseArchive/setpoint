@@ -75,11 +75,11 @@
         },
         {
           "type": "p",
-          "text": "**1.** Take a blank P&ID and right-click a block at one corner of your plant."
+          "text": "**1.** Take a blank P&ID and right-click the ground at one corner of your plant."
         },
         {
           "type": "p",
-          "text": "**2.** Look at the opposite corner: the box shows in the world. Right-click it."
+          "text": "**2.** Look at the opposite corner: the box shows in the world, ten blocks high. Right-click it."
         },
         {
           "type": "p",
@@ -87,7 +87,7 @@
         },
         {
           "type": "tip",
-          "text": "Sneak-right-click the air with the blank sheet to start over. A P&ID covers up to 32 x 24 blocks, 16 high."
+          "text": "The drawing always goes ten blocks up from the lowest corner, so just pick the corners on the ground. Up to 32 x 24 blocks. Sneak-right-click the air to start over. Each drawing uses up one sheet."
         },
         {
           "type": "craft",

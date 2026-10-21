@@ -20,8 +20,9 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 
 /**
- * A blank P&ID sheet. Right-click a block for the first corner, then the opposite corner: the plant in between
- * is drawn onto the sheet. While the first corner is set, the selection shows in the world. Sneak-right-click
+ * A blank P&ID sheet. Right-click a block for the first corner, then the opposite corner: the plant in between,
+ * from the lowest corner up {@link PidCapture#HEIGHT} blocks, is drawn onto the sheet. One sheet is used up per drawing
+ * (not in creative). While the first corner is set, the selection shows in the world. Sneak-right-click
  * the air to start over.
  */
 public class BlankPidItem extends Item {
@@ -41,7 +42,7 @@ public class BlankPidItem extends Item {
 
         if (corner == null) {
             sheet.set(SetpointContent.PID_CORNER.get(), clicked);
-            say(player, "First corner set. Now right-click the opposite corner.", ChatFormatting.AQUA);
+            say(player, "First corner set. Now right-click the opposite corner (the drawing goes " + PidCapture.HEIGHT + " blocks up).", ChatFormatting.AQUA);
             level.playSound(null, clicked, SoundEvents.BOOK_PAGE_TURN, SoundSource.PLAYERS, 0.6f, 1.3f);
             return InteractionResult.SUCCESS;
         }

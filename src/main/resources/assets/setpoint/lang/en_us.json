@@ -104,7 +104,7 @@
   "item.setpoint.blank_pid": "Blank P&ID",
   "item.setpoint.pid": "P&ID",
   "tooltip.setpoint.blank_pid": "Draws a P&ID of your plant.",
-  "tooltip.setpoint.blank_pid.more": "Right-click a block: first corner.\nRight-click the opposite corner: drawn!\nSneak-right-click the air to start over.",
+  "tooltip.setpoint.blank_pid.more": "Right-click the ground: first corner.\nRight-click the opposite corner: drawn,\nten blocks high. Uses up one sheet.\nSneak-right-click the air to start over.",
   "tooltip.setpoint.pid": "A drawing of your plant.",
   "tooltip.setpoint.pid.more": "Right-click to name it and read it.\nHover a symbol for its tag.",
   "advancements.setpoint.draftsman.title": "Draftsman",

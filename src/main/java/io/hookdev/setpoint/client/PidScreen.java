@@ -19,15 +19,15 @@ import net.neoforged.neoforge.client.network.ClientPacketDistributor;
  * symbols, dashed amber lines are signal wiring from controllers. Hover a symbol to see its tag.
  */
 public class PidScreen extends Screen {
-    private static final int W = 300, H = 250;
-    private static final int PAPER_X = 8, PAPER_Y = 32, PAPER_W = 284, PAPER_H = 192;
+    private static final int MAX_W = 400, MAX_H = 270, PAPER_X = 8, PAPER_Y = 32;
     private static final int FRAME = 0xFF3A404C, PANEL = 0xFF1E222A, BLUEPRINT = 0xFF10294D, GRID = 0xFF16345F,
             LINE = 0xFFE8F1FF, ACCENT = 0xFF2DE2E6, SIGNAL = 0xFFFFB547, DIM = 0xFF7C869D;
 
     private final PidDrawing drawing;
     private final InteractionHand hand;
     private EditBox name;
-    private int left, top, cell, originX, originY;
+    private int W, H, paperW, paperH;
+    private int left, top, cell, scale, originX, originY;
 
     public PidScreen(PidDrawing drawing, InteractionHand hand) {
         super(Component.literal(drawing.name()));
@@ -37,6 +37,10 @@ public class PidScreen extends Screen {
 
     @Override
     protected void init() {
+        W = Math.min(MAX_W, width - 16);
+        H = Math.min(MAX_H, height - 16);
+        paperW = W - 2 * PAPER_X;
+        paperH = H - PAPER_Y - 26;
         left = (width - W) / 2;
         top = (height - H) / 2;
         name = new EditBox(font, left + 8, top + 8, 214, 18, Component.literal("P&ID name"));
@@ -47,9 +51,12 @@ public class PidScreen extends Screen {
         addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose()).bounds(left + W - 70, top + 7, 62, 20).build());
         setInitialFocus(name);
 
-        cell = Math.max(8, Math.min(16, Math.min(PAPER_W / Math.max(1, drawing.width()), PAPER_H / Math.max(1, drawing.height()))));
-        originX = left + PAPER_X + (PAPER_W - drawing.width() * cell) / 2;
-        originY = top + PAPER_Y + (PAPER_H - drawing.height() * cell) / 2;
+        // each block gets a cell; the symbol sits inside it with room around, so pipe runs show between symbols
+        cell = Math.max(8, Math.min(24, Math.min(paperW / Math.max(1, drawing.width()), paperH / Math.max(1, drawing.height()))));
+        int padding = Math.max(2, cell / 4);
+        scale = Math.max(1, (cell - padding) / 8);
+        originX = left + PAPER_X + (paperW - drawing.width() * cell) / 2;
+        originY = top + PAPER_Y + (paperH - drawing.height() * cell) / 2;
     }
 
     /** Send the new name when the screen closes, however it closes. */
@@ -68,13 +75,13 @@ public class PidScreen extends Screen {
         g.fill(left, top, left + W, top + H, FRAME);
         g.fill(left + 2, top + 2, left + W - 2, top + H - 2, PANEL);
         int px = left + PAPER_X, py = top + PAPER_Y;
-        g.fill(px - 1, py - 1, px + PAPER_W + 1, py + PAPER_H + 1, 0xFF000000);
-        g.fill(px, py, px + PAPER_W, py + PAPER_H, BLUEPRINT);
+        g.fill(px - 1, py - 1, px + paperW + 1, py + paperH + 1, 0xFF000000);
+        g.fill(px, py, px + paperW, py + paperH, BLUEPRINT);
         // the paper's grid, one line per cell
         for (int x = originX; x <= originX + drawing.width() * cell; x += cell) g.fill(x, originY, x + 1, originY + drawing.height() * cell, GRID);
         for (int y = originY; y <= originY + drawing.height() * cell; y += cell) g.fill(originX, y, originX + drawing.width() * cell, y + 1, GRID);
 
-        int scale = Math.max(1, cell / 8), thick = Math.max(1, scale);
+        int thick = Math.max(1, scale);
         // pipes first, then the symbols on top, then the signal lines
         for (PidDrawing.Cell c : drawing.cells()) {
             int cx = originX + c.x() * cell + cell / 2, cy = originY + c.y() * cell + cell / 2;

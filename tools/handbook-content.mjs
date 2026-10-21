@@ -29,10 +29,10 @@ export const HANDBOOK = {
       content: [
         ['h', 'Draw your plant'],
         ['p', 'A P&ID (piping and instrumentation diagram) is how real plants are drawn: every pump, tank, valve and instrument as a symbol, with the pipes between them. In Setpoint you draw one of your own plant.'],
-        ['p', '**1.** Take a blank P&ID and right-click a block at one corner of your plant.'],
-        ['p', '**2.** Look at the opposite corner: the box shows in the world. Right-click it.'],
+        ['p', '**1.** Take a blank P&ID and right-click the ground at one corner of your plant.'],
+        ['p', '**2.** Look at the opposite corner: the box shows in the world, ten blocks high. Right-click it.'],
         ['p', '**3.** You get a P&ID. Right-click it to give it a name and read the drawing.'],
-        ['tip', 'Sneak-right-click the air with the blank sheet to start over. A P&ID covers up to 32 x 24 blocks, 16 high.'],
+        ['tip', 'The drawing always goes ten blocks up from the lowest corner, so just pick the corners on the ground. Up to 32 x 24 blocks. Sneak-right-click the air to start over. Each drawing uses up one sheet.'],
         ['craft', 'setpoint:blank_pid'],
         ['h', 'Reading a P&ID'],
         ['p', 'A circle with an arrow is a **pump**, pointing where it pumps. A box with liquid is a **tank**. A bow tie is a **valve**: with a dome on top for a control valve, a T for a hand valve, filled in when it is shut.'],

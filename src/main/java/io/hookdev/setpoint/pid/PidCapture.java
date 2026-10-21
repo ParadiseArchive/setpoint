@@ -41,7 +41,9 @@ import net.minecraft.world.level.block.state.BlockState;
  * A box deeper than it is wide is turned a quarter, so the drawing always fits the screen.
  */
 public final class PidCapture {
-    public static final int MAX_LONG = 32, MAX_SHORT = 24, MAX_HEIGHT = 16;
+    public static final int MAX_LONG = 32, MAX_SHORT = 24;
+    /** A drawing always covers this many blocks up from the lowest corner, so you only pick the corners on the ground. */
+    public static final int HEIGHT = 10;
 
     /** The drawing, or why it could not be made. */
     public record Result(PidDrawing drawing, String error) {}
@@ -52,12 +54,11 @@ public final class PidCapture {
 
     public static Result capture(Level level, BlockPos a, BlockPos b) {
         int minX = Math.min(a.getX(), b.getX()), maxX = Math.max(a.getX(), b.getX());
-        int minY = Math.min(a.getY(), b.getY()), maxY = Math.max(a.getY(), b.getY());
+        int minY = Math.min(a.getY(), b.getY()), maxY = minY + HEIGHT - 1;
         int minZ = Math.min(a.getZ(), b.getZ()), maxZ = Math.max(a.getZ(), b.getZ());
         int w = maxX - minX + 1, d = maxZ - minZ + 1, h = maxY - minY + 1;
-        if (h > MAX_HEIGHT || Math.max(w, d) > MAX_LONG || Math.min(w, d) > MAX_SHORT) {
-            return new Result(null, "Too big: " + w + " x " + d + " x " + h + ". A P&ID covers up to "
-                    + MAX_LONG + " x " + MAX_SHORT + " blocks, " + MAX_HEIGHT + " high.");
+        if (Math.max(w, d) > MAX_LONG || Math.min(w, d) > MAX_SHORT) {
+            return new Result(null, "Too big: " + w + " x " + d + ". A P&ID covers up to " + MAX_LONG + " x " + MAX_SHORT + " blocks.");
         }
 
         Found[][] found = new Found[w][d];

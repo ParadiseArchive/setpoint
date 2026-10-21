@@ -99,6 +99,7 @@ public final class SetpointGameTests {
         test("flow_loop_holds_its_setpoint", SetpointGameTests::flowLoopHoldsItsSetpoint, 2400);
         test("pump_fills_a_cauldron", SetpointGameTests::pumpFillsACauldron, 300);
         test("pid_draws_the_plant", SetpointGameTests::pidDrawsThePlant, 100);
+        test("blank_pid_is_used_up_in_survival", SetpointGameTests::blankPidIsUsedUpInSurvival, 20);
     }
 
     private static void test(String name, Consumer<GameTestHelper> function, int maxTicks) {
@@ -670,5 +671,27 @@ public final class SetpointGameTests {
             helper.assertTrue(drawing.links().size() == 2, "signal lines to the valve and the tank expected, got " + drawing.links().size());
             helper.succeed();
         });
+    }
+
+    /** Two corners on the ground draw everything up to ten blocks high, and in survival one sheet is used up. */
+    private static void blankPidIsUsedUpInSurvival(GameTestHelper helper) {
+        helper.setBlock(3, 6, 1, SetpointContent.TANK.get()); // well above the corners you click
+        var player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack sheets = new ItemStack(SetpointContent.BLANK_PID.get(), 2);
+        player.setItemInHand(InteractionHand.MAIN_HAND, sheets);
+        for (BlockPos corner : new BlockPos[]{new BlockPos(0, 1, 0), new BlockPos(6, 1, 2)}) {
+            BlockPos abs = helper.absolutePos(corner);
+            sheets.getItem().useOn(new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, sheets,
+                    new BlockHitResult(Vec3.atCenterOf(abs), Direction.UP, abs, false)));
+        }
+        helper.assertTrue(sheets.getCount() == 1, "one blank sheet should be used up, " + sheets.getCount() + " left");
+        ItemStack drawn = ItemStack.EMPTY;
+        for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
+            if (player.getInventory().getItem(slot).is(SetpointContent.PID.get())) drawn = player.getInventory().getItem(slot);
+        }
+        var drawing = drawn.get(SetpointContent.PID_DRAWING.get());
+        helper.assertTrue(drawing != null && drawing.cells().stream().anyMatch(c -> c.symbol() == io.hookdev.setpoint.pid.PidDrawing.TANK),
+                "the tank five blocks up should be in the drawing");
+        helper.succeed();
     }
 }
