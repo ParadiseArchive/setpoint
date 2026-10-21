@@ -1,5 +1,7 @@
 package io.hookdev.setpoint.client;
 
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import io.hookdev.setpoint.network.TruckLower;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,6 +57,8 @@ public class SetpointClient {
     private static final KeyMapping.Category CATEGORY = new KeyMapping.Category(Setpoint.id("setpoint"));
     /** H: the horn of the pallet truck you are driving. */
     public static final KeyMapping HORN = new KeyMapping("key.setpoint.horn", InputConstants.KEY_H, CATEGORY);
+    /** Left CTRL: set the pallet down from the pallet truck you are driving. */
+    public static final KeyMapping LOWER = new KeyMapping("key.setpoint.lower", InputConstants.KEY_LCONTROL, CATEGORY);
 
     public SetpointClient(IEventBus modEventBus) {
         modEventBus.addListener(SetpointClient::registerScreens);
@@ -63,9 +67,11 @@ public class SetpointClient {
         modEventBus.addListener((RegisterKeyMappingsEvent event) -> {
             event.registerCategory(CATEGORY);
             event.register(HORN);
+            event.register(LOWER);
         });
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> {
-            while (HORN.consumeClick()) sendHorn();
+            while (HORN.consumeClick()) sendIfDriving(new TruckHorn());
+            while (LOWER.consumeClick()) sendIfDriving(new TruckLower());
         });
         NeoForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingOut event) -> PidBoardTextures.clear());
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> BoardLook.tick());
@@ -125,13 +131,13 @@ public class SetpointClient {
         });
     }
 
-    /** The horn only does something while you drive a pallet truck. */
-    private static void sendHorn() {
+    /** The vehicle keys only do something while you drive a pallet truck. */
+    private static void sendIfDriving(CustomPacketPayload message) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) return;
         for (PalletTruckEntity truck : mc.level.getEntitiesOfClass(PalletTruckEntity.class, mc.player.getBoundingBox().inflate(PalletTruckEntity.REACH))) {
             if (truck.driver() == mc.player) {
-                ClientPacketDistributor.sendToServer(new TruckHorn());
+                ClientPacketDistributor.sendToServer(message);
                 return;
             }
         }

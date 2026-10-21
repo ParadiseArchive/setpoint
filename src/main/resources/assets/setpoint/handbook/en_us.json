@@ -365,7 +365,7 @@
         },
         {
           "type": "p",
-          "text": "Walk backwards to push its forks into a pallet: it picks the pallet up by itself. **Sneak-right-click** the truck to set the pallet down. Press **H** for the horn. Right-click again to let go."
+          "text": "Walk backwards to push its forks into a pallet: it picks the pallet up by itself. Press **CTRL** to set the pallet down; it waits a few seconds before it takes one up again. Press **H** for the horn. Right-click again to let go."
         },
         {
           "type": "craft",

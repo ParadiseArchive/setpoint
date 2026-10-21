@@ -1,5 +1,6 @@
 package io.hookdev.setpoint;
 
+import io.hookdev.setpoint.network.TruckLower;
 import com.mojang.logging.LogUtils;
 import org.slf4j.Logger;
 
@@ -77,7 +78,8 @@ public class Setpoint {
         event.registrar("1")
                 .playToClient(ConsoleSnapshot.TYPE, ConsoleSnapshot.CODEC)
                 .playToServer(PidRename.TYPE, PidRename.CODEC, PidRename::handle)
-                .playToServer(TruckHorn.TYPE, TruckHorn.CODEC, TruckHorn::handle);
+                .playToServer(TruckHorn.TYPE, TruckHorn.CODEC, TruckHorn::handle)
+                .playToServer(TruckLower.TYPE, TruckLower.CODEC, TruckLower::handle);
     }
 
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {

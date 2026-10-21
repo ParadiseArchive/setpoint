@@ -43,14 +43,16 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * An electric pallet truck. Right-click to take the tiller: it follows behind you like a trailer, up steps and slabs.
- * Back it into a pallet and its forks pick the pallet up, empty or with drums on it; sneak-right-click to set the
- * pallet down. Press H for the horn. Right-click again, or walk away, to let go.
+ * Back it into a pallet and its forks pick the pallet up, empty or with drums on it; press CTRL to set the pallet
+ * down (sneak-right-click works too). Press H for the horn. Right-click again, or walk away, to let go.
  */
 public class PalletTruckEntity extends VehicleEntity {
     /** From the middle of the truck to its handle, and to the middle of its forks, in blocks. */
     public static final double HANDLE = 1.5, FORKS = 0.4;
     /** Walk further away than this and you let go. */
     public static final double REACH = 6;
+    /** After setting a pallet down, this long before the forks take one up again (and only once they are out of it). */
+    public static final int COUPLE_COOLDOWN = 120;
     private static final EntityDataAccessor<Integer> DATA_DRIVER = SynchedEntityData.defineId(PalletTruckEntity.class, EntityDataSerializers.INT);
     /** Drums on the pallet it carries, or -1 without a pallet. */
     private static final EntityDataAccessor<Integer> DATA_DRUMS = SynchedEntityData.defineId(PalletTruckEntity.class, EntityDataSerializers.INT);
@@ -62,6 +64,8 @@ public class PalletTruckEntity extends VehicleEntity {
 
     private final List<ItemStack> drums = new ArrayList<>();
     private boolean hasPallet;
+    private int cooldown;
+    private boolean forksInPallet;
 
     public PalletTruckEntity(EntityType<? extends PalletTruckEntity> type, Level level) {
         super(type, level);
@@ -129,6 +133,7 @@ public class PalletTruckEntity extends VehicleEntity {
     }
 
     private void drive(ServerLevel level) {
+        if (cooldown > 0) cooldown--;
         Player driver = driver();
         if (driver != null && (driver.isRemoved() || driver.level() != level || driver.distanceTo(this) > REACH)) {
             setDriver(null);
@@ -153,31 +158,40 @@ public class PalletTruckEntity extends VehicleEntity {
 
     /** Picks up a pallet the forks are in, if there is one (the truck does this by itself while you drive it). */
     public void coupleNow() {
-        if (level() instanceof ServerLevel server && !hasPallet) couple(server, Vec3.ZERO);
+        if (level() instanceof ServerLevel server && !hasPallet) {
+            cooldown = 0;
+            forksInPallet = false;
+            couple(server, Vec3.ZERO);
+        }
     }
 
-    /** Forks running into a pallet (on its low deck): it comes up onto them, with what is on it. */
-    private void couple(ServerLevel level, Vec3 step) {
+    /** The pallet the forks are in, if any. */
+    private @Nullable BlockPos palletAtForks(ServerLevel level, Vec3 step) {
         Vec3 back = forward().scale(-1);
         for (double along : new double[]{0.4, 0.9, 1.4}) {
             Vec3 at = position().add(step).add(back.scale(along)).add(0, 0.1, 0);
             BlockPos pos = BlockPos.containing(at);
             BlockState state = level.getBlockState(pos);
-            BlockPos base = null;
-            if (state.getBlock() instanceof PalletBlock) base = pos;
-            else if (state.getBlock() instanceof PalletPartBlock && level.getBlockEntity(pos) instanceof MultiblockPartBlockEntity part) base = part.base();
-            if (base == null || !(level.getBlockEntity(base) instanceof PalletBlockEntity pallet)) continue;
-            drums.clear();
-            drums.addAll(pallet.takeAll());
-            level.removeBlock(base, false); // its parts go with it; the drums are on the forks now
-            hasPallet = true;
-            synced();
-            level.playSound(null, base, SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, 0.8f, 0.8f);
-            return;
+            if (state.getBlock() instanceof PalletBlock) return pos;
+            if (state.getBlock() instanceof PalletPartBlock && level.getBlockEntity(pos) instanceof MultiblockPartBlockEntity part && part.base() != null) return part.base();
         }
+        return null;
     }
 
-    /** Sneak-right-click: lower the forks and leave the pallet on the ground, square to the truck. */
+    /** Forks running into a pallet (on its low deck): it comes up onto them, with what is on it. */
+    private void couple(ServerLevel level, Vec3 step) {
+        BlockPos base = palletAtForks(level, step);
+        if (base == null) forksInPallet = false; // out of the pallet it just set down: free to take one up again
+        if (cooldown > 0 || forksInPallet || base == null || !(level.getBlockEntity(base) instanceof PalletBlockEntity pallet)) return;
+        drums.clear();
+        drums.addAll(pallet.takeAll());
+        level.removeBlock(base, false); // its parts go with it; the drums are on the forks now
+        hasPallet = true;
+        synced();
+        level.playSound(null, base, SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, 0.8f, 0.8f);
+    }
+
+    /** CTRL (or sneak-right-click): lower the forks and leave the pallet on the ground, square to the truck. */
     public void putDown(Player player) {
         Vec3 centre = position().subtract(forward().scale(FORKS));
         Direction facing = Direction.fromYRot(getYRot());
@@ -195,6 +209,8 @@ public class PalletTruckEntity extends VehicleEntity {
         PalletBlock.place(level(), base, facing, drums);
         drums.clear();
         hasPallet = false;
+        cooldown = COUPLE_COOLDOWN;
+        forksInPallet = true;
         synced();
         level().playSound(null, base, SoundEvents.WOOD_PLACE, SoundSource.BLOCKS, 0.8f, 0.7f);
     }
@@ -208,7 +224,7 @@ public class PalletTruckEntity extends VehicleEntity {
         }
     }
 
-    /** The horn: a short beep. */
+    /** The horn: two honks of an electric horn. */
     public void horn() {
         level().playSound(null, getX(), getY() + 1, getZ(), SetpointContent.PALLET_TRUCK_HORN.get(), SoundSource.NEUTRAL, 1.0f, 1.0f);
     }

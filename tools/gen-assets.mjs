@@ -762,7 +762,7 @@ json(join(ASSETS, 'sounds.json'), {
   },
   'entity.pallet_truck.horn': {
     subtitle: 'subtitles.setpoint.entity.pallet_truck.horn',
-    sounds: [{ name: 'minecraft:note/bit', pitch: 1.3, volume: 1.0 }],
+    sounds: [{ name: 'setpoint:vehicle/horn', volume: 1.0 }], // made by tools/make-horn.mjs
   },
   'block.safety_valve.lift': {
     subtitle: 'subtitles.setpoint.block.safety_valve.lift',
