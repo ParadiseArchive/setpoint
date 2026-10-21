@@ -36,7 +36,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 public final class PlantScanner {
     /** How far a console sees, in blocks, in every direction. */
     public static final int RANGE = 32;
-    private static final List<String> KIND_ORDER = List.of("LIC", "FIC", "PIC", "PUMP", "VALVE", "FT", "PT", "TANK", "IBC", "DRUM", "LT", "BOILER", "PSV", "TURBINE", "GEN", "INTAKE");
+    private static final List<String> KIND_ORDER = List.of("LIC", "FIC", "PIC", "PUMP", "VALVE", "FT", "PT", "TANK", "IBC", "DRUM", "LT", "BOILER", "PSV", "TURBINE", "GEN", "INTAKE", "ELECTROLYSER", "N2 GEN", "CYLINDER");
 
     private PlantScanner() {}
 
@@ -157,6 +157,19 @@ public final class PlantScanner {
             Double pv = lt.percent();
             return new Reading(pos, lt.tag(), "LT", pv == null ? "BAD PV" : "OK", pv == null ? Reading.ATTENTION : Reading.NORMAL,
                     pv == null ? "----" : pct(pv), List.of("LEVEL %"), new float[]{pv == null ? Float.NaN : pv.floatValue()}, List.of());
+        }
+        if (be instanceof io.hookdev.setpoint.block.entity.GasMakerBlockEntity maker) {
+            String kind = maker instanceof io.hookdev.setpoint.block.entity.ElectrolyserBlockEntity ? "ELECTROLYSER" : "N2 GEN";
+            double outlet = maker.product().pressure();
+            int severity = maker.status().equals("RUNNING") || maker.status().equals("FULL") ? Reading.NORMAL : Reading.ATTENTION;
+            return new Reading(be.getBlockPos(), maker.tag(), kind, maker.status(), severity, String.format("%.1f bar  %d mB/t", outlet, maker.made()),
+                    List.of("OUTLET bar"), new float[]{(float) outlet}, List.of());
+        }
+        if (be instanceof io.hookdev.setpoint.block.entity.GasCylinderBlockEntity cylinder) {
+            var gas = cylinder.tank().gas();
+            String what = gas.isEmpty() ? "EMPTY" : gas.getFluidType().getDescription().getString().toUpperCase();
+            return new Reading(be.getBlockPos(), cylinder.tag(), "CYLINDER", what, Reading.NORMAL, String.format("%.1f bar", cylinder.pressure()),
+                    List.of("PRESS bar"), new float[]{(float) cylinder.pressure()}, List.of());
         }
         if (be instanceof BoilerBlockEntity boiler) {
             List<String> alarms = new ArrayList<>();

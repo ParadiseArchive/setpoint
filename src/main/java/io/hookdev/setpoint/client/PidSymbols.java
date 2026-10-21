@@ -55,6 +55,15 @@ public final class PidSymbols {
     // a floating roof tank: an open shell, the roof floating on the liquid
     private static final String[] FLOATING_ROOF_TANK = {
             "#......#", "#......#", "#.####.#", "#++++++#", "#++++++#", "#++++++#", "#++++++#", "########"};
+    // an electrolyser: a cell stack between two end plates, gas bubbling up out of it
+    private static final String[] ELECTROLYSER = {
+            "..+..+..", "..+..+..", "########", "#.#.#.##", "#.#.#.##", "#.#.#.##", "########", "+..##..+"};
+    // a nitrogen generator (PSA): two adsorber columns side by side
+    private static final String[] NITROGEN_GENERATOR = {
+            ".##..##.", "#..##..#", "#++##++#", "#++##++#", "#++##++#", "#..##..#", ".##..##.", "...##..."};
+    // a gas cylinder: a bottle with its valve on top
+    private static final String[] GAS_CYLINDER = {
+            "...##...", "..####..", ".#....#.", ".#++++#.", ".#....#.", ".#....#.", ".#....#.", ".######."};
     private static final String[] CONSOLE = {
             "########", "#++++++#", "#+....+#", "#++++++#", "########", "...##...", "..####..", "........"};
 
@@ -80,6 +89,9 @@ public final class PidSymbols {
             case PidDrawing.DRUM -> DRUM;
             case PidDrawing.IBC -> IBC;
             case PidDrawing.FLOATING_ROOF_TANK -> FLOATING_ROOF_TANK;
+            case PidDrawing.ELECTROLYSER -> ELECTROLYSER;
+            case PidDrawing.NITROGEN_GENERATOR -> NITROGEN_GENERATOR;
+            case PidDrawing.GAS_CYLINDER -> GAS_CYLINDER;
             default -> null;
         };
     }

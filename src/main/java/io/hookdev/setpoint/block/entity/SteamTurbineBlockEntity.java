@@ -42,6 +42,8 @@ public class SteamTurbineBlockEntity extends BlockEntity implements NamedEquipme
     private double speed;
     private int steamUsed;
     private int output;
+    /** Where its steam lines lead (looked up every second). */
+    private final java.util.List<io.hookdev.setpoint.gas.GasRun.End> lines = new java.util.ArrayList<>();
 
     public SteamTurbineBlockEntity(BlockPos pos, BlockState state) {
         super(SetpointContent.STEAM_TURBINE_ENTITY.get(), pos, state);
@@ -75,6 +77,17 @@ public class SteamTurbineBlockEntity extends BlockEntity implements NamedEquipme
                 // the inlet swallows less steam at low pressure
                 steamUsed += boiler.takeSteam(Math.min(wanted - steamUsed, TurbineModel.inletFlow(boiler.pressure())));
             }
+        }
+        // and from steam lines: a gas pipe to anything holding steam
+        if (level.getGameTime() % 20 == 0) {
+            lines.clear();
+            for (Direction direction : Direction.values()) lines.addAll(io.hookdev.setpoint.gas.GasRun.traceAll(level, pos, direction));
+        }
+        for (io.hookdev.setpoint.gas.GasRun.End line : lines) {
+            if (steamUsed >= wanted) break;
+            io.hookdev.setpoint.gas.GasVessel vessel = line.vessel(level);
+            if (vessel == null || !io.hookdev.setpoint.gas.Gases.STEAM.resource().equals(vessel.gas())) continue;
+            steamUsed += vessel.extract(Math.min(wanted - steamUsed, TurbineModel.inletFlow(vessel.pressure())));
         }
         speed = TurbineModel.nextSpeed(speed, steamUsed);
         output = TurbineModel.power(speed, steamUsed);

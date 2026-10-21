@@ -329,6 +329,98 @@
         },
         {
           "type": "h",
+          "text": "Gases"
+        },
+        {
+          "type": "p",
+          "text": "Gas is counted like liquid, in mB, but **at 1 bar**. Squeeze more into the same room and the pressure goes up: twice the gas, twice the bar. Gas flows by itself from high pressure to low, through **gas pipes**, to everything on the line."
+        },
+        {
+          "type": "p",
+          "text": "Four gases so far: **hydrogen**, **oxygen**, **nitrogen** and **steam**. Gas pipes never join liquid pipes or tanks."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:gas_pipe",
+          "grid": [
+            "",
+            "minecraft:yellow_dye",
+            "",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "",
+            "",
+            ""
+          ],
+          "count": 6
+        },
+        {
+          "type": "p",
+          "text": "The **electrolyser** splits water into hydrogen (out on your left) and oxygen (out on your right), two to one. It needs power and water at the back or from below. Oxygen with nowhere to go is let into the air."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:electrolyser",
+          "grid": [
+            "minecraft:iron_ingot",
+            "minecraft:glass",
+            "minecraft:iron_ingot",
+            "minecraft:copper_block",
+            "setpoint:tank",
+            "minecraft:copper_block",
+            "minecraft:iron_ingot",
+            "minecraft:redstone",
+            "minecraft:iron_ingot"
+          ],
+          "count": 1
+        },
+        {
+          "type": "p",
+          "text": "The **nitrogen generator** takes nitrogen out of the air, with only power. It comes out on your left."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:nitrogen_generator",
+          "grid": [
+            "minecraft:iron_ingot",
+            "setpoint:tank",
+            "minecraft:iron_ingot",
+            "setpoint:tank",
+            "minecraft:redstone",
+            "setpoint:tank",
+            "minecraft:iron_ingot",
+            "minecraft:piston",
+            "minecraft:iron_ingot"
+          ],
+          "count": 1
+        },
+        {
+          "type": "p",
+          "text": "Both fill their outlet up to **10 bar**, then wait until something takes the gas. A **boiler** gives its steam to a gas pipe on top, and a **steam turbine** takes steam from a gas pipe on any side, so they no longer have to touch."
+        },
+        {
+          "type": "p",
+          "text": "A **gas cylinder** holds one gas up to 200 bar; its shoulder shows which. Pipes join it on top and its sides. A pressure transmitter reads it and a safety valve protects it. Break it and the gas goes along in the item."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:gas_cylinder",
+          "grid": [
+            "",
+            "setpoint:hand_valve",
+            "",
+            "minecraft:iron_ingot",
+            "",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot"
+          ],
+          "count": 1
+        },
+        {
+          "type": "h",
           "text": "Floating roof tank"
         },
         {

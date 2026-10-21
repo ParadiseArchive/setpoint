@@ -144,6 +144,14 @@ public final class SetpointContent {
 
     public static final DeferredBlock<FluidPipeBlock> PIPE = BLOCKS.registerBlock("pipe", FluidPipeBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(2.0f, 6.0f).sound(SoundType.COPPER).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.GasPipeBlock> GAS_PIPE = BLOCKS.registerBlock("gas_pipe", io.hookdev.setpoint.block.GasPipeBlock::new,
+            p -> p.mapColor(MapColor.COLOR_YELLOW).strength(2.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.ElectrolyserBlock> ELECTROLYSER = BLOCKS.registerBlock("electrolyser", io.hookdev.setpoint.block.ElectrolyserBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
+    public static final DeferredBlock<io.hookdev.setpoint.block.NitrogenGeneratorBlock> NITROGEN_GENERATOR = BLOCKS.registerBlock("nitrogen_generator", io.hookdev.setpoint.block.NitrogenGeneratorBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
+    public static final DeferredBlock<io.hookdev.setpoint.block.GasCylinderBlock> GAS_CYLINDER = BLOCKS.registerBlock("gas_cylinder", io.hookdev.setpoint.block.GasCylinderBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(2.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
     public static final DeferredBlock<TankBlock> TANK = BLOCKS.registerBlock("tank", TankBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
     public static final DeferredBlock<PumpBlock> PUMP = BLOCKS.registerBlock("centrifugal_pump", PumpBlock::new,
@@ -221,6 +229,10 @@ public final class SetpointContent {
             p -> p.mapColor(MapColor.COLOR_PURPLE).requiresCorrectToolForDrops().strength(5.0f, 6.0f));
 
     public static final DeferredItem<BlockItem> PIPE_ITEM = ITEMS.registerSimpleBlockItem(PIPE);
+    public static final DeferredItem<BlockItem> GAS_PIPE_ITEM = ITEMS.registerSimpleBlockItem(GAS_PIPE);
+    public static final DeferredItem<BlockItem> ELECTROLYSER_ITEM = ITEMS.registerSimpleBlockItem(ELECTROLYSER);
+    public static final DeferredItem<BlockItem> NITROGEN_GENERATOR_ITEM = ITEMS.registerSimpleBlockItem(NITROGEN_GENERATOR);
+    public static final DeferredItem<BlockItem> GAS_CYLINDER_ITEM = ITEMS.registerSimpleBlockItem(GAS_CYLINDER, p -> p.stacksTo(16));
     public static final DeferredItem<BlockItem> TANK_ITEM = ITEMS.registerSimpleBlockItem(TANK);
     public static final DeferredItem<BlockItem> PUMP_ITEM = ITEMS.registerSimpleBlockItem(PUMP);
     public static final DeferredItem<BlockItem> CREATIVE_GENERATOR_ITEM = ITEMS.registerSimpleBlockItem(CREATIVE_GENERATOR);
@@ -309,6 +321,12 @@ public final class SetpointContent {
             () -> new BlockEntityType<>(StirlingEngineBlockEntity::new, STIRLING_ENGINE.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BiogasGeneratorBlockEntity>> BIOGAS_GENERATOR_ENTITY = BLOCK_ENTITIES.register("biogas_generator",
             () -> new BlockEntityType<>(BiogasGeneratorBlockEntity::new, BIOGAS_GENERATOR.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.ElectrolyserBlockEntity>> ELECTROLYSER_ENTITY = BLOCK_ENTITIES.register("electrolyser",
+            () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.ElectrolyserBlockEntity::new, ELECTROLYSER.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.NitrogenGeneratorBlockEntity>> NITROGEN_GENERATOR_ENTITY = BLOCK_ENTITIES.register("nitrogen_generator",
+            () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.NitrogenGeneratorBlockEntity::new, NITROGEN_GENERATOR.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.GasCylinderBlockEntity>> GAS_CYLINDER_ENTITY = BLOCK_ENTITIES.register("gas_cylinder",
+            () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.GasCylinderBlockEntity::new, GAS_CYLINDER.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BoilerBlockEntity>> BOILER_ENTITY = BLOCK_ENTITIES.register("boiler",
             () -> new BlockEntityType<>(BoilerBlockEntity::new, BOILER.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WaterIntakeBlockEntity>> WATER_INTAKE_ENTITY = BLOCK_ENTITIES.register("water_intake",
@@ -339,6 +357,15 @@ public final class SetpointContent {
                 output.accept(PID_BOARD_ITEM.get());
                 output.accept(PIPE_WRENCH.get());
                 output.accept(PIPE_ITEM.get());
+                output.accept(GAS_PIPE_ITEM.get());
+                output.accept(ELECTROLYSER_ITEM.get());
+                output.accept(NITROGEN_GENERATOR_ITEM.get());
+                output.accept(GAS_CYLINDER_ITEM.get());
+                for (var gas : io.hookdev.setpoint.gas.Gases.ALL) { // a cylinder of each gas at 10 bar, to try things with
+                    net.minecraft.world.item.ItemStack cylinder = new net.minecraft.world.item.ItemStack(GAS_CYLINDER_ITEM.get());
+                    cylinder.set(FLUID_CONTENTS.get(), SimpleFluidContent.copyOf(new net.neoforged.neoforge.fluids.FluidStack(gas.fluid().get(), 10_000)));
+                    output.accept(cylinder);
+                }
                 output.accept(HAND_VALVE_ITEM.get());
                 output.accept(CHECK_VALVE_ITEM.get());
                 output.accept(DRAIN_VALVE_ITEM.get());
@@ -390,5 +417,6 @@ public final class SetpointContent {
         ATTACHMENTS.register(modEventBus);
         COMPONENTS.register(modEventBus);
         TRIGGERS.register(modEventBus);
+        io.hookdev.setpoint.gas.Gases.register(modEventBus);
     }
 }

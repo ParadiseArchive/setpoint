@@ -32,7 +32,13 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 
 /** Coal-fired boiler. Pipes connect to its water drum, a water bucket fills it, right-click opens its screen. */
-public class BoilerBlock extends BaseEntityBlock implements VesselBlock {
+public class BoilerBlock extends BaseEntityBlock implements VesselBlock, io.hookdev.setpoint.gas.GasPortBlock {
+    /** Steam leaves the drum on top, into a gas pipe. */
+    @Override
+    public boolean gasPort(BlockState state, Direction side) {
+        return side == Direction.UP;
+    }
+
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
 

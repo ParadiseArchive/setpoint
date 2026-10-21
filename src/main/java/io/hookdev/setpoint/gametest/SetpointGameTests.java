@@ -148,6 +148,11 @@ public final class SetpointGameTests {
         test("controller_holds_a_gravity_fed_tank", SetpointGameTests::controllerHoldsAGravityFedTank, 1600);
         test("a_floating_roof_tank_floats_its_roof", SetpointGameTests::aFloatingRoofTankFloatsItsRoof, 40);
         BIG.add("a_floating_roof_tank_floats_its_roof");
+        test("electrolyser_makes_hydrogen_and_oxygen", SetpointGameTests::electrolyserMakesHydrogenAndOxygen, 200);
+        test("nitrogen_generator_fills_a_cylinder", SetpointGameTests::nitrogenGeneratorFillsACylinder, 200);
+        test("gas_pipes_keep_to_gas", SetpointGameTests::gasPipesKeepToGas, 20);
+        test("boiler_steam_runs_a_turbine_through_a_gas_pipe", SetpointGameTests::boilerSteamRunsATurbineThroughAGasPipe, 200);
+        test("a_gas_cylinder_keeps_its_gas", SetpointGameTests::aGasCylinderKeepsItsGas, 20);
     }
 
     private static void test(String name, Consumer<GameTestHelper> function, int maxTicks) {
@@ -1249,6 +1254,98 @@ public final class SetpointGameTests {
                 helper.succeed();
             });
         });
+    }
+
+    /**
+     * An electrolyser with power and water: hydrogen goes down the gas pipe on its left into one cylinder, oxygen down the
+     * one on its right into another, two to one.
+     */
+    private static void electrolyserMakesHydrogenAndOxygen(GameTestHelper helper) {
+        BlockPos electrolyser = new BlockPos(3, 1, 1);
+        helper.setBlock(electrolyser, SetpointContent.ELECTROLYSER.get().defaultBlockState().setValue(io.hookdev.setpoint.block.GasMakerBlock.FACING, Direction.NORTH));
+        helper.setBlock(3, 0, 1, SetpointContent.CREATIVE_GENERATOR.get());
+        // facing north, your left is east: hydrogen east, oxygen west
+        helper.setBlock(4, 1, 1, SetpointContent.GAS_PIPE.get());
+        helper.setBlock(5, 1, 1, SetpointContent.GAS_PIPE.get());
+        helper.setBlock(6, 1, 1, SetpointContent.GAS_CYLINDER.get());
+        helper.setBlock(2, 1, 1, SetpointContent.GAS_PIPE.get());
+        helper.setBlock(1, 1, 1, SetpointContent.GAS_CYLINDER.get());
+        var be = helper.getBlockEntity(electrolyser, io.hookdev.setpoint.block.entity.ElectrolyserBlockEntity.class);
+        be.fluid().set(0, FluidResource.of(Fluids.WATER), 4_000);
+        helper.succeedWhen(() -> {
+            var hydrogen = helper.getBlockEntity(new BlockPos(6, 1, 1), io.hookdev.setpoint.block.entity.GasCylinderBlockEntity.class).tank();
+            var oxygen = helper.getBlockEntity(new BlockPos(1, 1, 1), io.hookdev.setpoint.block.entity.GasCylinderBlockEntity.class).tank();
+            helper.assertTrue(hydrogen.gas().equals(io.hookdev.setpoint.gas.Gases.HYDROGEN.resource()) && hydrogen.amount() >= 3_000,
+                    "the left cylinder should fill with hydrogen, has " + hydrogen.amount() + " of " + hydrogen.gas());
+            helper.assertTrue(oxygen.gas().equals(io.hookdev.setpoint.gas.Gases.OXYGEN.resource()) && oxygen.amount() >= 1_500,
+                    "the right cylinder should fill with oxygen, has " + oxygen.amount());
+            int made = hydrogen.amount() + be.product().amount();
+            helper.assertTrue(be.amount() == 4_000 - made / 20, "water used should match the hydrogen made: 5 mB per 100");
+        });
+    }
+
+    /** A nitrogen generator with power fills a cylinder up to 10 bar, then waits. */
+    private static void nitrogenGeneratorFillsACylinder(GameTestHelper helper) {
+        BlockPos generator = new BlockPos(3, 1, 1);
+        helper.setBlock(generator, SetpointContent.NITROGEN_GENERATOR.get().defaultBlockState().setValue(io.hookdev.setpoint.block.GasMakerBlock.FACING, Direction.SOUTH));
+        helper.setBlock(3, 0, 1, SetpointContent.CREATIVE_GENERATOR.get());
+        // facing south, your left is west
+        helper.setBlock(2, 1, 1, SetpointContent.GAS_PIPE.get());
+        helper.setBlock(1, 1, 1, SetpointContent.GAS_CYLINDER.get());
+        var cylinder = helper.getBlockEntity(new BlockPos(1, 1, 1), io.hookdev.setpoint.block.entity.GasCylinderBlockEntity.class);
+        cylinder.tank().set(io.hookdev.setpoint.gas.Gases.NITROGEN.resource(), 7_000); // most of the way there already
+        helper.succeedWhen(() -> {
+            var maker = helper.getBlockEntity(generator, io.hookdev.setpoint.block.entity.NitrogenGeneratorBlockEntity.class);
+            helper.assertTrue(cylinder.pressure() > 9.5, "the cylinder should reach about 10 bar, at " + cylinder.pressure());
+            helper.assertTrue(cylinder.pressure() <= 10.0 + 1e-9, "nothing should push it past 10 bar, at " + cylinder.pressure());
+            helper.assertTrue(maker.status().equals("FULL"), "then the generator should wait, says " + maker.status());
+        });
+    }
+
+    /** A gas pipe never joins a liquid pipe or a tank, and a liquid pipe never joins a gas port. */
+    private static void gasPipesKeepToGas(GameTestHelper helper) {
+        helper.setBlock(1, 1, 1, SetpointContent.TANK.get());
+        helper.setBlock(2, 1, 1, SetpointContent.GAS_PIPE.get());
+        helper.setBlock(3, 1, 1, SetpointContent.PIPE.get());
+        helper.setBlock(4, 1, 1, SetpointContent.GAS_PIPE.get());
+        helper.setBlock(5, 1, 1, SetpointContent.GAS_CYLINDER.get());
+        helper.setBlock(5, 2, 1, SetpointContent.PIPE.get());
+        helper.assertBlockProperty(new BlockPos(2, 1, 1), FluidPipeBlock.CONNECTIONS.get(Direction.WEST), false);
+        helper.assertBlockProperty(new BlockPos(2, 1, 1), FluidPipeBlock.CONNECTIONS.get(Direction.EAST), false);
+        helper.assertBlockProperty(new BlockPos(3, 1, 1), FluidPipeBlock.CONNECTIONS.get(Direction.EAST), false);
+        helper.assertBlockProperty(new BlockPos(4, 1, 1), FluidPipeBlock.CONNECTIONS.get(Direction.EAST), true);
+        helper.assertBlockProperty(new BlockPos(5, 2, 1), FluidPipeBlock.CONNECTIONS.get(Direction.DOWN), false);
+        helper.succeed();
+    }
+
+    /** A boiler full of steam and a turbine three blocks away, joined by a gas pipe from the boiler's top: the turbine runs. */
+    private static void boilerSteamRunsATurbineThroughAGasPipe(GameTestHelper helper) {
+        BlockPos boilerPos = new BlockPos(1, 1, 1);
+        helper.setBlock(boilerPos, SetpointContent.BOILER.get());
+        for (BlockPos pipe : List.of(new BlockPos(1, 2, 1), new BlockPos(2, 2, 1), new BlockPos(3, 2, 1))) helper.setBlock(pipe, SetpointContent.GAS_PIPE.get());
+        helper.setBlock(4, 2, 1, SetpointContent.STEAM_TURBINE.get());
+        BoilerBlockEntity boiler = helper.getBlockEntity(boilerPos, BoilerBlockEntity.class);
+        boiler.setSteam(2_400); // 6 bar
+        boiler.setTemperature(BoilerModel.BOILING);
+        helper.succeedWhen(() -> {
+            var turbine = helper.getBlockEntity(new BlockPos(4, 2, 1), SteamTurbineBlockEntity.class);
+            helper.assertTrue(turbine.output() > 0, "the turbine should make power from the piped steam, speed " + turbine.speed());
+            helper.assertTrue(boiler.steam() < 2_400, "the steam should come out of the boiler");
+        });
+    }
+
+    /** Break a cylinder of hydrogen: the item holds the gas, and its tooltip-ready component says how much. */
+    private static void aGasCylinderKeepsItsGas(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(2, 1, 1);
+        helper.setBlock(pos, SetpointContent.GAS_CYLINDER.get());
+        var cylinder = helper.getBlockEntity(pos, io.hookdev.setpoint.block.entity.GasCylinderBlockEntity.class);
+        cylinder.tank().set(io.hookdev.setpoint.gas.Gases.HYDROGEN.resource(), 25_000);
+        var drops = Block.getDrops(helper.getBlockState(pos), helper.getLevel(), helper.absolutePos(pos), cylinder, null, new ItemStack(Items.IRON_PICKAXE));
+        ItemStack item = drops.stream().filter(i -> i.is(SetpointContent.GAS_CYLINDER_ITEM.get())).findFirst().orElse(ItemStack.EMPTY);
+        var contents = item.get(SetpointContent.FLUID_CONTENTS.get());
+        helper.assertTrue(contents != null && contents.copy().getAmount() == 25_000 && contents.copy().getFluid() == io.hookdev.setpoint.gas.Gases.HYDROGEN.fluid().get(),
+                "the dropped cylinder should hold its 25 B of hydrogen, drops: " + drops);
+        helper.succeed();
     }
 
     /** An IBC with water on a pallet: the pallet truck takes it up and sets it down, water and all. */

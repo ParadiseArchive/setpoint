@@ -271,6 +271,18 @@ public class SetpointClient {
         }
         event.register(drums, SetpointContent.PALLET.get());
         event.register(List.of(liquid, body), SetpointContent.IBC.get());
+        // a gas cylinder's shoulder in the colour of its gas
+        event.register(List.of(new BlockTintSource() {
+            @Override
+            public int color(BlockState state) {
+                return FluidColours.UNKNOWN;
+            }
+
+            @Override
+            public int colorInWorld(BlockState state, BlockAndTintGetter level, BlockPos pos) {
+                return level.getBlockEntity(pos) instanceof ShowsFluid cylinder ? FluidColours.of(cylinder.shownFluid()) : FluidColours.UNKNOWN;
+            }
+        }), SetpointContent.GAS_CYLINDER.get());
     }
 
     private static void registerScreens(RegisterMenuScreensEvent event) {

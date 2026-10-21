@@ -165,6 +165,9 @@ public final class PidCapture {
             return new Found(symbol, 0, tank.tag(), 5);
         }
         if (block instanceof BoilerBlock && be instanceof BoilerBlockEntity boiler) return new Found(PidDrawing.BOILER, 0, boiler.tag(), 5);
+        if (be instanceof io.hookdev.setpoint.block.entity.ElectrolyserBlockEntity electrolyser) return new Found(PidDrawing.ELECTROLYSER, 0, electrolyser.tag(), 5);
+        if (be instanceof io.hookdev.setpoint.block.entity.NitrogenGeneratorBlockEntity generator) return new Found(PidDrawing.NITROGEN_GENERATOR, 0, generator.tag(), 5);
+        if (be instanceof io.hookdev.setpoint.block.entity.GasCylinderBlockEntity cylinder) return new Found(PidDrawing.GAS_CYLINDER, 0, cylinder.tag(), 5);
         if (block instanceof SteamTurbineBlock && be instanceof SteamTurbineBlockEntity turbine) {
             return new Found(PidDrawing.TURBINE, quarter(state.getValue(SteamTurbineBlock.FACING)), turbine.tag(), 5);
         }

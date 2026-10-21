@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "north": "setpoint:block/nitrogen_generator_front",
+    "east": "setpoint:block/nitrogen_generator_nitrogen",
+    "west": "setpoint:block/nitrogen_generator_vent",
+    "south": "setpoint:block/nitrogen_generator_side",
+    "up": "setpoint:block/nitrogen_generator_top",
+    "down": "setpoint:block/nitrogen_generator_side",
+    "particle": "setpoint:block/nitrogen_generator_nitrogen"
+  }
+}

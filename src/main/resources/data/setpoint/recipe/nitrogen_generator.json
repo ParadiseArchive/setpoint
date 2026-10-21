@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "T": "setpoint:tank",
+    "R": "minecraft:redstone",
+    "P": "minecraft:piston"
+  },
+  "pattern": [
+    "ITI",
+    "TRT",
+    "IPI"
+  ],
+  "result": {
+    "id": "setpoint:nitrogen_generator"
+  }
+}

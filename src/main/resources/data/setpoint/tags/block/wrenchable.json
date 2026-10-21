@@ -20,6 +20,9 @@
     "setpoint:drain_valve",
     "setpoint:check_valve",
     "setpoint:pid_board",
-    "setpoint:pallet"
+    "setpoint:pallet",
+    "setpoint:gas_pipe",
+    "setpoint:electrolyser",
+    "setpoint:nitrogen_generator"
   ]
 }

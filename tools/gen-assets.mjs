@@ -1454,6 +1454,129 @@ const segment = (r) => +(r * Math.tan(Math.PI / 24)).toFixed(4);
     elements: shrunk(whole, [0, 54, 0], 16 / 136) });
   item('floating_roof_tank', 'setpoint:block/floating_roof_tank_item');
 }
+
+// =====================================================================================
+// Gases: hydrogen, oxygen, nitrogen and steam, in gas pipes and cylinders
+// =====================================================================================
+// Gas colours are the shoulder colours of real gas cylinders (EN 1089-3): hydrogen red, oxygen white, nitrogen black.
+const GAS = { hydrogen: '#c7322f', oxygen: '#f2f4f7', nitrogen: '#2c2e33', yellow: '#e2b13c', yellowDark: '#a87f22' };
+texture('gas_pipe', (p) => { // galvanised steel with a yellow band near each end: the colour code of a gas line
+  const shade = ['#6f7682', '#8b929e', '#a7aeb9', '#c3c9d2', '#a7aeb9', '#a7aeb9', '#8b929e', '#8b929e', '#8b929e', '#8b929e', '#6f7682', '#6f7682', '#6f7682', '#575d68', '#575d68', '#575d68'];
+  for (let y = 0; y < 16; y++) p.rect(0, y, 16, 1, shade[y]);
+  p.rect(0, 0, 1, 16, '#4a4f58'); p.rect(15, 0, 1, 16, '#4a4f58');
+  p.rect(2, 0, 2, 16, GAS.yellow); p.rect(2, 10, 2, 6, GAS.yellowDark);
+  p.rect(12, 0, 2, 16, GAS.yellow); p.rect(12, 10, 2, 6, GAS.yellowDark);
+});
+// a gas connection on a machine's side: a flange with a band in the colour of its gas
+const gasPort = (band) => (p) => {
+  plate(p, C.steel2);
+  p.rect(3, 3, 10, 10, band);
+  p.rect(4, 4, 8, 8, C.steel3); p.rect(5, 5, 6, 6, C.steel1); p.rect(6, 6, 4, 4, C.outline); // flange and bore
+  for (const [x, y] of [[4, 4], [11, 4], [4, 11], [11, 11]]) p.set(x, y, C.steel4);
+  rivets(p, [[1, 1], [13, 1], [1, 13], [13, 13]]);
+};
+texture('electrolyser_hydrogen', gasPort(GAS.hydrogen));
+texture('electrolyser_oxygen', gasPort(GAS.oxygen));
+texture('nitrogen_generator_nitrogen', gasPort(GAS.nitrogen));
+texture('electrolyser_water', (p) => { // the back: a copper water inlet with a green band
+  plate(p, C.steel2);
+  p.rect(3, 3, 10, 10, '#3f8f4f');
+  p.rect(4, 4, 8, 8, C.cu2); p.rect(5, 5, 6, 6, C.cu1); p.rect(6, 6, 4, 4, C.outline);
+  rivets(p, [[1, 1], [13, 1], [1, 13], [13, 13]]);
+});
+const electrolyserFront = (led, ledDark) => (p) => { // a window on the cell stack: plates pressed between end plates
+  plate(p, C.steel2);
+  p.rect(2, 2, 12, 9, C.steel0);
+  for (let x = 3; x < 13; x += 2) { p.rect(x, 3, 1, 7, '#d3d9e2'); p.rect(x + 1, 3, 1, 7, '#6b7280'); }
+  p.rect(2, 2, 12, 1, C.steel4); p.rect(2, 10, 12, 1, C.steel1);                 // tie rods
+  p.rect(3, 12, 2, 2, led); p.set(4, 13, ledDark);                                // status light
+  p.rect(7, 12, 3, 2, GAS.hydrogen); p.rect(11, 12, 2, 2, GAS.oxygen);           // H2 / O2 nameplates
+};
+texture('electrolyser_front', electrolyserFront(C.ledOff, C.outline));
+texture('electrolyser_front_on', electrolyserFront(C.cyan, C.cyanDark));
+texture('electrolyser_top', (p) => {
+  plate(p, C.steel2);
+  for (let y = 3; y < 13; y += 2) p.rect(3, y, 10, 1, C.steel0);                  // vent slots
+  rivets(p, [[1, 1], [13, 1], [1, 13], [13, 13]]);
+});
+texture('electrolyser_bottom', (p) => { plate(p, C.steel1); p.rect(6, 6, 4, 4, C.cu2); p.rect(7, 7, 2, 2, C.outline); });
+const nitrogenFront = (led, ledDark) => (p) => { // two adsorber columns side by side, a gauge between them
+  plate(p, C.steel1);
+  for (const x of [2, 9]) {
+    p.rect(x, 1, 5, 14, '#b9c4d3'); p.rect(x + 1, 1, 1, 14, '#e3e9f1'); p.rect(x + 4, 1, 1, 14, '#7d8796');
+    p.rect(x, 1, 5, 1, '#f1f4f8'); p.rect(x, 14, 5, 1, '#5d6673');
+  }
+  p.rect(7, 4, 2, 2, '#e8ecf2'); p.set(7, 4, C.outline);                          // pressure gauge
+  p.rect(7, 11, 2, 2, led); p.set(8, 12, ledDark);                                // status light
+};
+texture('nitrogen_generator_front', nitrogenFront(C.ledOff, C.outline));
+texture('nitrogen_generator_front_on', nitrogenFront(C.cyan, C.cyanDark));
+texture('nitrogen_generator_vent', (p) => { // louvres where the oxygen-rich air is blown off
+  plate(p, C.steel2);
+  for (let y = 3; y < 14; y += 3) { p.rect(3, y, 10, 1, C.steel0); p.rect(3, y + 1, 10, 1, C.steel4); }
+});
+texture('nitrogen_generator_side', (p) => { plate(p, C.steel2); rivets(p, [[2, 2], [12, 2], [2, 12], [12, 12]]); });
+texture('nitrogen_generator_top', (p) => { plate(p, C.steel2); p.rect(3, 3, 4, 4, C.steel0); p.rect(9, 3, 4, 4, C.steel0); rivets(p, [[2, 12], [12, 12]]); });
+for (const [name, left, right, back, bottom] of [
+  ['electrolyser', 'electrolyser_hydrogen', 'electrolyser_oxygen', 'electrolyser_water', 'electrolyser_bottom'],
+  ['nitrogen_generator', 'nitrogen_generator_nitrogen', 'nitrogen_generator_vent', 'nitrogen_generator_side', 'nitrogen_generator_side'],
+]) {
+  for (const on of [false, true]) {
+    // front north; your left as you face it is east, your right west
+    M(name + (on ? '_on' : ''), { parent: 'minecraft:block/cube', textures: {
+      north: tex(name + '_front' + (on ? '_on' : '')), east: tex(left), west: tex(right), south: tex(back),
+      up: tex(name === 'electrolyser' ? 'electrolyser_top' : 'nitrogen_generator_top'), down: tex(bottom), particle: tex(left) } });
+  }
+  BS(name, { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => [false, true].map((run) =>
+    [`facing=${f},running=${run}`, { model: 'setpoint:block/' + name + (run ? '_on' : ''), ...(y ? { y } : {}) }]))) });
+  item(name, 'setpoint:block/' + name + '_on');
+}
+// the gas pipe: the liquid pipe's shapes in steel
+M('gas_pipe_core', { parent: 'minecraft:block/block', textures: { pipe: tex('gas_pipe'), particle: tex('gas_pipe') },
+  elements: [box([5, 5, 5], [11, 11, 11], Object.fromEntries(['north', 'south', 'east', 'west', 'up', 'down'].map((f) => [f, face([5, 5, 11, 11])])))] });
+M('gas_pipe_arm', { textures: { pipe: tex('gas_pipe'), particle: tex('gas_pipe') },
+  elements: [box([5, 5, 0], [11, 11, 5], { north: { uv: [5, 5, 11, 11], texture: '#pipe', cullface: 'north' },
+    east: face([0, 5, 5, 11]), west: face([11, 5, 16, 11]), up: face([5, 0, 11, 5]), down: face([5, 11, 11, 16]) })] });
+M('gas_pipe_item', { parent: 'minecraft:block/block', textures: { pipe: tex('gas_pipe'), particle: tex('gas_pipe') },
+  elements: [box([5, 5, 0], [11, 11, 16], { north: face([5, 5, 11, 11]), south: face([5, 5, 11, 11]),
+    east: face([0, 5, 16, 11]), west: face([0, 5, 16, 11]), up: face([5, 0, 11, 16]), down: face([5, 0, 11, 16]) })] });
+BS('gas_pipe', { multipart: [{ apply: { model: 'setpoint:block/gas_pipe_core' } },
+  ...Object.entries(armRotation).map(([dir, rot]) => ({ when: { [dir]: 'true' }, apply: { model: 'setpoint:block/gas_pipe_arm', ...rot } }))] });
+item('gas_pipe', 'setpoint:block/gas_pipe_item');
+
+// the gas cylinder: a round steel bottle, its shoulder in the colour of its gas (tintindex 0), a valve on top
+texture('gas_cylinder_body', (p) => {
+  p.rect(0, 0, 16, 16, '#7d8593');
+  p.rect(1, 0, 1, 16, '#a1a9b6'); p.rect(13, 0, 2, 16, '#606774');           // light from the left
+  p.rect(0, 5, 16, 4, '#e8ecf2'); p.rect(0, 5, 16, 1, '#ffffff');            // the label band
+  p.rect(3, 6, 6, 1, '#9aa3b2'); p.rect(3, 8, 4, 1, '#9aa3b2');
+});
+texture('gas_cylinder_shoulder', (p) => { p.rect(0, 0, 16, 16, '#d6d6d6'); p.rect(1, 0, 1, 16, '#ffffff'); p.rect(13, 0, 2, 16, '#a8a8a8'); });
+texture('gas_cylinder_valve', (p) => { p.rect(0, 0, 16, 16, '#b08d3c'); p.rect(0, 0, 16, 1, '#d8b763'); }); // brass
+texture('gas_cylinder_bottom', (p) => { p.rect(0, 0, 16, 16, '#5d6470'); });
+{
+  // round as a pixel circle: bands of z, each as wide in x as the circle there
+  const r5 = [[4, 5, 6, 10], [5, 6, 5, 11], [6, 10, 4, 12], [10, 11, 5, 11], [11, 12, 6, 10]]; // the body, eight pixels across
+  const r4 = [[5, 6, 7, 9], [6, 7, 6, 10], [7, 9, 5, 11], [9, 10, 6, 10], [10, 11, 7, 9]];      // the shoulder, six
+  const els = [];
+  for (const [z1, z2, x1, x2] of r5) els.push(box([x1, 0, z1], [x2, 12, z2], { ...Object.fromEntries(['north', 'south', 'east', 'west'].map((f) => [f, { uv: [x1, 4, x2, 16], texture: '#body' }])),
+    down: { uv: [x1, z1, x2, z2], texture: '#bottom', cullface: 'down' } }));
+  for (const [z1, z2, x1, x2] of r4) els.push(box([x1, 12, z1], [x2, 14, z2], { ...Object.fromEntries(['north', 'south', 'east', 'west'].map((f) => [f, { uv: [x1, 0, x2, 2], texture: '#shoulder', tintindex: 0 }])),
+    up: { uv: [x1, z1, x2, z2], texture: '#shoulder', tintindex: 0 } }));
+  for (const [z1, z2, x1, x2] of r5) els.push(box([x1, 11.99, z1], [x2, 12, z2], { up: { uv: [x1, z1, x2, z2], texture: '#shoulder', tintindex: 0 } })); // the shoulder's foot
+  els.push(box([7, 14, 7], [9, 15.5, 9], allFaces([0, 0, 2, 1.5], '#valve', ['down'])));         // the valve
+  els.push(box([6, 15.5, 7.5], [10, 16, 8.5], allFaces([0, 0, 4, 0.5], '#valve')));               // its handwheel
+  els.push(box([9, 14.2, 7.5], [10.5, 15, 8.5], allFaces([0, 0, 1.5, 1], '#valve', ['west'])));   // and its outlet
+  const textures = { body: tex('gas_cylinder_body'), shoulder: tex('gas_cylinder_shoulder'), valve: tex('gas_cylinder_valve'), bottom: tex('gas_cylinder_bottom'), particle: tex('gas_cylinder_body') };
+  M('gas_cylinder', { parent: 'minecraft:block/block', textures, elements: els });
+  BS('gas_cylinder', { variants: { '': { model: 'setpoint:block/gas_cylinder' } } });
+  json(join(ASSETS, 'items', 'gas_cylinder.json'), { model: { type: 'minecraft:model', model: 'setpoint:block/gas_cylinder',
+    tints: [{ type: 'minecraft:constant', value: 0xFF8D95A5 | 0 }] } });
+}
+recipe('gas_pipe', [' Y ', 'III'], { Y: 'minecraft:yellow_dye', I: 'minecraft:iron_ingot' }, 'setpoint:gas_pipe', 6);
+recipe('electrolyser', ['IGI', 'CTC', 'IRI'], { I: 'minecraft:iron_ingot', G: 'minecraft:glass', C: 'minecraft:copper_block', T: 'setpoint:tank', R: 'minecraft:redstone' }, 'setpoint:electrolyser');
+recipe('nitrogen_generator', ['ITI', 'TRT', 'IPI'], { I: 'minecraft:iron_ingot', T: 'setpoint:tank', R: 'minecraft:redstone', P: 'minecraft:piston' }, 'setpoint:nitrogen_generator');
+recipe('gas_cylinder', [' V ', 'I I', 'III'], { V: 'setpoint:hand_valve', I: 'minecraft:iron_ingot' }, 'setpoint:gas_cylinder');
 recipe('floating_roof_tank', ['IBI', 'BTB', 'IBI'], { I: 'setpoint:hookonium_ingot', B: 'setpoint:hookonium_block', T: 'setpoint:tank' }, 'setpoint:floating_roof_tank');
 recipe('ibc', ['BBB', 'BCB', 'SSS'], { B: 'minecraft:iron_bars', C: 'minecraft:cauldron', S: 'minecraft:oak_slab' }, 'setpoint:ibc');
 
@@ -1650,9 +1773,9 @@ const lootOre = (name, drop) => json(join(DATA, 'loot_table/blocks', name + '.js
 });
 const MACHINES = ['pipe', 'tank', 'centrifugal_pump', 'creative_generator', 'level_transmitter', 'control_valve', 'controller',
   'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine', 'dcs_console', 'hand_valve', 'water_intake', 'flow_transmitter',
-  'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve', 'pid_board', 'pallet'];
+  'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve', 'pid_board', 'pallet', 'gas_pipe', 'electrolyser', 'nitrogen_generator'];
 for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) lootSelf(name);
-for (const name of ['drum', 'ibc', 'floating_roof_tank']) json(join(DATA, 'loot_table/blocks', name + '.json'), {
+for (const name of ['drum', 'ibc', 'floating_roof_tank', 'gas_cylinder']) json(join(DATA, 'loot_table/blocks', name + '.json'), {
   type: 'minecraft:block', random_sequence: 'setpoint:blocks/' + name,
   pools: [{ rolls: 1, conditions: [{ condition: 'minecraft:survives_explosion' }], entries: [{ type: 'minecraft:item', name: 'setpoint:' + name,
     modifier: { type: 'minecraft:copy_components', source: 'block_entity', include: ['minecraft:custom_name', 'setpoint:fluid_contents', 'minecraft:dyed_color'] } }] }],
@@ -1661,7 +1784,7 @@ lootOre('hookonium_ore', 'setpoint:raw_hookonium');
 lootOre('deepslate_hookonium_ore', 'setpoint:raw_hookonium');
 const HOOKONIUM_BLOCKS = ['hookonium_ore', 'deepslate_hookonium_ore', 'hookonium_block', 'raw_hookonium_block'].map((n) => 'setpoint:' + n);
 const tag = (path, values) => json(join(ROOT, 'data', path + '.json'), { values });
-tag('minecraft/tags/block/mineable/pickaxe', [...MACHINES.map((n) => 'setpoint:' + n), 'setpoint:drum', 'setpoint:ibc', 'setpoint:floating_roof_tank', 'setpoint:roof_tank_part', ...HOOKONIUM_BLOCKS]);
+tag('minecraft/tags/block/mineable/pickaxe', [...MACHINES.map((n) => 'setpoint:' + n), 'setpoint:drum', 'setpoint:ibc', 'setpoint:floating_roof_tank', 'setpoint:roof_tank_part', 'setpoint:gas_cylinder', ...HOOKONIUM_BLOCKS]);
 tag('minecraft/tags/block/needs_diamond_tool', HOOKONIUM_BLOCKS);
 // the pipe wrench turns, cuts and picks up these
 tag('setpoint/tags/block/wrenchable', MACHINES.map((n) => 'setpoint:' + n));

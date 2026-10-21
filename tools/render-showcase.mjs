@@ -266,6 +266,17 @@ render('controller', [{ model: 'controller', y: S }]);
 render('stirling_engine', [{ model: 'stirling_engine_on', y: S }]);
 render('biogas_generator', [{ model: 'biogas_generator_on', y: S }]);
 render('creative_generator', [{ model: 'creative_generator' }]);
+// gases: the machines with their product side toward the camera (front east, so your left is south)
+const GAS_TINT = { hydrogen: [0xc7, 0x32, 0x2f], oxygen: [0xf2, 0xf4, 0xf7], nitrogen: [0x2c, 0x2e, 0x33], steam: [0xd8, 0xdd, 0xe3] };
+const gasPipe = (at, arms) => [{ model: 'gas_pipe_core', at }, ...arms.map((y) => ({ model: 'gas_pipe_arm', at, y }))];
+render('electrolyser', [{ model: 'electrolyser_on', y: E }]);
+render('nitrogen_generator', [{ model: 'nitrogen_generator_on', y: S }]);
+render('gas_pipe', gasPipe([0, 0, 0], [E, W_, S]));
+render('gas_cylinder', [{ model: 'gas_cylinder', tints: [GAS_TINT.hydrogen] }], 6);
+render('gas_cylinders', Object.values(GAS_TINT).map((t, i) => ({ model: 'gas_cylinder', at: [i * 0.75, 0, -i * 0.75], tints: [t] })), 4);
+// an electrolyser filling a cylinder of hydrogen through a gas pipe
+render('gas_line', [{ model: 'electrolyser_on', y: E }, ...gasPipe([0, 0, 1], [0, S]), ...gasPipe([0, 0, 2], [0, S]),
+  { model: 'gas_cylinder', at: [0, 0, 3], tints: [GAS_TINT.hydrogen] }], 3);
 render('boiler', [{ model: 'boiler_on', y: S }]);
 render('steam_turbine', [{ model: 'steam_turbine_on', y: S }]);
 render('dcs_console', [{ model: 'dcs_console', y: S }]);

@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "setpoint:block/gas_cylinder",
+    "tints": [
+      {
+        "type": "minecraft:constant",
+        "value": -7498331
+      }
+    ]
+  }
+}

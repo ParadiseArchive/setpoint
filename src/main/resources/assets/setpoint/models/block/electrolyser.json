@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "north": "setpoint:block/electrolyser_front",
+    "east": "setpoint:block/electrolyser_hydrogen",
+    "west": "setpoint:block/electrolyser_oxygen",
+    "south": "setpoint:block/electrolyser_water",
+    "up": "setpoint:block/electrolyser_top",
+    "down": "setpoint:block/electrolyser_bottom",
+    "particle": "setpoint:block/electrolyser_hydrogen"
+  }
+}

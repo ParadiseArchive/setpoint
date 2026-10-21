@@ -70,11 +70,13 @@ public class FluidPipeBlock extends Block {
     public static boolean connectsTo(BlockGetter level, BlockPos pos, BlockState state, Direction direction) {
         if (state.getBlock() instanceof FluidPipeBlock && state.getValue(CUT.get(direction))) return false;
         BlockState neighbour = level.getBlockState(pos.relative(direction));
+        if (state.getBlock() instanceof GasPipeBlock) return GasPipeBlock.joins(neighbour, direction);
+        if (neighbour.getBlock() instanceof GasPipeBlock) return false; // gas and liquid lines never join
         if (neighbour.getBlock() instanceof FluidPipeBlock) {
             return !neighbour.getValue(CUT.get(direction.getOpposite()));
         }
-        if (neighbour.getBlock() instanceof VesselBlock) {
-            return true;
+        if (neighbour.getBlock() instanceof VesselBlock vessel) {
+            return vessel.takesPipe(neighbour, direction.getOpposite());
         }
         // another mod's tank (anything with fluid storage on that side)
         if (level instanceof Level world && ForeignVessel.isStorage(world, pos.relative(direction), direction.getOpposite())) {

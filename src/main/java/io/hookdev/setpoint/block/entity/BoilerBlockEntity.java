@@ -13,6 +13,7 @@ import io.hookdev.setpoint.menu.BoilerMenu;
 import io.hookdev.setpoint.physics.BoilerModel;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -58,7 +59,7 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
  * the burner before the design pressure; a safety valve on the drum vents it; a pressure controller (PIC) can
  * hold the pressure by turning the burner up and down, like the boiler master on a real plant.
  */
-public class BoilerBlockEntity extends BlockEntity implements MenuProvider, Vessel, PressureVessel, NamedEquipment {
+public class BoilerBlockEntity extends BlockEntity implements MenuProvider, Vessel, PressureVessel, NamedEquipment, io.hookdev.setpoint.gas.GasPortBlock.Ports {
     private final EquipmentName name = new EquipmentName("B");
 
     public static final int WATER_CAPACITY = 8_000;
@@ -222,6 +223,32 @@ public class BoilerBlockEntity extends BlockEntity implements MenuProvider, Vess
         this.temperature = temperature;
     }
 
+    /** The drum's steam as a gas vessel, for the steam outlet on top: it gives steam to the line and takes none. */
+    private final io.hookdev.setpoint.gas.GasVessel steamOutlet = new io.hookdev.setpoint.gas.GasVessel() {
+        @Override public FluidResource gas() { return steam > 0 ? io.hookdev.setpoint.gas.Gases.STEAM.resource() : FluidResource.EMPTY; }
+        @Override public int amount() { return steam; }
+        @Override public int volume() { return BoilerModel.STEAM_PER_BAR; }
+        @Override public double maxPressure() { return BoilerModel.DESIGN_PRESSURE; }
+        @Override public boolean canTake(FluidResource gas) { return false; }
+        @Override public int insert(FluidResource gas, int amount) { // only steam that did not fit somewhere comes back
+            if (!io.hookdev.setpoint.gas.Gases.STEAM.resource().equals(gas)) return 0;
+            setSteam(steam + amount);
+            return amount;
+        }
+        @Override public int extract(int amount) { return takeSteam(amount); }
+    };
+    private final io.hookdev.setpoint.gas.GasFlow steamFlow = new io.hookdev.setpoint.gas.GasFlow();
+
+    @Override
+    public io.hookdev.setpoint.gas.@Nullable GasVessel port(Direction side) {
+        return side == Direction.UP ? steamOutlet : null;
+    }
+
+    /** Steam let into the gas line on top in the last tick, mB. */
+    public int steamOut() {
+        return steamFlow.lastFlow();
+    }
+
     /** A turbine takes steam out of the boiler. Returns how much it got. */
     public int takeSteam(int wanted) {
         int taken = Math.max(0, Math.min(wanted, steam));
@@ -235,6 +262,7 @@ public class BoilerBlockEntity extends BlockEntity implements MenuProvider, Vess
     }
 
     private void tick(ServerLevel level, BlockPos pos, BlockState state) {
+        steamFlow.tick(level, pos, steamOutlet, Direction.UP); // steam into a gas pipe on top, if there is one
         int waterNow = amount();
         boolean protect = protection();
 

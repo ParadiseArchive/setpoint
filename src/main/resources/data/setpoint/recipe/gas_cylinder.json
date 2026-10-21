@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "V": "setpoint:hand_valve",
+    "I": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    " V ",
+    "I I",
+    "III"
+  ],
+  "result": {
+    "id": "setpoint:gas_cylinder"
+  }
+}

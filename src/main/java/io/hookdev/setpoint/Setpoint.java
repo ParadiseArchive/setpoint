@@ -105,5 +105,8 @@ public class Setpoint {
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, SetpointContent.WATER_INTAKE_ENTITY.get(), (intake, side) -> intake.fluid());
         event.registerBlockEntity(Capabilities.Item.BLOCK, SetpointContent.BOILER_ENTITY.get(), (boiler, side) -> boiler.fuel());
         event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.STEAM_TURBINE_ENTITY.get(), (turbine, side) -> turbine.energy());
+        event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.ELECTROLYSER_ENTITY.get(), (maker, side) -> maker.energy());
+        event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.NITROGEN_GENERATOR_ENTITY.get(), (maker, side) -> maker.energy());
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, SetpointContent.ELECTROLYSER_ENTITY.get(), (electrolyser, side) -> electrolyser.fluid());
     }
 }
