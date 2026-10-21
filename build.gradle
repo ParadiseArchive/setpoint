@@ -61,6 +61,8 @@ neoForge {
             client()
             // Comma-separated list of namespaces to load gametests from. Empty = all namespaces.
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
+            // the dev client's strict render checks trip an Iris bug with shader packs (IrisShaders/Iris#3374)
+            systemProperty 'neoforge.disableBlaze3DValidation', 'true'
         }
 
         server {
