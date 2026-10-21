@@ -51,4 +51,5 @@ Early Stirling engine / biogas, mid steam, late diesel from your own distillatio
 
 ## Assets
 - `node tools/gen-assets.mjs` regenerates textures, models, blockstates, item models, recipes and the game test structure. Use `--keep-textures` once textures are drawn by hand.
+- `node tools/render-showcase.mjs <folder>` renders isometric block pictures for the website straight from the models and textures.
 - `sounds.json` reuses vanilla sound files for now (cavitation = campfire crackle at low pitch + bubbles). Custom .ogg files can replace them later.
