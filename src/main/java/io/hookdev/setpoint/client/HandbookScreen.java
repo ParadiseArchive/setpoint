@@ -28,7 +28,7 @@ import net.minecraft.world.item.Items;
  */
 public class HandbookScreen extends Screen {
     private static final int W = 220, H = 196;
-    private static final int CX = 16, CW = 188, TOP = 22, BOTTOM = 168;
+    private static final int CX = 16, CW = 188, TOP = 22, BOTTOM = 160; // the paper ends at 167; keep the last line well inside it
     private static final int COVER = 0xFF1E222A, PAPER = 0xFFECE6D6, PAPER_EDGE = 0xFFCFC7B2, TEXT = 0xFF2A2622, HEAD = 0xFF10656B,
             ACCENT = 0xFFC2306A, DIM = 0xFF7A7264, TIP_BG = 0xFFDCEFE8, TIP_BAR = 0xFF2DE2E6, SLOT = 0xFF8B8B8B, SLOT_DARK = 0xFF373737,
             SLOT_LIGHT = 0xFFFFFFFF, LIGHT_TEXT = 0xFFD9DEEA, CYAN = 0xFF2DE2E6;
@@ -54,12 +54,14 @@ public class HandbookScreen extends Screen {
     @Override
     protected void init() {
         left = (width - W) / 2;
-        top = (height - H) / 2;
+        top = Math.max(2, (height - H - 24) / 2); // room for the Done button below
         layout();
         prev = addRenderableWidget(Button.builder(Component.literal("<"), b -> turn(-1)).bounds(left + 12, top + H - 24, 22, 16).build());
         contents = addRenderableWidget(Button.builder(Component.literal("Contents"), b -> { page = 0; refresh(); })
                 .bounds(left + W / 2 - 32, top + H - 24, 64, 16).build());
         next = addRenderableWidget(Button.builder(Component.literal(">"), b -> turn(1)).bounds(left + W - 34, top + H - 24, 22, 16).build());
+        // close the book, like the Done button under a vanilla book
+        addRenderableWidget(Button.builder(Component.literal("Done"), b -> onClose()).bounds(left + W / 2 - 40, top + H + 4, 80, 20).build());
         refresh();
     }
 
