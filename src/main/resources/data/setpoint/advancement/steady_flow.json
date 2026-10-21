@@ -1,0 +1,28 @@
+{
+  "parent": "setpoint:hands_off",
+  "criteria": {
+    "flow_holding": {
+      "trigger": "setpoint:plant_event",
+      "conditions": {
+        "event": "flow_holding"
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "setpoint:flow_transmitter"
+    },
+    "frame": "goal",
+    "title": {
+      "translate": "advancements.setpoint.steady_flow.title"
+    },
+    "description": {
+      "translate": "advancements.setpoint.steady_flow.description"
+    }
+  },
+  "requirements": [
+    [
+      "flow_holding"
+    ]
+  ]
+}

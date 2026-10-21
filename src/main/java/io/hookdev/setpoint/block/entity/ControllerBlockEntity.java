@@ -10,6 +10,7 @@ import io.hookdev.setpoint.control.PidController.Action;
 import io.hookdev.setpoint.control.PidController.Mode;
 import io.hookdev.setpoint.control.PidController.Tuning;
 import io.hookdev.setpoint.control.TagDirectory;
+import io.hookdev.setpoint.hydraulics.ForeignVessel;
 import io.hookdev.setpoint.hydraulics.LoopFinder;
 import io.hookdev.setpoint.hydraulics.Vessel;
 import io.hookdev.setpoint.menu.FaceplateMenu;
@@ -168,31 +169,60 @@ public class ControllerBlockEntity extends InstrumentBlockEntity implements Menu
         // a loop that really holds its setpoint, with the valve somewhere in the middle
         if (level.getGameTime() % 100 == 0 && mode == Mode.AUTO && !badPv && valve != null && Math.abs(pv - sp) < 1.0
                 && valvePosition > 0.02 && valvePosition < 0.98 && level instanceof ServerLevel server) {
-            PlantEventTrigger.near(server, pos, PlantEventTrigger.LOOP_HOLDING);
+            PlantEventTrigger.near(server, pos, measuresFlow() ? PlantEventTrigger.FLOW_HOLDING : PlantEventTrigger.LOOP_HOLDING);
         }
     }
 
     private @Nullable Vessel adjacentTank(Level level) {
         for (Direction direction : Direction.values()) {
-            if (level.getBlockEntity(worldPosition.relative(direction)) instanceof Vessel vessel) return vessel;
+            Vessel vessel = ForeignVessel.at(level, worldPosition.relative(direction), direction.getOpposite());
+            if (vessel != null) return vessel;
         }
         return null;
     }
 
-    /** PV in percent: from the transmitter tag, or straight from the tank this controller sits against. */
+    private @Nullable FlowTransmitterBlockEntity adjacentMeter(Level level) {
+        for (Direction direction : Direction.values()) {
+            if (level.getBlockEntity(worldPosition.relative(direction)) instanceof FlowTransmitterBlockEntity meter) return meter;
+        }
+        return null;
+    }
+
+    /** Whether this loop controls a flow (its PV is a flow transmitter) rather than a level. */
+    public boolean measuresFlow() {
+        return level != null && !pvTag.isEmpty() && TagDirectory.find(level, pvTag, FlowTransmitterBlockEntity.class) != null;
+    }
+
+    /** PV in percent: from the transmitter tag (level or flow), or straight from the tank this controller sits against. */
     private double measure(Level level) {
         if (!pvTag.isEmpty()) {
-            LevelTransmitterBlockEntity transmitter = TagDirectory.find(level, pvTag, LevelTransmitterBlockEntity.class);
-            Double measured = transmitter == null ? null : transmitter.percent();
+            InstrumentBlockEntity transmitter = TagDirectory.find(level, pvTag, InstrumentBlockEntity.class);
+            Double measured = transmitter instanceof LevelTransmitterBlockEntity lt ? lt.percent()
+                    : transmitter instanceof FlowTransmitterBlockEntity ft ? ft.percent() : null;
             return measured == null ? Double.NaN : measured;
         }
         Vessel tank = adjacentTank(level);
-        return tank == null ? Double.NaN : tank.fillFraction() * 100.0;
+        if (tank != null) return tank.fillFraction() * 100.0;
+        FlowTransmitterBlockEntity meter = adjacentMeter(level);
+        return meter == null ? Double.NaN : meter.flow() / FlowTransmitterBlockEntity.RANGE * 100.0;
     }
 
-    /** Self-linking: find the tank to measure and the valve that moves its level. */
+    /** Self-linking: find the tank (or flow meter) to measure and the valve that moves it. */
     private void discover(Level level) {
         Vessel tank = adjacentTank(level);
+        FlowTransmitterBlockEntity meter = tank == null ? adjacentMeter(level) : null;
+        if (meter != null) { // a flow loop: the valve in the meter's own line, opening it raises the flow
+            pvTag = meter.tag();
+            BlockPos at = LoopFinder.valveInLine(level, meter.getBlockPos());
+            if (at == null || !(level.getBlockEntity(at) instanceof ControlValveBlockEntity valve)) return;
+            boolean newLink = !valve.tag().equals(mvTag);
+            mvTag = valve.tag();
+            if (autoAction) action = Action.REVERSE;
+            pv = measure(level); // measure the meter we just linked, before deciding on AUTO
+            if (newLink && mode == Mode.MAN && !Double.isNaN(pv)) mode = Mode.AUTO;
+            setChanged();
+            return;
+        }
         if (tank == null) {
             LevelTransmitterBlockEntity transmitter = pvTag.isEmpty()
                     ? TagDirectory.nearest(level, worldPosition, 8, LevelTransmitterBlockEntity.class)
@@ -204,7 +234,7 @@ public class ControllerBlockEntity extends InstrumentBlockEntity implements Menu
             pvTag = ""; // measure the tank we sit against
         }
         if (tank == null) return;
-        LoopFinder.ValveLink link = LoopFinder.findValve(level, tank.getBlockPos());
+        LoopFinder.ValveLink link = LoopFinder.findValve(level, tank.positions());
         if (link == null || !(level.getBlockEntity(link.valve()) instanceof ControlValveBlockEntity valve)) return;
         boolean newLink = !valve.tag().equals(mvTag);
         mvTag = valve.tag();
@@ -216,6 +246,7 @@ public class ControllerBlockEntity extends InstrumentBlockEntity implements Menu
     /** Where the PV comes from, for the faceplate footer. */
     public String pvSource() {
         if (!pvTag.isEmpty()) return pvTag;
+        if (level != null && adjacentMeter(level) != null) return adjacentMeter(level).tag();
         return level != null && adjacentTank(level) != null ? "LOCAL" : "";
     }
 

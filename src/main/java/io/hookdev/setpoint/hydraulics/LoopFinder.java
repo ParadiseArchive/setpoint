@@ -1,6 +1,7 @@
 package io.hookdev.setpoint.hydraulics;
 
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -31,15 +32,18 @@ public final class LoopFinder {
 
     private LoopFinder() {}
 
-    public static @Nullable ValveLink findValve(Level level, BlockPos tankPos) {
+    /** @param vessel every block of the vessel (a tall tank has several), so a valve on any of them is found */
+    public static @Nullable ValveLink findValve(Level level, Collection<BlockPos> vessel) {
         Map<BlockPos, BlockPos> parent = new HashMap<>();
-        parent.put(tankPos, tankPos);
         ArrayDeque<BlockPos> queue = new ArrayDeque<>();
-        queue.add(tankPos);
+        for (BlockPos pos : vessel) {
+            parent.put(pos, pos);
+            queue.add(pos);
+        }
         while (!queue.isEmpty() && parent.size() <= MAX_BLOCKS) {
             BlockPos current = queue.poll();
             BlockState currentState = level.getBlockState(current);
-            boolean atTank = current.equals(tankPos);
+            boolean atTank = vessel.contains(current);
             for (Direction direction : Direction.values()) {
                 if (!atTank && !Piping.leaves(currentState, direction)) continue;
                 BlockPos next = current.relative(direction);
@@ -52,6 +56,30 @@ public final class LoopFinder {
                     if (valve != null) return new ValveLink(valve, feeds);
                     continue;
                 }
+                if (Piping.enters(state, direction)) {
+                    parent.put(next, current);
+                    queue.add(next);
+                }
+            }
+        }
+        return null;
+    }
+
+    /** The control valve nearest to a flow transmitter in the same pipe line, for a flow loop. */
+    public static @Nullable BlockPos valveInLine(Level level, BlockPos meter) {
+        Map<BlockPos, BlockPos> parent = new HashMap<>();
+        parent.put(meter, meter);
+        ArrayDeque<BlockPos> queue = new ArrayDeque<>();
+        queue.add(meter);
+        while (!queue.isEmpty() && parent.size() <= MAX_BLOCKS) {
+            BlockPos current = queue.poll();
+            BlockState currentState = level.getBlockState(current);
+            for (Direction direction : Direction.values()) {
+                if (!Piping.leaves(currentState, direction)) continue;
+                BlockPos next = current.relative(direction);
+                if (parent.containsKey(next) || !level.isLoaded(next)) continue;
+                BlockState state = level.getBlockState(next);
+                if (state.getBlock() instanceof ControlValveBlock && Piping.enters(state, direction)) return next;
                 if (Piping.enters(state, direction)) {
                     parent.put(next, current);
                     queue.add(next);

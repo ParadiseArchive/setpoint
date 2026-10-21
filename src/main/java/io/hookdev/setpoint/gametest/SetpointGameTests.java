@@ -94,6 +94,10 @@ public final class SetpointGameTests {
         test("water_intake_feeds_a_pump", SetpointGameTests::waterIntakeFeedsAPump, 300);
         test("shut_hand_valve_blocks_flow", SetpointGameTests::shutHandValveBlocksFlow, 300);
         test("wrench_cuts_joins_and_turns", SetpointGameTests::wrenchCutsJoinsAndTurns, 20);
+        test("stacked_tanks_act_as_one", SetpointGameTests::stackedTanksActAsOne, 100);
+        test("pump_fills_a_tall_tank", SetpointGameTests::pumpFillsATallTank, 400);
+        test("flow_loop_holds_its_setpoint", SetpointGameTests::flowLoopHoldsItsSetpoint, 2400);
+        test("pump_fills_a_cauldron", SetpointGameTests::pumpFillsACauldron, 300);
     }
 
     private static void test(String name, Consumer<GameTestHelper> function, int maxTicks) {
@@ -134,7 +138,7 @@ public final class SetpointGameTests {
     }
 
     private static void fill(GameTestHelper helper, BlockPos tank, int amount) {
-        helper.getBlockEntity(tank, TankBlockEntity.class).fluid().set(0, FluidResource.of(Fluids.WATER), amount);
+        helper.getBlockEntity(tank, TankBlockEntity.class).own().set(0, FluidResource.of(Fluids.WATER), amount);
     }
 
     private static void pumpMovesWater(GameTestHelper helper) {
@@ -584,5 +588,63 @@ public final class SetpointGameTests {
         wrench(helper, pump, Vec3.ZERO);
         helper.assertTrue(helper.getBlockState(pump).getValue(PumpBlock.FACING) == Direction.EAST, "the pump should have turned to the east");
         helper.succeed();
+    }
+
+    // ---------- foundations: tall tanks, flow control, other mods' tanks ----------
+
+    /** Water put in the top of a two-high tank settles to the bottom; the column counts as one tank. */
+    private static void stackedTanksActAsOne(GameTestHelper helper) {
+        BlockPos bottom = new BlockPos(1, 1, 1), top = new BlockPos(1, 2, 1);
+        helper.setBlock(bottom, SetpointContent.TANK.get());
+        helper.setBlock(top, SetpointContent.TANK.get());
+        fill(helper, top, 8_000);
+        helper.succeedWhen(() -> {
+            TankBlockEntity low = helper.getBlockEntity(bottom, TankBlockEntity.class), high = helper.getBlockEntity(top, TankBlockEntity.class);
+            helper.assertTrue(low.blockAmount() == 8_000 && high.blockAmount() == 0, "the water should settle to the bottom tank");
+            helper.assertTrue(Math.abs(high.fillFraction() - 0.25) < 1e-9, "the column is a quarter full, got " + high.fillFraction());
+            var level = helper.getLevel();
+            int signal = level.getBlockState(helper.absolutePos(top)).getAnalogOutputSignal(level, helper.absolutePos(top), Direction.NORTH);
+            helper.assertTrue(signal == 4, "a comparator on the top tank reads the column, got " + signal);
+        });
+    }
+
+    /** A pump filling the bottom of a full two-high tank pushes the level up into the top tank. */
+    private static void pumpFillsATallTank(GameTestHelper helper) {
+        buildLine(helper, false);
+        helper.setBlock(DESTINATION.above(), SetpointContent.TANK.get());
+        fill(helper, SOURCE, 8_000);
+        fill(helper, DESTINATION, 15_500);
+        helper.succeedWhen(() -> helper.assertTrue(helper.getBlockEntity(DESTINATION.above(), TankBlockEntity.class).blockAmount() > 0,
+                "the top tank should get water once the bottom is full"));
+    }
+
+    /** Pump, flow transmitter, control valve; a controller against the transmitter holds 50 % flow (60 mB/t). */
+    private static void flowLoopHoldsItsSetpoint(GameTestHelper helper) {
+        helper.setBlock(SOURCE, SetpointContent.TANK.get());
+        helper.setBlock(2, 1, 1, SetpointContent.PUMP.get().defaultBlockState().setValue(PumpBlock.FACING, Direction.EAST));
+        helper.setBlock(3, 1, 1, SetpointContent.FLOW_TRANSMITTER.get().defaultBlockState().setValue(io.hookdev.setpoint.block.FlowTransmitterBlock.AXIS, Direction.Axis.X));
+        helper.setBlock(4, 1, 1, SetpointContent.CONTROL_VALVE.get().defaultBlockState().setValue(ControlValveBlock.AXIS, Direction.Axis.X));
+        helper.setBlock(DESTINATION, SetpointContent.TANK.get());
+        helper.setBlock(2, 0, 1, SetpointContent.CREATIVE_GENERATOR.get());
+        helper.setBlock(3, 1, 0, SetpointContent.CONTROLLER.get());
+        ControllerBlockEntity fic = helper.getBlockEntity(new BlockPos(3, 1, 0), ControllerBlockEntity.class);
+        helper.onEachTick(() -> { // an endless source and a bottomless destination, so only the valve sets the flow
+            fill(helper, SOURCE, 16_000);
+            fill(helper, DESTINATION, 0);
+        });
+        helper.runAfterDelay(2_000, () -> {
+            helper.assertTrue(fic.measuresFlow(), "the controller should measure the flow transmitter");
+            helper.assertTrue(fic.mode() == PidController.Mode.AUTO, "the flow loop should be in AUTO");
+            helper.assertTrue(Math.abs(fic.pv() - 50) < 4, String.format("flow should hold at 50 %%, is %.1f %%", fic.pv()));
+            helper.succeed();
+        });
+    }
+
+    /** Pumps work with any fluid storage, even a vanilla cauldron. */
+    private static void pumpFillsACauldron(GameTestHelper helper) {
+        buildLine(helper, false);
+        helper.setBlock(DESTINATION, Blocks.CAULDRON);
+        fill(helper, SOURCE, 8_000);
+        helper.succeedWhen(() -> helper.assertBlockPresent(Blocks.WATER_CAULDRON, DESTINATION));
     }
 }

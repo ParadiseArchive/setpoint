@@ -3,6 +3,7 @@ package io.hookdev.setpoint.block;
 import java.util.Map;
 import java.util.function.Function;
 
+import io.hookdev.setpoint.hydraulics.ForeignVessel;
 import io.hookdev.setpoint.hydraulics.VesselBlock;
 
 import net.minecraft.core.BlockPos;
@@ -75,11 +76,18 @@ public class FluidPipeBlock extends Block {
         if (neighbour.getBlock() instanceof VesselBlock) {
             return true;
         }
+        // another mod's tank (anything with fluid storage on that side)
+        if (level instanceof Level world && ForeignVessel.isStorage(world, pos.relative(direction), direction.getOpposite())) {
+            return true;
+        }
         if (neighbour.getBlock() instanceof PumpBlock) {
             return neighbour.getValue(PumpBlock.FACING).getAxis() == direction.getAxis();
         }
         if (neighbour.getBlock() instanceof ControlValveBlock) {
             return neighbour.getValue(ControlValveBlock.AXIS) == direction.getAxis();
+        }
+        if (neighbour.getBlock() instanceof FlowTransmitterBlock) {
+            return neighbour.getValue(FlowTransmitterBlock.AXIS) == direction.getAxis();
         }
         if (neighbour.getBlock() instanceof HandValveBlock) {
             return neighbour.getValue(HandValveBlock.AXIS) == direction.getAxis();

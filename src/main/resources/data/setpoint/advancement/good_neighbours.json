@@ -1,0 +1,28 @@
+{
+  "parent": "setpoint:moving_water",
+  "criteria": {
+    "foreign_tank": {
+      "trigger": "setpoint:plant_event",
+      "conditions": {
+        "event": "foreign_tank"
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "setpoint:centrifugal_pump"
+    },
+    "frame": "task",
+    "title": {
+      "translate": "advancements.setpoint.good_neighbours.title"
+    },
+    "description": {
+      "translate": "advancements.setpoint.good_neighbours.description"
+    }
+  },
+  "requirements": [
+    [
+      "foreign_tank"
+    ]
+  ]
+}

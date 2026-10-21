@@ -22,6 +22,15 @@ public class TankScreen extends MachineScreen<TankMenu> {
         super(menu, inventory, title);
     }
 
+    /** The whole column, in mB. */
+    private int amount() {
+        return menu.get(TankBlockEntity.DATA_AMOUNT) * 10;
+    }
+
+    private int capacity() {
+        return Math.max(1, menu.get(TankBlockEntity.DATA_TANKS)) * TankBlockEntity.CAPACITY;
+    }
+
     private Fluid fluid() {
         int id = menu.get(TankBlockEntity.DATA_FLUID);
         return id < 0 ? Fluids.EMPTY : BuiltInRegistries.FLUID.byId(id);
@@ -35,8 +44,7 @@ public class TankScreen extends MachineScreen<TankMenu> {
 
     @Override
     protected void extractMachine(GuiGraphicsExtractor g, int x, int y) {
-        int amount = menu.get(TankBlockEntity.DATA_AMOUNT);
-        verticalGauge(g, x + GAUGE_X, y + GAUGE_Y, GAUGE_W, GAUGE_H, amount / (double) TankBlockEntity.CAPACITY, colour(fluid()));
+        verticalGauge(g, x + GAUGE_X, y + GAUGE_Y, GAUGE_W, GAUGE_H, amount() / (double) capacity(), colour(fluid()));
         for (int i = 1; i < 8; i++) { // eighth marks, like the sight glass
             int my = y + GAUGE_Y + GAUGE_H - 1 - Math.round(i * (GAUGE_H - 2) / 8f);
             g.fill(x + GAUGE_X + 1, my, x + GAUGE_X + (i % 4 == 0 ? 9 : 5), my + 1, 0x80FFFFFF);
@@ -53,13 +61,14 @@ public class TankScreen extends MachineScreen<TankMenu> {
         g.text(font, title.getString() + (menu.tag().isEmpty() ? "" : "  " + menu.tag()), titleLabelX, titleLabelY, LABEL, false);
         g.text(font, playerInventoryTitle, inventoryLabelX, inventoryLabelY, LABEL, false);
 
-        int amount = menu.get(TankBlockEntity.DATA_AMOUNT);
+        int amount = amount(), capacity = capacity();
         Fluid fluid = fluid();
         int tx = INFO_X + 5, ty = INFO_Y + 5;
         String name = amount == 0 ? "Empty" : fluid.getFluidType().getDescription().getString();
         g.text(font, name, tx, ty, amount == 0 ? DIM : TEXT, false);
-        g.text(font, Math.round(amount * 100.0 / TankBlockEntity.CAPACITY) + " %", tx, ty + 14, CYAN, false);
-        g.text(font, String.format("%.1f / %d B", amount / 1000.0, TankBlockEntity.CAPACITY / 1000), tx, ty + 28, TEXT, false);
-        g.text(font, "bucket: top", tx, ty + 40, DIM, false);
+        g.text(font, Math.round(amount * 100.0 / capacity) + " %", tx, ty + 14, CYAN, false);
+        g.text(font, String.format("%.1f / %d B", amount / 1000.0, capacity / 1000), tx, ty + 28, TEXT, false);
+        int tanks = menu.get(TankBlockEntity.DATA_TANKS);
+        g.text(font, tanks > 1 ? tanks + " tanks high" : "bucket: top", tx, ty + 40, DIM, false);
     }
 }

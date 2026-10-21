@@ -1,15 +1,17 @@
 package io.hookdev.setpoint.hydraulics;
 
+import java.util.List;
+
 import net.minecraft.core.BlockPos;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
-import net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler;
+import net.neoforged.neoforge.transfer.ResourceHandler;
 
 /**
  * Anything that holds a liquid with a level: a tank, a boiler drum. Pumps fill and empty vessels,
  * controllers and level transmitters measure them.
  */
 public interface Vessel {
-    FluidStacksResourceHandler fluid();
+    ResourceHandler<FluidResource> fluid();
 
     FluidResource resource();
 
@@ -26,6 +28,11 @@ public interface Vessel {
     boolean canAccept(FluidResource incoming);
 
     BlockPos getBlockPos();
+
+    /** Every block that belongs to this vessel (a tall tank is several). */
+    default List<BlockPos> positions() {
+        return List.of(getBlockPos());
+    }
 
     /** Comparator signal for a level: 0 when empty, 1 to 15 otherwise, like a vanilla container. */
     static int comparatorSignal(double fillFraction) {

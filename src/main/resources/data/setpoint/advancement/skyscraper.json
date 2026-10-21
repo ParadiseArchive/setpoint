@@ -1,0 +1,28 @@
+{
+  "parent": "setpoint:moving_water",
+  "criteria": {
+    "tall_tank": {
+      "trigger": "setpoint:plant_event",
+      "conditions": {
+        "event": "tall_tank"
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "setpoint:tank"
+    },
+    "frame": "goal",
+    "title": {
+      "translate": "advancements.setpoint.skyscraper.title"
+    },
+    "description": {
+      "translate": "advancements.setpoint.skyscraper.description"
+    }
+  },
+  "requirements": [
+    [
+      "tall_tank"
+    ]
+  ]
+}

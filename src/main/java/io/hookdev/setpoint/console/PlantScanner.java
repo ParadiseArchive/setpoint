@@ -10,6 +10,7 @@ import io.hookdev.setpoint.block.EquipmentTag;
 import io.hookdev.setpoint.block.entity.BoilerBlockEntity;
 import io.hookdev.setpoint.block.entity.ControlValveBlockEntity;
 import io.hookdev.setpoint.block.entity.ControllerBlockEntity;
+import io.hookdev.setpoint.block.entity.FlowTransmitterBlockEntity;
 import io.hookdev.setpoint.block.entity.GeneratorBlockEntity;
 import io.hookdev.setpoint.block.entity.LevelTransmitterBlockEntity;
 import io.hookdev.setpoint.block.entity.PumpBlockEntity;
@@ -29,13 +30,14 @@ import net.minecraft.world.level.chunk.LevelChunk;
 public final class PlantScanner {
     /** How far a console sees, in blocks, in every direction. */
     public static final int RANGE = 32;
-    private static final List<String> KIND_ORDER = List.of("LIC", "PUMP", "VALVE", "TANK", "LT", "BOILER", "TURBINE", "GEN");
+    private static final List<String> KIND_ORDER = List.of("LIC", "FIC", "PUMP", "VALVE", "FT", "TANK", "LT", "BOILER", "TURBINE", "GEN");
 
     private PlantScanner() {}
 
     /** All equipment within range, sorted by kind and tag. */
     public static List<Reading> scan(ServerLevel level, BlockPos centre) {
         List<Reading> readings = new ArrayList<>();
+        java.util.Set<String> seen = new java.util.HashSet<>(); // a tall tank is several blocks but one tag
         int minX = (centre.getX() - RANGE) >> 4, maxX = (centre.getX() + RANGE) >> 4;
         int minZ = (centre.getZ() - RANGE) >> 4, maxZ = (centre.getZ() + RANGE) >> 4;
         for (int cx = minX; cx <= maxX; cx++) for (int cz = minZ; cz <= maxZ; cz++) {
@@ -46,7 +48,7 @@ public final class PlantScanner {
                 if (Math.abs(pos.getX() - centre.getX()) > RANGE || Math.abs(pos.getY() - centre.getY()) > RANGE
                         || Math.abs(pos.getZ() - centre.getZ()) > RANGE) continue;
                 Reading reading = read(be);
-                if (reading != null) readings.add(reading);
+                if (reading != null && seen.add(reading.tag())) readings.add(reading);
             }
         }
         readings.sort(Comparator.comparingInt((Reading r) -> KIND_ORDER.indexOf(r.kind())).thenComparing(Reading::tag));
@@ -67,7 +69,7 @@ public final class PlantScanner {
             if ((a & ControllerBlockEntity.ALARM_LO) != 0) alarms.add("PV LO");
             double pv = lic.pv();
             boolean man = lic.mode() == PidController.Mode.MAN;
-            return new Reading(pos, lic.tag(), "LIC", lic.mode().name(), !alarms.isEmpty() ? Reading.ALARM : man ? Reading.ATTENTION : Reading.NORMAL,
+            return new Reading(pos, lic.tag(), lic.measuresFlow() ? "FIC" : "LIC", lic.mode().name(), !alarms.isEmpty() ? Reading.ALARM : man ? Reading.ATTENTION : Reading.NORMAL,
                     Double.isNaN(pv) ? "----" : "PV " + pct(pv) + "  SP " + pct(lic.setpoint()),
                     List.of("PV", "SP", "OP"), new float[]{(float) pv, (float) lic.setpoint(), (float) lic.output()}, alarms);
         }
@@ -107,11 +109,19 @@ public final class PlantScanner {
                     valve.tripped() ? Reading.ALARM : valve.signalOk() ? Reading.NORMAL : Reading.ATTENTION,
                     pct(position), List.of("POS %"), new float[]{(float) position}, alarms);
         }
-        if (be instanceof TankBlockEntity tank) {
+        if (be instanceof TankBlockEntity block) {
+            TankBlockEntity tank = block.bottom(); // a tall tank shows as one, under the tag of its bottom block
+            pos = tank.getBlockPos();
+            String height = tank.column().size() > 1 ? "  (" + tank.column().size() + " high)" : "";
             double level = tank.fillFraction() * 100;
             String what = tank.amount() == 0 ? "EMPTY" : tank.resource().getFluidType().getDescription().getString().toUpperCase();
-            return new Reading(pos, EquipmentTag.of("T", pos), "TANK", what, Reading.NORMAL, pct(level),
+            return new Reading(pos, EquipmentTag.of("T", pos), "TANK", what, Reading.NORMAL, pct(level) + height,
                     List.of("LEVEL %"), new float[]{(float) level}, List.of());
+        }
+        if (be instanceof FlowTransmitterBlockEntity ft) {
+            double flow = ft.flow();
+            return new Reading(pos, ft.tag(), "FT", flow > 0 ? "FLOWING" : "NO FLOW", Reading.NORMAL, String.format("%.1f mB/t", flow),
+                    List.of("FLOW %"), new float[]{(float) (flow / FlowTransmitterBlockEntity.RANGE * 100)}, List.of());
         }
         if (be instanceof LevelTransmitterBlockEntity lt) {
             Double pv = lt.percent();

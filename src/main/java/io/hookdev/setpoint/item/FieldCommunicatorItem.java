@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import io.hookdev.setpoint.block.entity.ControlValveBlockEntity;
 import io.hookdev.setpoint.block.entity.ControllerBlockEntity;
+import io.hookdev.setpoint.block.entity.FlowTransmitterBlockEntity;
 import io.hookdev.setpoint.block.entity.InstrumentBlockEntity;
 import io.hookdev.setpoint.block.entity.LevelTransmitterBlockEntity;
 
@@ -70,7 +71,12 @@ public class FieldCommunicatorItem extends Item {
         List<String> done = new ArrayList<>();
         for (BlockPos pos : devices) {
             if (!(level.getBlockEntity(pos) instanceof InstrumentBlockEntity device) || device == controller) continue;
-            if (device instanceof LevelTransmitterBlockEntity) {
+            if (device instanceof FlowTransmitterBlockEntity) {
+                device.setTag("FT-" + loop);
+                controller.setPvTag(device.tag());
+                if (controller.tag().startsWith("LIC-")) controller.setTag("FIC-" + loop); // it controls a flow now
+                done.add("PV " + device.tag());
+            } else if (device instanceof LevelTransmitterBlockEntity) {
                 device.setTag("LT-" + loop);
                 controller.setPvTag(device.tag());
                 done.add("PV " + device.tag());

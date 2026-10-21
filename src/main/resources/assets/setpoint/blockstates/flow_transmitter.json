@@ -1,0 +1,15 @@
+{
+  "variants": {
+    "axis=z": {
+      "model": "setpoint:block/flow_transmitter"
+    },
+    "axis=x": {
+      "model": "setpoint:block/flow_transmitter",
+      "y": 90
+    },
+    "axis=y": {
+      "model": "setpoint:block/flow_transmitter",
+      "x": 90
+    }
+  }
+}

@@ -1,6 +1,7 @@
 package io.hookdev.setpoint.hydraulics;
 
 import io.hookdev.setpoint.block.ControlValveBlock;
+import io.hookdev.setpoint.block.FlowTransmitterBlock;
 import io.hookdev.setpoint.block.FluidPipeBlock;
 import io.hookdev.setpoint.block.HandValveBlock;
 
@@ -28,6 +29,7 @@ public final class Piping {
 
     private static boolean passesValve(BlockState state, Direction direction) {
         if (state.getBlock() instanceof ControlValveBlock) return state.getValue(ControlValveBlock.AXIS) == direction.getAxis();
+        if (state.getBlock() instanceof FlowTransmitterBlock) return state.getValue(FlowTransmitterBlock.AXIS) == direction.getAxis();
         if (state.getBlock() instanceof HandValveBlock) {
             return state.getValue(HandValveBlock.AXIS) == direction.getAxis() && HandValveBlock.isOpen(state);
         }

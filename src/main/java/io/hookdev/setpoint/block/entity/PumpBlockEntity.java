@@ -7,6 +7,7 @@ import io.hookdev.setpoint.advancement.PlantEventTrigger;
 import io.hookdev.setpoint.block.EquipmentTag;
 import io.hookdev.setpoint.block.PumpBlock;
 import io.hookdev.setpoint.block.PumpStatus;
+import io.hookdev.setpoint.hydraulics.ForeignVessel;
 import io.hookdev.setpoint.hydraulics.PipeRun;
 import io.hookdev.setpoint.hydraulics.Vessel;
 import io.hookdev.setpoint.physics.PumpModel;
@@ -112,9 +113,16 @@ public class PumpBlockEntity extends BlockEntity {
             energy.set(energy.getAmountAsInt() - result.power());
             flowCarry += result.flow();
             int batch = (int) flowCarry;
-            flowCarry -= batch;
             if (batch > 0 && source != null && destination != null) {
-                transfer(source, destination, batch);
+                int moved = transfer(source, destination, batch);
+                // Some tanks (a cauldron, some mods) only take whole buckets: keep carrying until a bucket fits.
+                if (moved > 0) flowCarry -= moved;
+                else if (batch >= TankBlockEntity.BUCKET) flowCarry -= batch; // not even a bucket fits: it is full
+                if ((source instanceof ForeignVessel || destination instanceof ForeignVessel) && level.getGameTime() % 100 == 0) {
+                    PlantEventTrigger.near(level, pos, PlantEventTrigger.FOREIGN_TANK);
+                }
+            } else {
+                flowCarry -= batch;
             }
             if (result.cavitation() > 0) {
                 wear = Math.min(1.0, wear + result.cavitation() * WEAR_PER_TICK);
@@ -122,6 +130,12 @@ public class PumpBlockEntity extends BlockEntity {
                 if (level.getGameTime() % 40 == 0) PlantEventTrigger.near(level, pos, PlantEventTrigger.CAVITATION);
             }
             effects(level, pos, result);
+            for (PipeRun.End end : new PipeRun.End[]{suction, discharge}) { // flow meters in the lines see this pump's flow
+                if (end == null) continue;
+                for (BlockPos meter : end.meters()) {
+                    if (level.getBlockEntity(meter) instanceof FlowTransmitterBlockEntity ft) ft.report(level.getGameTime(), result.flow());
+                }
+            }
         } else {
             flowCarry = 0;
         }
@@ -134,14 +148,14 @@ public class PumpBlockEntity extends BlockEntity {
     }
 
     private static @Nullable Vessel vesselAt(Level level, PipeRun.@Nullable End end) {
-        if (end == null) return null;
-        return level.getBlockEntity(end.tankPos()) instanceof Vessel vessel ? vessel : null;
+        return end == null ? null : ForeignVessel.at(level, end.tankPos(), end.face());
     }
 
     /** Moves up to {@code amount} mB, all or nothing per batch. */
-    private static void transfer(Vessel source, Vessel destination, int amount) {
+    /** Moves up to {@code amount} mB, all or nothing; returns what moved. */
+    private static int transfer(Vessel source, Vessel destination, int amount) {
         FluidResource resource = source.resource();
-        if (resource.isEmpty()) return;
+        if (resource.isEmpty()) return 0;
         try (Transaction transaction = Transaction.openRoot()) {
             int room;
             try (Transaction probe = Transaction.open(transaction)) {
@@ -151,8 +165,10 @@ public class PumpBlockEntity extends BlockEntity {
             int given = destination.fluid().insert(resource, taken, transaction);
             if (taken > 0 && given == taken) {
                 transaction.commit();
+                return given;
             }
         }
+        return 0;
     }
 
     private static void effects(ServerLevel level, BlockPos pos, PumpModel.Result result) {

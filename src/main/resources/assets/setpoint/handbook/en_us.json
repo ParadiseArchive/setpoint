@@ -134,6 +134,10 @@
         },
         {
           "type": "p",
+          "text": "**Stack tanks** to make one tall tank: liquid settles to the bottom, and the level, comparators and controllers count the whole column."
+        },
+        {
+          "type": "p",
           "text": "A comparator next to a tank gives a redstone signal from 0 (empty) to 15 (full)."
         },
         {
@@ -242,6 +246,10 @@
         {
           "type": "p",
           "text": "It starts by itself. A redstone signal stops it, like a stop button."
+        },
+        {
+          "type": "p",
+          "text": "It works with tanks from other mods too: anything with fluid storage at the end of a pipe."
         },
         {
           "type": "craft",
@@ -356,6 +364,30 @@
             "minecraft:iron_ingot",
             "minecraft:comparator",
             "minecraft:iron_ingot",
+            "",
+            "",
+            ""
+          ],
+          "count": 1
+        },
+        {
+          "type": "h",
+          "text": "Flow control"
+        },
+        {
+          "type": "p",
+          "text": "Put a **flow transmitter** in a pipe line, like a valve, with a control valve in the same line. A DCS controller against the transmitter holds the flow: 50 % is 60 mB/t."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:flow_transmitter",
+          "grid": [
+            "",
+            "minecraft:glass_pane",
+            "",
+            "setpoint:pipe",
+            "minecraft:comparator",
+            "setpoint:pipe",
             "",
             "",
             ""

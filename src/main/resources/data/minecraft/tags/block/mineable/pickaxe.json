@@ -14,6 +14,7 @@
     "setpoint:dcs_console",
     "setpoint:hand_valve",
     "setpoint:water_intake",
+    "setpoint:flow_transmitter",
     "setpoint:hookonium_ore",
     "setpoint:deepslate_hookonium_ore",
     "setpoint:hookonium_block",

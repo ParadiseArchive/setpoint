@@ -260,6 +260,8 @@ render('steam_turbine', [{ model: 'steam_turbine_on', y: S }]);
 render('dcs_console', [{ model: 'dcs_console', y: S }]);
 render('hand_valve', [{ model: 'hand_valve_open', y: 90 }], 6);
 render('water_intake', [{ model: 'water_intake' }]);
+render('flow_transmitter', [{ model: 'flow_transmitter', y: 90 }], 6);
+render('tall_tank', [{ model: 'tank_8', at: [0, 0, 0] }, { model: 'tank_8', at: [0, 1, 0] }, { model: 'tank_5', at: [0, 2, 0] }], 3);
 render('hookonium_ore', [{ model: 'hookonium_ore' }]);
 render('deepslate_hookonium_ore', [{ model: 'deepslate_hookonium_ore' }]);
 render('hookonium_block', [{ model: 'hookonium_block' }]);

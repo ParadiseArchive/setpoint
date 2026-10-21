@@ -1,6 +1,7 @@
 package io.hookdev.setpoint.block.entity;
 
 import io.hookdev.setpoint.SetpointContent;
+import io.hookdev.setpoint.hydraulics.ForeignVessel;
 import io.hookdev.setpoint.hydraulics.Vessel;
 
 import org.jspecify.annotations.Nullable;
@@ -21,7 +22,8 @@ public class LevelTransmitterBlockEntity extends InstrumentBlockEntity {
     public @Nullable Vessel tank() {
         if (level == null) return null;
         for (Direction direction : Direction.values()) {
-            if (level.getBlockEntity(worldPosition.relative(direction)) instanceof Vessel vessel) return vessel;
+            Vessel vessel = ForeignVessel.at(level, worldPosition.relative(direction), direction.getOpposite());
+            if (vessel != null) return vessel;
         }
         return null;
     }

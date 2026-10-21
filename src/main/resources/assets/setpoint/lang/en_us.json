@@ -27,9 +27,9 @@
   "tooltip.setpoint.pipe": "Connects tanks, pumps, valves and boilers.",
   "tooltip.setpoint.pipe.more": "Longer runs mean more friction.\nA run can be up to 512 pipes long.",
   "tooltip.setpoint.tank": "Holds 16 buckets of one fluid.",
-  "tooltip.setpoint.tank.more": "Click with a bucket, or use the bucket slots.\nA comparator reads the level (0-15).",
+  "tooltip.setpoint.tank.more": "Click with a bucket, or use the bucket slots.\nStack tanks to make one tall tank.\nA comparator reads the level (0-15).",
   "tooltip.setpoint.centrifugal_pump": "Pumps from the tank behind it to the tank in front.",
-  "tooltip.setpoint.centrifugal_pump.more": "Uses 4 to 20 FE/t. A redstone signal stops it.\nStarved, it cavitates and wears; an iron ingot fixes it.",
+  "tooltip.setpoint.centrifugal_pump.more": "Uses 4 to 20 FE/t. A redstone signal stops it.\nWorks with other mods' tanks too.\nStarved, it cavitates and wears; an iron ingot fixes it.",
   "tooltip.setpoint.control_valve": "Throttles the flow in a pipe line.",
   "tooltip.setpoint.control_valve.more": "Sneak-click: fail close (FC) or fail open (FO).\nA redstone signal trips it to that position.",
   "tooltip.setpoint.level_transmitter": "Measures the level of the tank it sits on.",
@@ -91,5 +91,14 @@
   "advancements.setpoint.lockout.title": "Lockout",
   "advancements.setpoint.lockout.description": "Shut a hand valve to isolate a line.",
   "advancements.setpoint.righty_tighty.title": "Righty tighty",
-  "advancements.setpoint.righty_tighty.description": "Craft a pipe wrench."
+  "advancements.setpoint.righty_tighty.description": "Craft a pipe wrench.",
+  "block.setpoint.flow_transmitter": "Flow Transmitter",
+  "tooltip.setpoint.flow_transmitter": "Measures the flow in a pipe line.",
+  "tooltip.setpoint.flow_transmitter.more": "Put it in a line like a valve.\nA controller against it holds the flow.\nRange: 0 to 120 mB/t.",
+  "advancements.setpoint.skyscraper.title": "Skyscraper",
+  "advancements.setpoint.skyscraper.description": "Stack four tanks into one tall tank.",
+  "advancements.setpoint.steady_flow.title": "Steady flow",
+  "advancements.setpoint.steady_flow.description": "Let a DCS controller hold a flow with a flow transmitter.",
+  "advancements.setpoint.good_neighbours.title": "Good neighbours",
+  "advancements.setpoint.good_neighbours.description": "Pump into or out of another mod's tank."
 }

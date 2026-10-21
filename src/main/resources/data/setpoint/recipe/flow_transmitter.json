@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "G": "minecraft:glass_pane",
+    "P": "setpoint:pipe",
+    "C": "minecraft:comparator"
+  },
+  "pattern": [
+    " G ",
+    "PCP"
+  ],
+  "result": {
+    "id": "setpoint:flow_transmitter"
+  }
+}

@@ -514,66 +514,90 @@ function pixels(p, rows, palette) {
   rows.forEach((row, y) => [...row].forEach((c, x) => { if (palette[c]) p.set(x, y, palette[c]); }));
 }
 
-// ore: purple crystals on a transparent overlay; the model lays it over vanilla stone or deepslate
-texture('hookonium_ore_overlay', (p) => {
-  const big = ['.hl', 'lwm', 'mmk', '.o.'], small = ['hl', 'mk'];
-  for (const [x, y] of [[2, 2], [10, 4], [4, 10], [11, 11]]) big.forEach((r, j) => [...r].forEach((c, i) => HK[c] && p.set(x + i, y + j, HK[c])));
-  for (const [x, y] of [[7, 1], [1, 7], [13, 1], [7, 7], [14, 8]]) small.forEach((r, j) => [...r].forEach((c, i) => HK[c] && p.set(x + i, y + j, HK[c])));
-});
+// Hand-drawn pixel art in the style of vanilla ores: dark outlines, three shades and a highlight.
+const HP = { o: '#160826', d: '#3f1470', m: '#6f28c2', l: '#9d51f0', h: '#cf9dff', w: '#f7ecff' };
+// ore: crystal clusters on a transparent overlay; the model lays it over vanilla stone or deepslate
+texture('hookonium_ore_overlay', (p) => pixels(p, [
+  '................',
+  '...oo...........',
+  '..olho....oo....',
+  '..odlmo..ohlo...',
+  '...odmo..odmlo..',
+  '....oo....odo...',
+  '...........o....',
+  '.oo.............',
+  'ohlo......oo....',
+  'odmlo....olho...',
+  '.odmo...olwmlo..',
+  '..oo....odmmdo..',
+  '.........oddo...',
+  '...oo.....oo....',
+  '..ohlo..........',
+  '..odmo..........',
+], HP));
+// raw hookonium: a lumpy clump, like raw iron
 texture('raw_hookonium', (p) => pixels(p, [
   '................',
   '................',
+  '......ooo.......',
+  '.....ohllo......',
+  '....ohlmmmo.oo..',
+  '...oolmmmmoolho.',
+  '..ohllmmmdolmmdo',
+  '..olmmmmddolmmdo',
+  '.ohlmmmdddoodddo',
+  '.olmmmddooohlmo.',
+  '.odmmddo.ohlmmdo',
+  '..oddoo..olmmddo',
+  '...oo.....oddoo.',
+  '...........oo...',
   '................',
-  '.......ooo......',
-  '.....oohlloo....',
-  '....ohllmmmlo...',
-  '...ohlmmmkmmo...',
-  '..ohlmmkmmmmko..',
-  '..olmmmmmmlmko..',
-  '..ommkmmmmmmko..',
-  '...ommmmmkmko...',
-  '...okmmmmmkko...',
-  '....okkmmkko....',
-  '.....oookoo.....',
   '................',
-  '................',
-], HK), 'item');
+], HP), 'item');
+// ingot: the vanilla ingot shape, with a shiny top
 texture('hookonium_ingot', (p) => pixels(p, [
   '................',
   '................',
   '................',
   '................',
-  '......oooooo....',
-  '....oowhhhhlo...',
-  '...ohwhllllllo..',
-  '..ohllllllllmko.',
-  '..olmmmmmmmmmko.',
-  '..okmmmmmmmmkko.',
-  '...okkkkkkkkko..',
-  '....ooooooooo...',
+  '........oooo....',
+  '......oowhhlo...',
+  '....oohhhllllo..',
+  '..oohhlllllmmo..',
+  '.ohlllllmmmmdo..',
+  '.olllmmmmmddo...',
+  '.ommmmmmddoo....',
+  '.odmmmddoo......',
+  '..oddoo.........',
+  '...oo...........',
   '................',
   '................',
-  '................',
-  '................',
-], HK), 'item');
-// block of hookonium: a polished plate with the hook engraved in it
+], HP), 'item');
+// block of hookonium: a polished, faceted block with the hook engraved in it
 texture('hookonium_block', (p) => {
-  p.rect(0, 0, 16, 16, HK.m);
-  p.rect(0, 0, 16, 1, HK.h); p.rect(0, 0, 1, 16, HK.h);
-  p.rect(1, 1, 14, 1, HK.l); p.rect(1, 1, 1, 14, HK.l);
-  p.rect(0, 15, 16, 1, HK.o); p.rect(15, 0, 1, 16, HK.o);
-  p.rect(1, 14, 14, 1, HK.k); p.rect(14, 1, 1, 14, HK.k);
-  const hook = [[7, 3], [8, 3], [9, 3], [6, 4], [10, 4], [7, 5], [8, 5], [9, 5], [9, 6], [9, 7], [9, 8], [9, 9], [9, 10], [9, 11],
-    [8, 12], [7, 12], [6, 12], [5, 12], [4, 11], [4, 10], [5, 10]];
-  for (const [x, y] of hook) p.set(x + 1, y + 1, HK.l);
-  for (const [x, y] of hook) p.set(x, y, HK.k);
-  p.set(3, 3, HK.w);
+  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
+    const s = x + y;
+    p.set(x, y, s < 11 ? HP.l : s > 19 ? HP.d : HP.m);
+  }
+  p.rect(0, 0, 16, 1, HP.h); p.rect(0, 0, 1, 16, HP.h);
+  p.rect(0, 15, 16, 1, HP.o); p.rect(15, 0, 1, 16, HP.o);
+  p.rect(1, 14, 14, 1, HP.d); p.rect(14, 1, 1, 14, HP.d);
+  p.set(2, 2, HP.w); p.set(3, 2, HP.h); p.set(2, 3, HP.h);
+  const hook = [[8, 3], [9, 3], [7, 4], [10, 4], [8, 5], [9, 5], [9, 6], [9, 7], [9, 8], [9, 9], [9, 10], [8, 11], [7, 11], [6, 11], [5, 10], [5, 9], [6, 9]];
+  for (const [x, y] of hook) p.set(x + 1, y + 1, HP.h);
+  for (const [x, y] of hook) p.set(x, y, HP.o);
 });
+// block of raw hookonium: clumps packed together
 texture('raw_hookonium_block', (p) => {
-  p.rect(0, 0, 16, 16, HK.m);
-  const spots = { k: [[2, 3], [9, 1], [13, 6], [5, 9], [11, 12], [1, 13], [7, 14]], l: [[4, 1], [12, 2], [1, 6], [8, 6], [14, 10], [3, 11], [10, 9]],
-    h: [[5, 1], [12, 3], [8, 7], [3, 12]], o: [[3, 4], [14, 7], [6, 10], [12, 13]] };
-  for (const [c, list] of Object.entries(spots)) for (const [x, y] of list) { p.set(x, y, HK[c]); if (c !== 'h') p.set(x + 1, y, HK[c]); }
+  p.rect(0, 0, 16, 16, HP.d);
+  for (const [cx, cy] of [[2, 2], [7, 1], [12, 3], [4, 7], [9, 6], [14, 8], [2, 12], [7, 11], [12, 13], [0, 7], [15, 14]]) {
+    for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++) {
+      if (dx * dx + dy * dy > 5) continue;
+      const x = (cx + dx + 16) % 16, y = (cy + dy + 16) % 16; // wraps, so the block tiles
+      const c = dx + dy <= -3 ? HP.h : dx + dy <= -1 ? HP.l : dx + dy >= 3 ? HP.o : dx + dy >= 2 ? HP.d : HP.m;
+      p.set(x, y, c);
+    }
+  }
 });
 
 const oreModel = (name, side, top) => M(name, {
@@ -815,6 +839,44 @@ json(join(ASSETS, 'models/item/pipe_wrench.json'), { parent: 'minecraft:item/han
 item('pipe_wrench', 'setpoint:item/pipe_wrench');
 recipe('pipe_wrench', ['I I', ' I ', ' C '], { I: 'minecraft:iron_ingot', C: 'minecraft:copper_ingot' }, 'setpoint:pipe_wrench');
 
+// flow transmitter: an inline meter body with a flow arrow, and a little display on top
+texture('flow_meter_body', (p) => {
+  plate(p, C.steel1);
+  p.rect(3, 6, 8, 4, C.cyanDark); p.rect(3, 7, 9, 2, C.cyan);           // flow arrow
+  p.set(11, 6, C.cyan); p.set(11, 9, C.cyan); p.set(12, 7, C.cyan); p.set(12, 8, C.cyan); p.set(13, 7, C.cyanDark); p.set(13, 8, C.cyanDark);
+  p.rect(2, 12, 6, 2, C.amber); p.rect(3, 13, 4, 1, '#c98a2c');          // tag plate
+  rivets(p, [[1, 1], [13, 1], [1, 13], [13, 13]]);
+});
+texture('flow_meter_display', (p) => {
+  p.rect(0, 0, 16, 16, C.outline); p.rect(2, 2, 12, 12, '#0d1a1c');
+  for (const x of [3, 6, 9]) { p.rect(x, 5, 2, 1, C.cyan); p.rect(x, 9, 2, 1, C.cyan); p.rect(x, 6, 1, 3, C.cyanDark); }
+  p.rect(12, 9, 1, 1, C.cyan);
+});
+M('flow_transmitter', {
+  parent: 'minecraft:block/block',
+  textures: { pipe: tex('pipe'), body: tex('flow_meter_body'), display: tex('flow_meter_display'), particle: tex('flow_meter_body') },
+  elements: [
+    box([5, 5, 0], [11, 11, 16], {
+      north: { uv: [5, 5, 11, 11], texture: '#pipe', cullface: 'north' }, south: { uv: [5, 5, 11, 11], texture: '#pipe', cullface: 'south' },
+      east: { uv: [0, 5, 16, 11], texture: '#pipe' }, west: { uv: [0, 5, 16, 11], texture: '#pipe' }, down: { uv: [5, 0, 11, 16], texture: '#pipe' },
+    }),
+    box([4, 4, 3], [12, 12, 13], {
+      east: { uv: [0, 2, 16, 14], texture: '#body' }, west: { uv: [0, 2, 16, 14], texture: '#body' },
+      north: { uv: [4, 4, 12, 12], texture: '#body' }, south: { uv: [4, 4, 12, 12], texture: '#body' },
+      up: { uv: [4, 3, 12, 13], texture: '#body' }, down: { uv: [4, 3, 12, 13], texture: '#body' },
+    }),
+    box([5, 12, 5], [11, 15, 11], {
+      up: { uv: [2, 2, 14, 14], texture: '#display' },
+      north: { uv: [0, 0, 16, 3], texture: '#body' }, south: { uv: [0, 0, 16, 3], texture: '#body' },
+      east: { uv: [0, 0, 16, 3], texture: '#body' }, west: { uv: [0, 0, 16, 3], texture: '#body' },
+    }),
+  ],
+});
+BS('flow_transmitter', { variants: { 'axis=z': { model: 'setpoint:block/flow_transmitter' }, 'axis=x': { model: 'setpoint:block/flow_transmitter', y: 90 },
+  'axis=y': { model: 'setpoint:block/flow_transmitter', x: 90 } } });
+item('flow_transmitter', 'setpoint:block/flow_transmitter');
+recipe('flow_transmitter', [' G ', 'PCP'], { G: 'minecraft:glass_pane', P: 'setpoint:pipe', C: 'minecraft:comparator' }, 'setpoint:flow_transmitter');
+
 // =====================================================================================
 // Loot tables and tool tags for every block
 // =====================================================================================
@@ -831,7 +893,7 @@ const lootOre = (name, drop) => json(join(DATA, 'loot_table/blocks', name + '.js
   ] }] }],
 });
 const MACHINES = ['pipe', 'tank', 'centrifugal_pump', 'creative_generator', 'level_transmitter', 'control_valve', 'controller',
-  'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine', 'dcs_console', 'hand_valve', 'water_intake'];
+  'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine', 'dcs_console', 'hand_valve', 'water_intake', 'flow_transmitter'];
 for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) lootSelf(name);
 lootOre('hookonium_ore', 'setpoint:raw_hookonium');
 lootOre('deepslate_hookonium_ore', 'setpoint:raw_hookonium');
@@ -962,6 +1024,9 @@ shapeless('handbook', ['minecraft:book', 'minecraft:copper_ingot'], 'setpoint:ha
     ['bottomless', 'moving_water', 'setpoint:water_intake', 'task', happened('intake_running')],
     ['lockout', 'moving_water', 'setpoint:hand_valve', 'task', happened('valve_shut')],
     ['righty_tighty', 'root', 'setpoint:pipe_wrench', 'task', has('setpoint:pipe_wrench')],
+    ['skyscraper', 'moving_water', 'setpoint:tank', 'goal', happened('tall_tank')],
+    ['steady_flow', 'hands_off', 'setpoint:flow_transmitter', 'goal', happened('flow_holding')],
+    ['good_neighbours', 'moving_water', 'setpoint:centrifugal_pump', 'task', happened('foreign_tank')],
   ];
   for (const [name, parent, icon, frame, criteria, extra = {}] of ADV) {
     json(join(DATA, 'advancement', name + '.json'), {

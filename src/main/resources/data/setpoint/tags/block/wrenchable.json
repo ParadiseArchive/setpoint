@@ -13,6 +13,7 @@
     "setpoint:steam_turbine",
     "setpoint:dcs_console",
     "setpoint:hand_valve",
-    "setpoint:water_intake"
+    "setpoint:water_intake",
+    "setpoint:flow_transmitter"
   ]
 }
