@@ -120,6 +120,22 @@
         {
           "type": "p",
           "text": "Hover any symbol on the drawing to see its tag."
+        },
+        {
+          "type": "h",
+          "text": "Live on the console"
+        },
+        {
+          "type": "p",
+          "text": "Right-click a DCS console with your P&ID to put it in. The **P&ID** tab of the console now shows your drawing, live."
+        },
+        {
+          "type": "p",
+          "text": "Running equipment turns **cyan**, tanks fill up to their real level, amber needs attention and alarms flash **magenta**. Grey means the console cannot see it: gone, or more than 32 blocks away."
+        },
+        {
+          "type": "p",
+          "text": "Scroll to zoom, drag to move, click a symbol for its trend. **VALUES** writes the numbers on the drawing, **EJECT** gives the P&ID back."
         }
       ]
     },
@@ -646,6 +662,10 @@
         {
           "type": "p",
           "text": "**ALARMS** keeps the alarm list. A new alarm chimes and makes the console flash until you press **ACK**."
+        },
+        {
+          "type": "p",
+          "text": "**P&ID** shows a P&ID of your plant, live: right-click the console with one to put it in."
         },
         {
           "type": "h",

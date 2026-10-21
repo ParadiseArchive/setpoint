@@ -100,6 +100,7 @@ public final class SetpointGameTests {
         test("pump_fills_a_cauldron", SetpointGameTests::pumpFillsACauldron, 300);
         test("pid_draws_the_plant", SetpointGameTests::pidDrawsThePlant, 100);
         test("blank_pid_is_used_up_in_survival", SetpointGameTests::blankPidIsUsedUpInSurvival, 20);
+        test("console_shows_a_pid_live", SetpointGameTests::consoleShowsAPidLive, 100);
     }
 
     private static void test(String name, Consumer<GameTestHelper> function, int maxTicks) {
@@ -669,6 +670,36 @@ public final class SetpointGameTests {
             helper.assertTrue(symbols.contains(io.hookdev.setpoint.pid.PidDrawing.CONTROL_VALVE), "the control valve should be drawn");
             helper.assertTrue(symbols.contains(io.hookdev.setpoint.pid.PidDrawing.CONTROLLER), "the controller should be drawn");
             helper.assertTrue(drawing.links().size() == 2, "signal lines to the valve and the tank expected, got " + drawing.links().size());
+            helper.succeed();
+        });
+    }
+
+    /**
+     * A P&ID goes into a console with a right-click. Every tag on the drawing is one the console reads, so the live
+     * view can colour each symbol; breaking the console gives the P&ID back.
+     */
+    private static void consoleShowsAPidLive(GameTestHelper helper) {
+        buildLine(helper, false);
+        BlockPos pos = new BlockPos(3, 1, 2);
+        helper.setBlock(pos, SetpointContent.CONSOLE.get());
+        helper.runAfterDelay(40, () -> {
+            var drawing = io.hookdev.setpoint.pid.PidCapture.capture(helper.getLevel(), helper.absolutePos(new BlockPos(0, 0, 0)), helper.absolutePos(new BlockPos(6, 2, 2))).drawing();
+            ItemStack pid = new ItemStack(SetpointContent.PID.get());
+            pid.set(SetpointContent.PID_DRAWING.get(), drawing);
+            var player = helper.makeMockPlayer(GameType.SURVIVAL);
+            player.setItemInHand(InteractionHand.MAIN_HAND, pid);
+            BlockPos abs = helper.absolutePos(pos);
+            helper.getBlockState(pos).useItemOn(pid, helper.getLevel(), player, InteractionHand.MAIN_HAND,
+                    new BlockHitResult(Vec3.atCenterOf(abs), Direction.UP, abs, false));
+            ConsoleBlockEntity console = helper.getBlockEntity(pos, ConsoleBlockEntity.class);
+            helper.assertTrue(console.drawing() != null, "the console should hold the P&ID");
+            helper.assertTrue(pid.isEmpty(), "the P&ID should have left the hand");
+            var tags = console.readings().stream().map(io.hookdev.setpoint.console.Reading::tag).toList();
+            for (var cell : console.drawing().cells()) {
+                helper.assertTrue(cell.tag().isEmpty() || tags.contains(cell.tag()), cell.tag() + " is on the drawing but the console does not read it: " + tags);
+            }
+            helper.destroyBlock(pos);
+            helper.assertItemEntityPresent(SetpointContent.PID.get());
             helper.succeed();
         });
     }

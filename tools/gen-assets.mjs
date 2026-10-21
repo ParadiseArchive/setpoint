@@ -1053,6 +1053,7 @@ shapeless('handbook', ['minecraft:book', 'minecraft:copper_ingot'], 'setpoint:ha
     ['lockout', 'moving_water', 'setpoint:hand_valve', 'task', happened('valve_shut')],
     ['righty_tighty', 'root', 'setpoint:pipe_wrench', 'task', has('setpoint:pipe_wrench')],
     ['draftsman', 'root', 'setpoint:pid', 'goal', happened('pid_drawn')],
+    ['mimic_panel', 'draftsman', 'setpoint:dcs_console', 'goal', happened('pid_on_console')],
     ['skyscraper', 'moving_water', 'setpoint:tank', 'goal', happened('tall_tank')],
     ['steady_flow', 'hands_off', 'setpoint:flow_transmitter', 'goal', happened('flow_holding')],
     ['good_neighbours', 'moving_water', 'setpoint:centrifugal_pump', 'task', happened('foreign_tank')],

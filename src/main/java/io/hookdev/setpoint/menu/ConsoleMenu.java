@@ -10,6 +10,7 @@ import io.hookdev.setpoint.block.entity.ConsoleBlockEntity;
 import io.hookdev.setpoint.block.entity.ControllerBlockEntity;
 import io.hookdev.setpoint.console.Reading;
 import io.hookdev.setpoint.network.ConsoleSnapshot;
+import io.hookdev.setpoint.pid.PidDrawing;
 
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerPlayer;
@@ -17,15 +18,17 @@ import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.util.Prediction;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /**
  * The control room screen's menu. The server sends a snapshot twice a second; buttons acknowledge
- * alarms, pick the trend tag, or open a controller's faceplate from here.
+ * alarms, pick the trend tag, open a controller's faceplate from here, or take the P&ID out.
+ * The P&ID's drawing comes along once, when the screen opens.
  */
 public class ConsoleMenu extends AbstractContainerMenu {
-    public static final int BUTTON_ACK = 0, BUTTON_TREND = 1000, BUTTON_FACEPLATE = 2000;
+    public static final int BUTTON_ACK = 0, BUTTON_EJECT = 1, BUTTON_TREND = 1000, BUTTON_FACEPLATE = 2000;
     private static final int SEND_TICKS = 10;
 
     private final @Nullable ConsoleBlockEntity console; // server side only
@@ -33,6 +36,7 @@ public class ConsoleMenu extends AbstractContainerMenu {
     private String trendTag = "";
     private int age;
     private ConsoleSnapshot snapshot; // client side: the latest one received
+    private @Nullable PidDrawing drawing;
 
     /** Client side. */
     public ConsoleMenu(int containerId, Inventory inventory, RegistryFriendlyByteBuf buf) {
@@ -40,6 +44,7 @@ public class ConsoleMenu extends AbstractContainerMenu {
         this.console = null;
         this.player = null;
         this.snapshot = ConsoleSnapshot.empty(containerId);
+        this.drawing = buf.readBoolean() ? PidDrawing.STREAM_CODEC.decode(buf) : null;
     }
 
     /** Server side. */
@@ -48,7 +53,11 @@ public class ConsoleMenu extends AbstractContainerMenu {
         this.console = console;
         this.player = inventory.player instanceof ServerPlayer serverPlayer ? serverPlayer : null;
         this.snapshot = ConsoleSnapshot.empty(containerId);
+        this.drawing = console.drawing();
     }
+
+    /** The P&ID in the console, or null. */
+    public @Nullable PidDrawing drawing() { return drawing; }
 
     public ConsoleSnapshot snapshot() { return snapshot; }
     public void receive(ConsoleSnapshot snapshot) { this.snapshot = snapshot; }
@@ -63,6 +72,7 @@ public class ConsoleMenu extends AbstractContainerMenu {
 
     @Override
     public boolean clickMenuButton(Player player, int buttonId) {
+        if (buttonId == BUTTON_EJECT) drawing = null; // on both sides, so the screen drops the tab right away
         if (console == null) return true;
         List<Reading> readings = console.readings();
         if (buttonId == BUTTON_ACK) {
@@ -70,6 +80,9 @@ public class ConsoleMenu extends AbstractContainerMenu {
                 SetpointContent.PLANT_EVENT.get().trigger(serverPlayer, PlantEventTrigger.ALARM_ACKNOWLEDGED);
             }
             console.acknowledge();
+        } else if (buttonId == BUTTON_EJECT) {
+            ItemStack pid = console.ejectPid();
+            if (!pid.isEmpty() && !player.getInventory().add(pid)) player.drop(pid, false, Prediction.SERVER_ONLY);
         } else if (buttonId >= BUTTON_FACEPLATE) {
             int row = buttonId - BUTTON_FACEPLATE;
             if (row < readings.size() && console.getLevel() != null

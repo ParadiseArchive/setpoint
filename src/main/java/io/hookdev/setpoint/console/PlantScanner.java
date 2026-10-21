@@ -16,6 +16,7 @@ import io.hookdev.setpoint.block.entity.LevelTransmitterBlockEntity;
 import io.hookdev.setpoint.block.entity.PumpBlockEntity;
 import io.hookdev.setpoint.block.entity.SteamTurbineBlockEntity;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
+import io.hookdev.setpoint.block.entity.WaterIntakeBlockEntity;
 import io.hookdev.setpoint.control.PidController;
 import io.hookdev.setpoint.physics.BoilerModel;
 import io.hookdev.setpoint.physics.PumpModel;
@@ -30,7 +31,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 public final class PlantScanner {
     /** How far a console sees, in blocks, in every direction. */
     public static final int RANGE = 32;
-    private static final List<String> KIND_ORDER = List.of("LIC", "FIC", "PUMP", "VALVE", "FT", "TANK", "LT", "BOILER", "TURBINE", "GEN");
+    private static final List<String> KIND_ORDER = List.of("LIC", "FIC", "PUMP", "VALVE", "FT", "TANK", "LT", "BOILER", "TURBINE", "GEN", "INTAKE");
 
     private PlantScanner() {}
 
@@ -145,6 +146,11 @@ public final class PlantScanner {
             return new Reading(pos, turbine.tag(), "TURBINE", running ? "RUNNING" : "STOPPED", Reading.NORMAL,
                     String.format("%.0f rpm  %d FE/t", turbine.speed(), turbine.output()),
                     List.of("SPEED %"), new float[]{(float) (turbine.speed() / TurbineModel.RATED_SPEED * 100)}, List.of());
+        }
+        if (be instanceof WaterIntakeBlockEntity intake) {
+            boolean ok = intake.submerged();
+            return new Reading(pos, intake.tag(), "INTAKE", ok ? "RUNNING" : "NO WATER", ok ? Reading.NORMAL : Reading.ATTENTION,
+                    intake.sources() + " water sources", List.of("BUFFER %"), new float[]{(float) (intake.fillFraction() * 100)}, List.of());
         }
         if (be instanceof GeneratorBlockEntity generator) {
             int stored = generator.energy().getAmountAsInt();

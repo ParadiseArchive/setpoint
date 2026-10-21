@@ -3,12 +3,20 @@ package io.hookdev.setpoint.block;
 import org.jspecify.annotations.Nullable;
 
 import io.hookdev.setpoint.SetpointContent;
+import io.hookdev.setpoint.advancement.PlantEventTrigger;
 import io.hookdev.setpoint.block.entity.ConsoleBlockEntity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Prediction;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
@@ -26,7 +34,10 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
-/** DCS operator console: the control room. Sees all equipment around it; the screen flashes on new alarms. */
+/**
+ * DCS operator console: the control room. Sees all equipment around it; the screen flashes on new alarms.
+ * Right-click it with a P&ID to put the drawing in; the console then shows it live.
+ */
 public class ConsoleBlock extends BaseEntityBlock {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty ALARM = BooleanProperty.create("alarm");
@@ -52,9 +63,25 @@ public class ConsoleBlock extends BaseEntityBlock {
     }
 
     @Override
+    protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
+                                          InteractionHand hand, BlockHitResult hitResult) {
+        if (!stack.has(SetpointContent.PID_DRAWING.get())) return InteractionResult.TRY_WITH_EMPTY_HAND;
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof ConsoleBlockEntity console) {
+            ItemStack previous = console.insertPid(stack);
+            if (!previous.isEmpty() && !player.getInventory().add(previous)) player.drop(previous, false, Prediction.SERVER_ONLY);
+            level.playSound(null, pos, SoundEvents.BOOK_PAGE_TURN, SoundSource.BLOCKS, 0.6f, 1.0f);
+            if (player instanceof ServerPlayer serverPlayer) {
+                serverPlayer.sendSystemMessage(Component.literal("P&ID loaded: open the console and pick the P&ID tab."), true);
+                SetpointContent.PLANT_EVENT.get().trigger(serverPlayer, PlantEventTrigger.PID_ON_CONSOLE);
+            }
+        }
+        return InteractionResult.SUCCESS;
+    }
+
+    @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof ConsoleBlockEntity console) {
-            player.openMenu(console, buf -> {});
+            player.openMenu(console, console::writeOpenData);
         }
         return InteractionResult.SUCCESS;
     }

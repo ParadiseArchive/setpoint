@@ -66,6 +66,19 @@ public final class PidSymbols {
 
     /** Draws a symbol with its top-left corner at (x, y), each mask pixel {@code scale} screen pixels big. */
     public static void draw(GuiGraphicsExtractor g, int symbol, int rotation, int x, int y, int scale, int line, int accent) {
+        draw(g, symbol, rotation, x, y, scale, line, accent, -1);
+    }
+
+    /**
+     * Same, but a tank with {@code fill} from 0 to 1 shows its real level: liquid up to that height inside the shell
+     * instead of the fixed level of the drawing.
+     */
+    public static void draw(GuiGraphicsExtractor g, int symbol, int rotation, int x, int y, int scale, int line, int accent, float fill) {
+        boolean live = fill >= 0 && symbol == PidDrawing.TANK;
+        if (live) { // the inside of the shell is rows and columns 1 to 6
+            int inside = 6 * scale, height = Math.round(Math.min(1, fill) * inside);
+            if (height > 0) g.fill(x + scale, y + 7 * scale - height, x + 7 * scale, y + 7 * scale, accent);
+        }
         String[] mask = mask(symbol);
         if (mask == null) return;
         int turns = turns(symbol) ? rotation & 3 : 0;
@@ -74,7 +87,7 @@ public final class PidSymbols {
             int r = row, c = col;
             for (int k = 0; k < turns; k++) { int t = r; r = 7 - c; c = t; }
             char ch = mask[r].charAt(c);
-            if (ch == '.') continue;
+            if (ch == '.' || (live && ch == '+')) continue;
             int colour = ch == '+' ? accent : line;
             g.fill(x + col * scale, y + row * scale, x + (col + 1) * scale, y + (row + 1) * scale, colour);
         }

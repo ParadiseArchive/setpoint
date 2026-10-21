@@ -18,8 +18,8 @@ public record ConsoleSnapshot(int containerId, List<Row> rows, List<AlarmRow> al
     public static final Type<ConsoleSnapshot> TYPE = new Type<>(Setpoint.id("console_snapshot"));
     public static final StreamCodec<RegistryFriendlyByteBuf, ConsoleSnapshot> CODEC = CustomPacketPayload.codec(ConsoleSnapshot::write, ConsoleSnapshot::read);
 
-    /** One line of the overview. */
-    public record Row(String tag, String kind, String status, int severity, String value) {}
+    /** One line of the overview. {@code gauge} is the first trend value (a tank's level, a pump's flow), 0 to 100 or NaN. */
+    public record Row(String tag, String kind, String status, int severity, String value, float gauge) {}
 
     /** One line of the alarm list; state is the ordinal of AlarmList.State. */
     public record AlarmRow(String time, String tag, String message, int state) {}
@@ -32,7 +32,7 @@ public record ConsoleSnapshot(int containerId, List<Row> rows, List<AlarmRow> al
         buf.writeVarInt(containerId);
         buf.writeVarInt(rows.size());
         for (Row r : rows) {
-            buf.writeUtf(r.tag()); buf.writeUtf(r.kind()); buf.writeUtf(r.status()); buf.writeByte(r.severity()); buf.writeUtf(r.value());
+            buf.writeUtf(r.tag()); buf.writeUtf(r.kind()); buf.writeUtf(r.status()); buf.writeByte(r.severity()); buf.writeUtf(r.value()); buf.writeFloat(r.gauge());
         }
         buf.writeVarInt(alarms.size());
         for (AlarmRow a : alarms) {
@@ -52,7 +52,7 @@ public record ConsoleSnapshot(int containerId, List<Row> rows, List<AlarmRow> al
     private static ConsoleSnapshot read(RegistryFriendlyByteBuf buf) {
         int containerId = buf.readVarInt();
         List<Row> rows = new ArrayList<>();
-        for (int i = buf.readVarInt(); i > 0; i--) rows.add(new Row(buf.readUtf(), buf.readUtf(), buf.readUtf(), buf.readByte(), buf.readUtf()));
+        for (int i = buf.readVarInt(); i > 0; i--) rows.add(new Row(buf.readUtf(), buf.readUtf(), buf.readUtf(), buf.readByte(), buf.readUtf(), buf.readFloat()));
         List<AlarmRow> alarms = new ArrayList<>();
         for (int i = buf.readVarInt(); i > 0; i--) alarms.add(new AlarmRow(buf.readUtf(), buf.readUtf(), buf.readUtf(), buf.readByte()));
         int unacknowledged = buf.readVarInt();

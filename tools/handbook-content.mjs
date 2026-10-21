@@ -38,6 +38,10 @@ export const HANDBOOK = {
         ['p', 'A circle with an arrow is a **pump**, pointing where it pumps. A box with liquid is a **tank**. A bow tie is a **valve**: with a dome on top for a control valve, a T for a hand valve, filled in when it is shut.'],
         ['p', 'Bubbles are **instruments**: L for level, F for flow. A circle in a square is a **DCS controller**; dashed amber lines are its signal wiring to its valve and transmitter.'],
         ['p', 'Hover any symbol on the drawing to see its tag.'],
+        ['h', 'Live on the console'],
+        ['p', 'Right-click a DCS console with your P&ID to put it in. The **P&ID** tab of the console now shows your drawing, live.'],
+        ['p', 'Running equipment turns **cyan**, tanks fill up to their real level, amber needs attention and alarms flash **magenta**. Grey means the console cannot see it: gone, or more than 32 blocks away.'],
+        ['p', 'Scroll to zoom, drag to move, click a symbol for its trend. **VALUES** writes the numbers on the drawing, **EJECT** gives the P&ID back.'],
       ],
     },
     {
@@ -141,6 +145,7 @@ export const HANDBOOK = {
         ['p', '**OVERVIEW** lists every tag with its status and value. Grey is normal, amber needs attention, magenta is an alarm.'],
         ['p', '**TRENDS** shows the last five minutes of a tag: click it on the overview. For a controller you see PV, SP and OP, and a button opens its faceplate.'],
         ['p', '**ALARMS** keeps the alarm list. A new alarm chimes and makes the console flash until you press **ACK**.'],
+        ['p', '**P&ID** shows a P&ID of your plant, live: right-click the console with one to put it in.'],
         ['h', 'Alarm states'],
         ['p', '**NEW**: not acknowledged yet. **ACK**: acknowledged, the problem is still there. **RTN**: the problem went away before anyone looked; acknowledge to clear it.'],
       ],

@@ -1,0 +1,28 @@
+{
+  "parent": "setpoint:draftsman",
+  "criteria": {
+    "pid_on_console": {
+      "trigger": "setpoint:plant_event",
+      "conditions": {
+        "event": "pid_on_console"
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "setpoint:dcs_console"
+    },
+    "frame": "goal",
+    "title": {
+      "translate": "advancements.setpoint.mimic_panel.title"
+    },
+    "description": {
+      "translate": "advancements.setpoint.mimic_panel.description"
+    }
+  },
+  "requirements": [
+    [
+      "pid_on_console"
+    ]
+  ]
+}

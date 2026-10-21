@@ -47,7 +47,7 @@
   "tooltip.setpoint.steam_turbine": "Makes up to 60 FE/t from a boiler next to it.",
   "tooltip.setpoint.steam_turbine.more": "Spins up to 3000 rpm.\nThree times the power per coal of a Stirling engine.",
   "tooltip.setpoint.dcs_console": "The control room for everything within 32 blocks.",
-  "tooltip.setpoint.dcs_console.more": "Overview, five-minute trends and an alarm list.\nNew alarms chime until you press ACK.",
+  "tooltip.setpoint.dcs_console.more": "Overview, five-minute trends and an alarm list.\nNew alarms chime until you press ACK.\nRight-click it with a P&ID to see it live.",
   "tooltip.setpoint.creative_generator": "Endless power, for testing.",
   "tooltip.setpoint.hookonium_ore": "A rare purple ore. Needs a diamond pickaxe.",
   "tooltip.setpoint.deepslate_hookonium_ore": "A rare purple ore. Needs a diamond pickaxe.",
@@ -106,7 +106,9 @@
   "tooltip.setpoint.blank_pid": "Draws a P&ID of your plant.",
   "tooltip.setpoint.blank_pid.more": "Right-click the ground: first corner.\nRight-click the opposite corner: drawn,\nten blocks high. Uses up one sheet.\nSneak-right-click the air to start over.",
   "tooltip.setpoint.pid": "A drawing of your plant.",
-  "tooltip.setpoint.pid.more": "Right-click to name it and read it.\nHover a symbol for its tag.",
+  "tooltip.setpoint.pid.more": "Right-click to name it and read it.\nHover a symbol for its tag.\nPut it in a DCS console to see it live.",
   "advancements.setpoint.draftsman.title": "Draftsman",
-  "advancements.setpoint.draftsman.description": "Draw a P&ID of your plant."
+  "advancements.setpoint.draftsman.description": "Draw a P&ID of your plant.",
+  "advancements.setpoint.mimic_panel.title": "Mimic Panel",
+  "advancements.setpoint.mimic_panel.description": "Put a P&ID in a DCS console and watch your plant live."
 }
