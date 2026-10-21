@@ -37,6 +37,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -51,6 +52,9 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public class PidBoardBlock extends BaseEntityBlock {
     /** The way the drawing faces: away from the wall. */
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
+    /** Part of a panel that shows a P&ID: the screen glows. */
+    public static final BooleanProperty LIT = BlockStateProperties.LIT;
+    public static final int LIGHT = 10;
     /** The largest panel one drawing covers, in blocks. */
     public static final int MAX_WIDTH = 8, MAX_HEIGHT = 6;
     private static final Map<Direction, VoxelShape> SHAPES = Map.of(
@@ -59,7 +63,7 @@ public class PidBoardBlock extends BaseEntityBlock {
 
     public PidBoardBlock(BlockBehaviour.Properties properties) {
         super(properties);
-        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH));
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(LIT, false));
     }
 
     @Override
@@ -187,6 +191,6 @@ public class PidBoardBlock extends BaseEntityBlock {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING);
+        builder.add(FACING, LIT);
     }
 }

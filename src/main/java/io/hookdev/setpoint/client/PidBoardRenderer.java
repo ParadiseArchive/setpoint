@@ -76,7 +76,7 @@ public class PidBoardRenderer implements BlockEntityRenderer<PidBoardBlockEntity
         poseStack.rotateDegrees(Axis.YP, -state.facing.toYRot());
         poseStack.translate(-0.5f, 0, -0.5f);
         float z = 1 / 16f + LIFT, top = 1, bottom = 1 - state.height, right = state.width;
-        int light = state.lightCoords;
+        int light = LightCoordsUtil.FULL_BRIGHT; // a screen: it glows, day and night
         collector.submitCustomGeometry(poseStack, RenderTypes.text(state.texture), (pose, buffer) -> {
             buffer.addVertex(pose, 0, bottom, z).setColor(-1).setUv(0, 1).setLight(light);
             buffer.addVertex(pose, right, bottom, z).setColor(-1).setUv(1, 1).setLight(light);

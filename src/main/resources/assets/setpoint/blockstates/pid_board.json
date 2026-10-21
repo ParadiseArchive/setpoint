@@ -1,17 +1,32 @@
 {
   "variants": {
-    "facing=north": {
+    "facing=north,lit=false": {
       "model": "setpoint:block/pid_board"
     },
-    "facing=east": {
+    "facing=north,lit=true": {
+      "model": "setpoint:block/pid_board"
+    },
+    "facing=east,lit=false": {
       "model": "setpoint:block/pid_board",
       "y": 90
     },
-    "facing=south": {
+    "facing=east,lit=true": {
+      "model": "setpoint:block/pid_board",
+      "y": 90
+    },
+    "facing=south,lit=false": {
       "model": "setpoint:block/pid_board",
       "y": 180
     },
-    "facing=west": {
+    "facing=south,lit=true": {
+      "model": "setpoint:block/pid_board",
+      "y": 180
+    },
+    "facing=west,lit=false": {
+      "model": "setpoint:block/pid_board",
+      "y": 270
+    },
+    "facing=west,lit=true": {
       "model": "setpoint:block/pid_board",
       "y": 270
     }

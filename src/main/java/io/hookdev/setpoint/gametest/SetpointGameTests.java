@@ -978,6 +978,7 @@ public final class SetpointGameTests {
             helper.assertTrue(origin.drawing() != null, "the top-left board should hold the P&ID");
             int[] size = PidBoardBlock.size(helper.getLevel(), helper.absolutePos(topLeft), Direction.NORTH);
             helper.assertTrue(size[0] == 2 && size[1] == 2, "the panel should be 2 x 2, is " + size[0] + " x " + size[1]);
+            for (int x = 2; x <= 3; x++) for (int y = 3; y <= 4; y++) helper.assertBlockProperty(new BlockPos(x, y, 0), PidBoardBlock.LIT, true); // the whole panel glows
             var pump = origin.live().get(helper.getBlockEntity(PUMP, PumpBlockEntity.class).tag());
             helper.assertTrue(pump != null && pump.state() == io.hookdev.setpoint.pid.PidLive.ACTIVE, "the board should show the pump running, has " + origin.live());
             // the middle of the bottom-right board is three quarters across and down the panel

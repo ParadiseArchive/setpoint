@@ -46,7 +46,7 @@ export const HANDBOOK = {
         ['p', 'A **P&ID board** shows a P&ID big on the wall of your control room, live, like a mimic board. Place boards side by side and below each other: together they make one panel, up to 8 x 6 blocks.'],
         ['p', 'Right-click any board of the panel with a P&ID. Sneak-right-click with an empty hand to take it back. A board sees the plant within 32 blocks, like a console.'],
         ['p', '**Work it from the wall.** Look at a symbol: its tag, status and value show above your hotbar. Right-click it: a controller opens its faceplate, a pump starts or stops, anything else reports its status.'],
-        ['p', 'A comparator next to the panel gives the number of alarms on the drawing: hook up a lamp or a bell.'],
+        ['p', 'A comparator next to the panel gives the number of alarms on the drawing: hook up a lamp or a bell. A panel with a P&ID glows, so it lights up your control room.'],
         ['craft', 'setpoint:pid_board'],
       ],
     },

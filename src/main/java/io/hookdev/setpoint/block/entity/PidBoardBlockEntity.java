@@ -18,6 +18,7 @@ import io.hookdev.setpoint.pid.PidLive;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
@@ -82,6 +83,7 @@ public class PidBoardBlockEntity extends BlockEntity {
         live = List.of();
         if (level instanceof ServerLevel server) scan(server);
         changed();
+        light(true);
         return previous;
     }
 
@@ -90,6 +92,7 @@ public class PidBoardBlockEntity extends BlockEntity {
         pid = ItemStack.EMPTY;
         live = List.of();
         changed();
+        light(false);
         return previous;
     }
 
@@ -98,9 +101,24 @@ public class PidBoardBlockEntity extends BlockEntity {
         if (level != null && !level.isClientSide()) level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
     }
 
+    /** Light the whole panel up (or switch it off) right away, without waiting for each board's own check. */
+    private void light(boolean lit) {
+        if (level == null || level.isClientSide()) return;
+        Direction facing = getBlockState().getValue(PidBoardBlock.FACING);
+        for (BlockPos at : PidBoardBlock.panel(level, worldPosition, facing)) {
+            BlockState state = level.getBlockState(at);
+            if (state.getBlock() instanceof PidBoardBlock && state.getValue(PidBoardBlock.LIT) != lit) level.setBlock(at, state.setValue(PidBoardBlock.LIT, lit), Block.UPDATE_ALL);
+        }
+    }
+
     public static void serverTick(Level level, BlockPos pos, BlockState state, PidBoardBlockEntity board) {
-        // a board scans once a second, every board at its own moment
-        if (board.drawing() == null || level.getGameTime() % SCAN_TICKS != Math.floorMod(pos.hashCode(), SCAN_TICKS)) return;
+        // once a second, every board at its own moment
+        if (level.getGameTime() % SCAN_TICKS != Math.floorMod(pos.hashCode(), SCAN_TICKS)) return;
+        // a board glows while its panel shows a P&ID (a panel can grow or shrink, so every board checks for itself)
+        BlockPos origin = PidBoardBlock.topLeft(level, pos, state.getValue(PidBoardBlock.FACING));
+        boolean lit = level.getBlockEntity(origin) instanceof PidBoardBlockEntity top && top.drawing() != null;
+        if (state.getValue(PidBoardBlock.LIT) != lit) level.setBlock(pos, state = state.setValue(PidBoardBlock.LIT, lit), Block.UPDATE_ALL);
+        if (board.drawing() == null) return;
         List<PidLive> before = board.live;
         int alarmsBefore = board.alarms();
         board.scan((ServerLevel) level);

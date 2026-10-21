@@ -911,7 +911,8 @@ M('pid_board', { // the drawing faces north: the board hangs on a wall to the so
     up: { uv: [0, 15, 16, 16], texture: '#back' }, down: { uv: [0, 0, 16, 1], texture: '#back' },
   })],
 });
-BS('pid_board', { variants: Object.fromEntries(Object.entries(yaw).map(([f, y]) => [`facing=${f}`, { model: 'setpoint:block/pid_board', ...(y ? { y } : {}) }])) });
+BS('pid_board', { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => [false, true].map((lit) =>
+  [`facing=${f},lit=${lit}`, { model: 'setpoint:block/pid_board', ...(y ? { y } : {}) }]))) });
 item('pid_board', 'setpoint:block/pid_board');
 recipe('pid_board', ['III', 'IPI'], { I: 'minecraft:iron_ingot', P: 'minecraft:painting' }, 'setpoint:pid_board');
 
