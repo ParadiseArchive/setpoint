@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.jspecify.annotations.Nullable;
 
+import io.hookdev.setpoint.block.IbcBlock;
 import io.hookdev.setpoint.block.entity.BoilerBlockEntity;
 import io.hookdev.setpoint.block.entity.ControlValveBlockEntity;
 import io.hookdev.setpoint.block.entity.ControllerBlockEntity;
@@ -13,6 +14,7 @@ import io.hookdev.setpoint.block.entity.CreativeGeneratorBlockEntity;
 import io.hookdev.setpoint.block.entity.FlowTransmitterBlockEntity;
 import io.hookdev.setpoint.block.entity.GeneratorBlockEntity;
 import io.hookdev.setpoint.block.entity.LevelTransmitterBlockEntity;
+import io.hookdev.setpoint.block.entity.PortableTankBlockEntity;
 import io.hookdev.setpoint.block.entity.PressureTransmitterBlockEntity;
 import io.hookdev.setpoint.block.entity.PumpBlockEntity;
 import io.hookdev.setpoint.block.entity.SafetyValveBlockEntity;
@@ -33,7 +35,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 public final class PlantScanner {
     /** How far a console sees, in blocks, in every direction. */
     public static final int RANGE = 32;
-    private static final List<String> KIND_ORDER = List.of("LIC", "FIC", "PIC", "PUMP", "VALVE", "FT", "PT", "TANK", "LT", "BOILER", "PSV", "TURBINE", "GEN", "INTAKE");
+    private static final List<String> KIND_ORDER = List.of("LIC", "FIC", "PIC", "PUMP", "VALVE", "FT", "PT", "TANK", "IBC", "DRUM", "LT", "BOILER", "PSV", "TURBINE", "GEN", "INTAKE");
 
     private PlantScanner() {}
 
@@ -125,6 +127,12 @@ public final class PlantScanner {
             String what = tank.amount() == 0 ? "EMPTY" : tank.resource().getFluidType().getDescription().getString().toUpperCase();
             return new Reading(pos, tank.tag(), "TANK", what, Reading.NORMAL, pct(level) + height,
                     List.of("LEVEL %"), new float[]{(float) level}, List.of());
+        }
+        if (be instanceof PortableTankBlockEntity tank) {
+            double level = tank.fillFraction() * 100;
+            String what = tank.amount() == 0 ? "EMPTY" : tank.resource().getFluidType().getDescription().getString().toUpperCase();
+            String kind = tank.getBlockState().getBlock() instanceof IbcBlock ? "IBC" : "DRUM";
+            return new Reading(pos, tank.tag(), kind, what, Reading.NORMAL, pct(level), List.of("LEVEL %"), new float[]{(float) level}, List.of());
         }
         if (be instanceof FlowTransmitterBlockEntity ft) {
             double flow = ft.flow();

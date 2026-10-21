@@ -6,16 +6,17 @@ import java.util.List;
 import java.util.Map;
 
 import io.hookdev.setpoint.block.BoilerBlock;
+import io.hookdev.setpoint.block.CheckValveBlock;
 import io.hookdev.setpoint.block.ConsoleBlock;
 import io.hookdev.setpoint.block.ControlValveBlock;
-import io.hookdev.setpoint.block.CheckValveBlock;
 import io.hookdev.setpoint.block.ControllerBlock;
-import io.hookdev.setpoint.block.DrainValveBlock;
 import io.hookdev.setpoint.block.CreativeGeneratorBlock;
+import io.hookdev.setpoint.block.DrainValveBlock;
 import io.hookdev.setpoint.block.FlowTransmitterBlock;
 import io.hookdev.setpoint.block.FluidPipeBlock;
 import io.hookdev.setpoint.block.GeneratorBlock;
 import io.hookdev.setpoint.block.HandValveBlock;
+import io.hookdev.setpoint.block.IbcBlock;
 import io.hookdev.setpoint.block.LevelTransmitterBlock;
 import io.hookdev.setpoint.block.PressureTransmitterBlock;
 import io.hookdev.setpoint.block.PumpBlock;
@@ -27,6 +28,7 @@ import io.hookdev.setpoint.block.entity.BoilerBlockEntity;
 import io.hookdev.setpoint.block.entity.ControllerBlockEntity;
 import io.hookdev.setpoint.block.entity.InstrumentBlockEntity;
 import io.hookdev.setpoint.block.entity.NamedEquipment;
+import io.hookdev.setpoint.block.entity.PortableTankBlockEntity;
 import io.hookdev.setpoint.block.entity.SteamTurbineBlockEntity;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
 import io.hookdev.setpoint.block.entity.WaterIntakeBlockEntity;
@@ -55,7 +57,11 @@ public final class PidCapture {
 
     private PidCapture() {}
 
-    private record Found(int symbol, int rotation, String tag, int priority) {}
+    private record Found(int symbol, int rotation, String tag, int priority, long at) {
+        Found(int symbol, int rotation, String tag, int priority) {
+            this(symbol, rotation, tag, priority, PidDrawing.Cell.NOWHERE);
+        }
+    }
 
     public static Result capture(Level level, BlockPos a, BlockPos b) {
         int minX = Math.min(a.getX(), b.getX()), maxX = Math.max(a.getX(), b.getX());
@@ -117,7 +123,7 @@ public final class PidCapture {
             int rotation = (f.rotation + (turn ? 1 : 0)) % 4;
             int mask = turn ? turnClockwise(pipes[x][z]) : pipes[x][z];
             if (!f.tag.isEmpty()) byTag.putIfAbsent(f.tag, cells.size());
-            cells.add(new PidDrawing.Cell(cx, cy, f.symbol, rotation, mask, f.tag));
+            cells.add(new PidDrawing.Cell(cx, cy, f.symbol, rotation, mask, f.tag, f.at));
         }
 
         // dashed signal lines: every controller to its valve and its transmitter
@@ -151,6 +157,9 @@ public final class PidCapture {
         if (block instanceof TankBlock && be instanceof TankBlockEntity tank) {
             return new Found(PidDrawing.TANK, 0, tank.tag(), 5);
         }
+        if (be instanceof PortableTankBlockEntity tank) {
+            return new Found(block instanceof IbcBlock ? PidDrawing.IBC : PidDrawing.DRUM, 0, tank.tag(), 5);
+        }
         if (block instanceof BoilerBlock && be instanceof BoilerBlockEntity boiler) return new Found(PidDrawing.BOILER, 0, boiler.tag(), 5);
         if (block instanceof SteamTurbineBlock && be instanceof SteamTurbineBlockEntity turbine) {
             return new Found(PidDrawing.TURBINE, quarter(state.getValue(SteamTurbineBlock.FACING)), turbine.tag(), 5);
@@ -164,7 +173,7 @@ public final class PidCapture {
         if (block instanceof ControlValveBlock) return new Found(PidDrawing.CONTROL_VALVE, axisQuarter(state.getValue(ControlValveBlock.AXIS)), tag, 3);
         if (block instanceof HandValveBlock) {
             return new Found(HandValveBlock.isOpen(state) ? PidDrawing.HAND_VALVE : PidDrawing.HAND_VALVE_SHUT,
-                    axisQuarter(state.getValue(HandValveBlock.AXIS)), "", 3);
+                    axisQuarter(state.getValue(HandValveBlock.AXIS)), "", 3, pos.asLong());
         }
         if (block instanceof CheckValveBlock) {
             Direction arrow = state.getValue(CheckValveBlock.FACING);
@@ -172,7 +181,7 @@ public final class PidCapture {
         }
         if (block instanceof DrainValveBlock) {
             Direction outlet = state.getValue(DrainValveBlock.FACING);
-            return new Found(PidDrawing.DRAIN_VALVE, outlet.getAxis() == Direction.Axis.Y ? 0 : quarter(outlet), "", 3);
+            return new Found(PidDrawing.DRAIN_VALVE, outlet.getAxis() == Direction.Axis.Y ? 0 : quarter(outlet), "", 3, pos.asLong());
         }
         if (block instanceof SafetyValveBlock) return new Found(PidDrawing.SAFETY_VALVE, 0, tag, 3);
         if (block instanceof PressureTransmitterBlock) return new Found(PidDrawing.PRESSURE_TRANSMITTER, 0, tag, 2);

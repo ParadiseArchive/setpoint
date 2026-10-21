@@ -13,9 +13,11 @@ import io.hookdev.setpoint.block.entity.BiogasGeneratorBlockEntity;
 import io.hookdev.setpoint.block.ConsoleBlock;
 import io.hookdev.setpoint.block.CheckValveBlock;
 import io.hookdev.setpoint.block.DrainValveBlock;
+import io.hookdev.setpoint.block.IbcBlock;
 import io.hookdev.setpoint.block.PidBoardBlock;
 import io.hookdev.setpoint.block.SafetyValveBlock;
 import io.hookdev.setpoint.block.entity.PidBoardBlockEntity;
+import io.hookdev.setpoint.block.entity.PortableTankBlockEntity;
 import io.hookdev.setpoint.block.entity.DrainValveBlockEntity;
 import io.hookdev.setpoint.block.entity.SafetyValveBlockEntity;
 import io.hookdev.setpoint.block.FluidPipeBlock;
@@ -110,6 +112,9 @@ public final class SetpointGameTests {
         test("blank_pid_is_used_up_in_survival", SetpointGameTests::blankPidIsUsedUpInSurvival, 20);
         test("console_shows_a_pid_live", SetpointGameTests::consoleShowsAPidLive, 100);
         test("pid_board_panel_shows_a_pid_live", SetpointGameTests::pidBoardPanelShowsAPidLive, 100);
+        test("pid_board_shows_and_turns_a_hand_valve", SetpointGameTests::pidBoardShowsAndTurnsAHandValve, 100);
+        test("pump_fills_an_ibc", SetpointGameTests::pumpFillsAnIbc, 300);
+        test("a_broken_drum_keeps_its_liquid", SetpointGameTests::aBrokenDrumKeepsItsLiquid, 40);
         test("high_pressure_trips_the_burner", SetpointGameTests::highPressureTripsTheBurner, 400);
         test("safety_valve_saves_the_boiler", SetpointGameTests::safetyValveSavesTheBoiler, 300);
         test("overpressure_bursts_an_unprotected_boiler", SetpointGameTests::overpressureBurstsAnUnprotectedBoiler, 100);
@@ -994,6 +999,60 @@ public final class SetpointGameTests {
                 helper.succeed();
             });
         });
+    }
+
+    /** A hand valve on the drawing shows open or shut as it stands, and clicking it on the board turns it. */
+    private static void pidBoardShowsAndTurnsAHandValve(GameTestHelper helper) {
+        buildLine(helper, false);
+        helper.setBlock(4, 1, 1, SetpointContent.HAND_VALVE.get().defaultBlockState().setValue(HandValveBlock.AXIS, Direction.Axis.X));
+        BlockState board = SetpointContent.PID_BOARD.get().defaultBlockState().setValue(PidBoardBlock.FACING, Direction.NORTH);
+        helper.setBlock(3, 3, 0, board);
+        helper.runAfterDelay(20, () -> {
+            var drawing = io.hookdev.setpoint.pid.PidCapture.capture(helper.getLevel(), helper.absolutePos(new BlockPos(0, 0, 1)), helper.absolutePos(new BlockPos(6, 2, 1))).drawing();
+            var valve = drawing.cells().stream().filter(c -> c.symbol() == io.hookdev.setpoint.pid.PidDrawing.HAND_VALVE).findFirst().orElseThrow();
+            helper.assertTrue(valve.at() == helper.absolutePos(new BlockPos(4, 1, 1)).asLong(), "the drawing should remember where the hand valve stands");
+            ItemStack pid = new ItemStack(SetpointContent.PID.get());
+            pid.set(SetpointContent.PID_DRAWING.get(), drawing);
+            PidBoardBlockEntity origin = helper.getBlockEntity(new BlockPos(3, 3, 0), PidBoardBlockEntity.class);
+            origin.insertPid(pid);
+            var player = helper.makeMockPlayer(GameType.SURVIVAL);
+            helper.assertTrue("OPEN".equals(origin.live().get(valve.liveKey()).status()), "the board should show the valve open");
+            origin.operate(valve, player, helper.absolutePos(new BlockPos(3, 3, 0)));
+            helper.assertFalse(HandValveBlock.isOpen(helper.getBlockState(new BlockPos(4, 1, 1))), "clicking it on the board should shut the valve");
+            helper.assertTrue("SHUT".equals(origin.live().get(valve.liveKey()).status()), "the board should show the valve shut");
+            helper.succeed();
+        });
+    }
+
+    /** A pump fills an IBC; you see the level through the tote. */
+    private static void pumpFillsAnIbc(GameTestHelper helper) {
+        buildLine(helper, false);
+        helper.setBlock(DESTINATION, SetpointContent.IBC.get());
+        fill(helper, SOURCE, 8_000);
+        helper.succeedWhen(() -> {
+            PortableTankBlockEntity ibc = helper.getBlockEntity(DESTINATION, PortableTankBlockEntity.class);
+            helper.assertTrue(ibc.amount() >= 4_000, "the IBC should fill up, has " + ibc.amount());
+            helper.assertTrue(helper.getBlockState(DESTINATION).getValue(IbcBlock.LEVEL) >= 3, "the IBC should show its level");
+        });
+    }
+
+    /** Break a drum with lava in it: the drum item carries the lava, and placing it back puts the lava back. */
+    private static void aBrokenDrumKeepsItsLiquid(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(2, 1, 1);
+        helper.setBlock(pos, SetpointContent.DRUM.get());
+        helper.getBlockEntity(pos, PortableTankBlockEntity.class).fluid().set(0, FluidResource.of(Fluids.LAVA), 1_500);
+        PortableTankBlockEntity full = helper.getBlockEntity(pos, PortableTankBlockEntity.class);
+        var drops = Block.getDrops(helper.getBlockState(pos), helper.getLevel(), helper.absolutePos(pos), full, null, new ItemStack(Items.IRON_PICKAXE));
+        ItemStack drum = drops.stream().filter(i -> i.is(SetpointContent.DRUM_ITEM.get())).findFirst().orElse(ItemStack.EMPTY);
+        var contents = drum.get(SetpointContent.FLUID_CONTENTS.get());
+        helper.assertTrue(contents != null && contents.copy().getAmount() == 1_500 && contents.copy().getFluid().isSame(Fluids.LAVA),
+                "the dropped drum should hold the 1500 mB of lava, drops: " + drops);
+        helper.setBlock(pos, Blocks.AIR);
+        helper.setBlock(pos, SetpointContent.DRUM.get());
+        PortableTankBlockEntity placed = helper.getBlockEntity(pos, PortableTankBlockEntity.class);
+        placed.applyComponentsFromItemStack(drum);
+        helper.assertTrue(placed.amount() == 1_500, "placed back, the drum should hold the lava again, has " + placed.amount());
+        helper.succeed();
     }
 
     /** Two corners on the ground draw everything up to ten blocks high, and in survival one sheet is used up. */

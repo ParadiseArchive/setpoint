@@ -151,7 +151,7 @@
         },
         {
           "type": "p",
-          "text": "**Work it from the wall.** Look at a symbol: its tag, status and value show above your hotbar. Right-click it: a controller opens its faceplate, a pump starts or stops, anything else reports its status."
+          "text": "**Work it from the wall.** Look at a symbol: its tag, status and value show above your hotbar. Right-click it: a controller opens its faceplate, a pump starts or stops, a hand or drain valve opens or shuts, anything else reports its status."
         },
         {
           "type": "p",
@@ -272,6 +272,50 @@
             "minecraft:iron_ingot",
             "minecraft:glass",
             "minecraft:iron_ingot"
+          ],
+          "count": 1
+        },
+        {
+          "type": "h",
+          "text": "Drum and IBC"
+        },
+        {
+          "type": "p",
+          "text": "Containers you can carry. A **drum** holds 2 buckets, an **IBC** 10: a real drum holds 200 kg and an IBC 1000 kg, and here 1 kg is 10 mB. You see the liquid through the white tote of an IBC."
+        },
+        {
+          "type": "p",
+          "text": "They work like a tank with buckets, pipes, pumps and controllers. Break one and the liquid goes along in the item; place it somewhere else and it is all still there."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:drum",
+          "grid": [
+            "minecraft:iron_ingot",
+            "",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "minecraft:blue_dye",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot"
+          ],
+          "count": 1
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:ibc",
+          "grid": [
+            "minecraft:iron_bars",
+            "minecraft:iron_bars",
+            "minecraft:iron_bars",
+            "minecraft:iron_bars",
+            "minecraft:cauldron",
+            "minecraft:iron_bars",
+            "minecraft:oak_slab",
+            "minecraft:oak_slab",
+            "minecraft:oak_slab"
           ],
           "count": 1
         },

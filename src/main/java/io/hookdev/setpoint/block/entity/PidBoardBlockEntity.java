@@ -8,6 +8,8 @@ import java.util.Map;
 import org.jspecify.annotations.Nullable;
 
 import io.hookdev.setpoint.SetpointContent;
+import io.hookdev.setpoint.block.DrainValveBlock;
+import io.hookdev.setpoint.block.HandValveBlock;
 import io.hookdev.setpoint.block.PidBoardBlock;
 import io.hookdev.setpoint.client.ClientHooks;
 import io.hookdev.setpoint.console.PlantScanner;
@@ -139,6 +141,7 @@ public class PidBoardBlockEntity extends BlockEntity {
             Reading r = readings.get(cell.tag());
             if (r != null && now.stream().noneMatch(l -> l.tag().equals(r.tag()))) now.add(PidLive.of(r));
         }
+        now.addAll(PidLive.valves(level, drawing));
         live = now;
     }
 
@@ -148,6 +151,21 @@ public class PidBoardBlockEntity extends BlockEntity {
      */
     public void operate(PidDrawing.Cell cell, Player player, BlockPos station) {
         if (!(level instanceof ServerLevel server)) return;
+        if (cell.tag().isEmpty() && cell.at() != PidDrawing.Cell.NOWHERE) { // a hand or drain valve: turn its wheel from here
+            BlockPos at = BlockPos.of(cell.at());
+            BlockState valve = server.isLoaded(at) ? server.getBlockState(at) : null;
+            if (valve != null && (valve.getBlock() instanceof HandValveBlock || valve.getBlock() instanceof DrainValveBlock)) {
+                BlockState next = valve.cycle(HandValveBlock.OPEN);
+                server.setBlock(at, next, Block.UPDATE_ALL);
+                server.playSound(null, station, SoundEvents.STONE_BUTTON_CLICK_ON, SoundSource.BLOCKS, 0.4f, 1.2f);
+                boolean open = next.getBlock() instanceof HandValveBlock ? HandValveBlock.isOpen(next) : DrainValveBlock.isOpen(next);
+                say(player, Component.literal(PidDrawing.describe(cell.symbol()).replace(", open", "").replace(", shut", "") + (open ? "  OPEN" : "  SHUT"))
+                        .withStyle(open ? ChatFormatting.AQUA : ChatFormatting.GOLD));
+                scan(server);
+                changed();
+                return;
+            }
+        }
         if (cell.tag().isEmpty()) {
             say(player, Component.literal(PidDrawing.describe(cell.symbol())).withStyle(ChatFormatting.GRAY));
             return;

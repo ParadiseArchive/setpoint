@@ -1,22 +1,26 @@
 package io.hookdev.setpoint;
 
+import com.mojang.serialization.Codec;
+
 import io.hookdev.setpoint.advancement.PlantEventTrigger;
 import io.hookdev.setpoint.block.BoilerBlock;
+import io.hookdev.setpoint.block.CheckValveBlock;
 import io.hookdev.setpoint.block.ConsoleBlock;
 import io.hookdev.setpoint.block.ControlValveBlock;
 import io.hookdev.setpoint.block.ControllerBlock;
 import io.hookdev.setpoint.block.CreativeGeneratorBlock;
-import io.hookdev.setpoint.block.FluidPipeBlock;
+import io.hookdev.setpoint.block.DrainValveBlock;
+import io.hookdev.setpoint.block.DrumBlock;
 import io.hookdev.setpoint.block.FlowTransmitterBlock;
+import io.hookdev.setpoint.block.FluidPipeBlock;
 import io.hookdev.setpoint.block.GeneratorBlock;
 import io.hookdev.setpoint.block.HandValveBlock;
-import io.hookdev.setpoint.block.CheckValveBlock;
-import io.hookdev.setpoint.block.DrainValveBlock;
-import io.hookdev.setpoint.block.PidBoardBlock;
+import io.hookdev.setpoint.block.IbcBlock;
 import io.hookdev.setpoint.block.LevelTransmitterBlock;
+import io.hookdev.setpoint.block.PidBoardBlock;
 import io.hookdev.setpoint.block.PressureTransmitterBlock;
-import io.hookdev.setpoint.block.SafetyValveBlock;
 import io.hookdev.setpoint.block.PumpBlock;
+import io.hookdev.setpoint.block.SafetyValveBlock;
 import io.hookdev.setpoint.block.SteamTurbineBlock;
 import io.hookdev.setpoint.block.TankBlock;
 import io.hookdev.setpoint.block.WaterIntakeBlock;
@@ -26,30 +30,29 @@ import io.hookdev.setpoint.block.entity.ConsoleBlockEntity;
 import io.hookdev.setpoint.block.entity.ControlValveBlockEntity;
 import io.hookdev.setpoint.block.entity.ControllerBlockEntity;
 import io.hookdev.setpoint.block.entity.CreativeGeneratorBlockEntity;
-import io.hookdev.setpoint.block.entity.FlowTransmitterBlockEntity;
 import io.hookdev.setpoint.block.entity.DrainValveBlockEntity;
-import io.hookdev.setpoint.block.entity.PidBoardBlockEntity;
+import io.hookdev.setpoint.block.entity.FlowTransmitterBlockEntity;
 import io.hookdev.setpoint.block.entity.LevelTransmitterBlockEntity;
+import io.hookdev.setpoint.block.entity.PidBoardBlockEntity;
+import io.hookdev.setpoint.block.entity.PortableTankBlockEntity;
 import io.hookdev.setpoint.block.entity.PressureTransmitterBlockEntity;
-import io.hookdev.setpoint.block.entity.SafetyValveBlockEntity;
 import io.hookdev.setpoint.block.entity.PumpBlockEntity;
+import io.hookdev.setpoint.block.entity.SafetyValveBlockEntity;
 import io.hookdev.setpoint.block.entity.SteamTurbineBlockEntity;
 import io.hookdev.setpoint.block.entity.StirlingEngineBlockEntity;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
 import io.hookdev.setpoint.block.entity.WaterIntakeBlockEntity;
-import io.hookdev.setpoint.item.FieldCommunicatorItem;
 import io.hookdev.setpoint.item.BlankPidItem;
+import io.hookdev.setpoint.item.FieldCommunicatorItem;
 import io.hookdev.setpoint.item.HandbookItem;
 import io.hookdev.setpoint.item.PidItem;
-import io.hookdev.setpoint.pid.PidDrawing;
 import io.hookdev.setpoint.item.PipeWrenchItem;
 import io.hookdev.setpoint.menu.BoilerMenu;
 import io.hookdev.setpoint.menu.ConsoleMenu;
 import io.hookdev.setpoint.menu.FaceplateMenu;
 import io.hookdev.setpoint.menu.GeneratorMenu;
 import io.hookdev.setpoint.menu.TankMenu;
-
-import com.mojang.serialization.Codec;
+import io.hookdev.setpoint.pid.PidDrawing;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentType;
@@ -57,12 +60,12 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.valueproviders.UniformInt;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
-import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DropExperienceBlock;
 import net.minecraft.world.level.block.SoundType;
@@ -70,12 +73,13 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.attachment.AttachmentType;
-import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
+import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 /** Every block, item, block entity type and creative tab in Setpoint. */
 public final class SetpointContent {
@@ -91,6 +95,9 @@ public final class SetpointContent {
     /** The drawing on a P&ID. */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<PidDrawing>> PID_DRAWING = COMPONENTS.register("pid_drawing",
             () -> DataComponentType.<PidDrawing>builder().persistent(PidDrawing.CODEC).networkSynchronized(PidDrawing.STREAM_CODEC).build());
+    /** The liquid inside a drum or IBC item, so it keeps its contents when you carry it away. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<SimpleFluidContent>> FLUID_CONTENTS = COMPONENTS.register("fluid_contents",
+            () -> DataComponentType.<SimpleFluidContent>builder().persistent(SimpleFluidContent.CODEC).networkSynchronized(SimpleFluidContent.STREAM_CODEC).build());
     /** The first corner picked with a blank P&ID. */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<BlockPos>> PID_CORNER = COMPONENTS.register("pid_corner",
             () -> DataComponentType.<BlockPos>builder().persistent(BlockPos.CODEC).networkSynchronized(BlockPos.STREAM_CODEC).build());
@@ -129,6 +136,10 @@ public final class SetpointContent {
             p -> p.mapColor(MapColor.METAL).strength(2.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
     public static final DeferredBlock<PressureTransmitterBlock> PRESSURE_TRANSMITTER = BLOCKS.registerBlock("pressure_transmitter", PressureTransmitterBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(2.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<DrumBlock> DRUM = BLOCKS.registerBlock("drum", DrumBlock::new,
+            p -> p.mapColor(MapColor.COLOR_BLUE).strength(2.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<IbcBlock> IBC = BLOCKS.registerBlock("ibc", IbcBlock::new,
+            p -> p.mapColor(MapColor.SNOW).strength(2.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
     public static final DeferredBlock<PidBoardBlock> PID_BOARD = BLOCKS.registerBlock("pid_board", PidBoardBlock::new,
             p -> p.mapColor(MapColor.COLOR_BLUE).strength(1.5f, 6.0f).sound(SoundType.METAL).noOcclusion()
                     .lightLevel(state -> state.getValue(PidBoardBlock.LIT) ? PidBoardBlock.LIGHT : 0));
@@ -189,6 +200,8 @@ public final class SetpointContent {
     public static final DeferredItem<BlockItem> DRAIN_VALVE_ITEM = ITEMS.registerSimpleBlockItem(DRAIN_VALVE);
     public static final DeferredItem<BlockItem> CHECK_VALVE_ITEM = ITEMS.registerSimpleBlockItem(CHECK_VALVE);
     public static final DeferredItem<BlockItem> PID_BOARD_ITEM = ITEMS.registerSimpleBlockItem(PID_BOARD);
+    public static final DeferredItem<BlockItem> DRUM_ITEM = ITEMS.registerSimpleBlockItem(DRUM);
+    public static final DeferredItem<BlockItem> IBC_ITEM = ITEMS.registerSimpleBlockItem(IBC);
     public static final DeferredItem<BlockItem> CONTROL_VALVE_ITEM = ITEMS.registerSimpleBlockItem(CONTROL_VALVE);
     public static final DeferredItem<BlockItem> CONTROLLER_ITEM = ITEMS.registerSimpleBlockItem(CONTROLLER);
     public static final DeferredItem<BlockItem> HAND_VALVE_ITEM = ITEMS.registerSimpleBlockItem(HAND_VALVE);
@@ -220,6 +233,8 @@ public final class SetpointContent {
             () -> new BlockEntityType<>(FlowTransmitterBlockEntity::new, FLOW_TRANSMITTER.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PressureTransmitterBlockEntity>> PRESSURE_TRANSMITTER_ENTITY = BLOCK_ENTITIES.register("pressure_transmitter",
             () -> new BlockEntityType<>(PressureTransmitterBlockEntity::new, PRESSURE_TRANSMITTER.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PortableTankBlockEntity>> PORTABLE_TANK_ENTITY = BLOCK_ENTITIES.register("portable_tank",
+            () -> new BlockEntityType<>(PortableTankBlockEntity::new, DRUM.get(), IBC.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PidBoardBlockEntity>> PID_BOARD_ENTITY = BLOCK_ENTITIES.register("pid_board",
             () -> new BlockEntityType<>(PidBoardBlockEntity::new, PID_BOARD.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DrainValveBlockEntity>> DRAIN_VALVE_ENTITY = BLOCK_ENTITIES.register("drain_valve",
@@ -270,6 +285,8 @@ public final class SetpointContent {
                 output.accept(DRAIN_VALVE_ITEM.get());
                 output.accept(WATER_INTAKE_ITEM.get());
                 output.accept(TANK_ITEM.get());
+                output.accept(DRUM_ITEM.get());
+                output.accept(IBC_ITEM.get());
                 output.accept(PUMP_ITEM.get());
                 output.accept(STIRLING_ENGINE_ITEM.get());
                 output.accept(BIOGAS_GENERATOR_ITEM.get());

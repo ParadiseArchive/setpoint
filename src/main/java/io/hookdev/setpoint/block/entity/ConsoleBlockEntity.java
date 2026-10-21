@@ -16,6 +16,7 @@ import io.hookdev.setpoint.control.TrendBuffer;
 import io.hookdev.setpoint.menu.ConsoleMenu;
 import io.hookdev.setpoint.network.ConsoleSnapshot;
 import io.hookdev.setpoint.pid.PidDrawing;
+import io.hookdev.setpoint.pid.PidLive;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -137,7 +138,9 @@ public class ConsoleBlockEntity extends BlockEntity implements MenuProvider {
             names.addAll(selected.series());
             for (int s = 0; s < buffer.series(); s++) series.add(buffer.read(s));
         }
-        return new ConsoleSnapshot(containerId, rows, list, alarms.unacknowledged(), trendTag, names, series);
+        PidDrawing drawing = drawing();
+        List<PidLive> valves = drawing == null || level == null ? List.of() : PidLive.valves(level, drawing);
+        return new ConsoleSnapshot(containerId, rows, list, alarms.unacknowledged(), trendTag, names, series, valves);
     }
 
     /** Minecraft clock time (hh:mm) of a game tick, like the timestamps on a real alarm list. */

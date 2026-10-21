@@ -24,7 +24,7 @@ public record PidDrawing(String name, int width, int height, List<Cell> cells, L
     // Symbols, the way they are drawn on a real P&ID
     public static final int PIPE = 0, PUMP = 1, TANK = 2, CONTROL_VALVE = 3, HAND_VALVE = 4, HAND_VALVE_SHUT = 5, LEVEL_TRANSMITTER = 6,
             FLOW_TRANSMITTER = 7, CONTROLLER = 8, BOILER = 9, TURBINE = 10, GENERATOR = 11, INTAKE = 12, CONSOLE = 13,
-            SAFETY_VALVE = 14, PRESSURE_TRANSMITTER = 15, DRAIN_VALVE = 16, CHECK_VALVE = 17;
+            SAFETY_VALVE = 14, PRESSURE_TRANSMITTER = 15, DRAIN_VALVE = 16, CHECK_VALVE = 17, DRUM = 18, IBC = 19;
     // Pipe connections in the drawing: the four sides, plus a riser going up or down
     public static final int NORTH = 1, EAST = 2, SOUTH = 4, WEST = 8, UP = 16, DOWN = 32;
 
@@ -34,20 +34,33 @@ public record PidDrawing(String name, int width, int height, List<Cell> cells, L
      * @param rotation quarter turns clockwise from pointing east (a pump's discharge, a valve's flow)
      * @param pipes    which sides pipe lines run to (NORTH, EAST, SOUTH, WEST, UP, DOWN bits)
      * @param tag      the equipment tag, like P-417, or empty
+     * @param at       where the block stands (BlockPos as a long), for a valve that can open and shut; {@link #NOWHERE} otherwise
      */
-    public record Cell(int x, int y, int symbol, int rotation, int pipes, String tag) {
+    public record Cell(int x, int y, int symbol, int rotation, int pipes, String tag, long at) {
+        public static final long NOWHERE = Long.MIN_VALUE;
+
+        public Cell(int x, int y, int symbol, int rotation, int pipes, String tag) {
+            this(x, y, symbol, rotation, pipes, tag, NOWHERE);
+        }
+
+        /** The key of this cell's live state: its tag, or its position for an untagged valve, or empty. */
+        public String liveKey() {
+            return !tag.isEmpty() ? tag : at != NOWHERE ? "@" + at : "";
+        }
+
         public static final Codec<Cell> CODEC = RecordCodecBuilder.create(i -> i.group(
                 Codec.INT.fieldOf("x").forGetter(Cell::x),
                 Codec.INT.fieldOf("y").forGetter(Cell::y),
                 Codec.INT.fieldOf("symbol").forGetter(Cell::symbol),
                 Codec.INT.fieldOf("rotation").forGetter(Cell::rotation),
                 Codec.INT.fieldOf("pipes").forGetter(Cell::pipes),
-                Codec.STRING.fieldOf("tag").forGetter(Cell::tag)
+                Codec.STRING.fieldOf("tag").forGetter(Cell::tag),
+                Codec.LONG.optionalFieldOf("at", NOWHERE).forGetter(Cell::at)
         ).apply(i, Cell::new));
         public static final StreamCodec<ByteBuf, Cell> STREAM_CODEC = StreamCodec.composite(
                 ByteBufCodecs.VAR_INT, Cell::x, ByteBufCodecs.VAR_INT, Cell::y, ByteBufCodecs.VAR_INT, Cell::symbol,
                 ByteBufCodecs.VAR_INT, Cell::rotation, ByteBufCodecs.VAR_INT, Cell::pipes, ByteBufCodecs.STRING_UTF8, Cell::tag,
-                Cell::new);
+                ByteBufCodecs.LONG, Cell::at, Cell::new);
     }
 
     /** A dashed signal line between two cells (by index), like the wiring from a controller to its valve. */
@@ -78,6 +91,11 @@ public record PidDrawing(String name, int width, int height, List<Cell> cells, L
         return new PidDrawing(clean.isEmpty() ? UNTITLED : clean, width, height, cells, links);
     }
 
+    /** Symbols that hold liquid with a level: drawn filled to it when live. */
+    public static boolean isVessel(int symbol) {
+        return symbol == TANK || symbol == DRUM || symbol == IBC;
+    }
+
     /** Plain words for a symbol, for tooltips. */
     public static String describe(int symbol) {
         return switch (symbol) {
@@ -98,6 +116,8 @@ public record PidDrawing(String name, int width, int height, List<Cell> cells, L
             case PRESSURE_TRANSMITTER -> "Pressure transmitter";
             case DRAIN_VALVE -> "Drain valve";
             case CHECK_VALVE -> "Check valve";
+            case DRUM -> "Drum";
+            case IBC -> "IBC";
             default -> "Pipe";
         };
     }

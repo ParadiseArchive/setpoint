@@ -59,7 +59,7 @@ import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
  * from the bottom up and is drawn from the top down. As a vessel (for pumps, controllers, comparators and
  * other mods) every tank in a column speaks for the whole column; the screen shows the whole column too.
  */
-public class TankBlockEntity extends BlockEntity implements MenuProvider, Vessel, NamedEquipment {
+public class TankBlockEntity extends BlockEntity implements MenuProvider, Vessel, NamedEquipment, ShowsFluid {
     private final EquipmentName name = new EquipmentName("T");
     private final GravityFlow gravity = new GravityFlow();
 
@@ -326,6 +326,7 @@ public class TankBlockEntity extends BlockEntity implements MenuProvider, Vessel
     }
 
     /** The fluid behind this block's sight glass, as the client knows it. */
+    @Override
     public Fluid shownFluid() {
         return shownFluid;
     }

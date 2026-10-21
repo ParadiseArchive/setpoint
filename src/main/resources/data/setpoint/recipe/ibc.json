@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "B": "minecraft:iron_bars",
+    "C": "minecraft:cauldron",
+    "S": "minecraft:oak_slab"
+  },
+  "pattern": [
+    "BBB",
+    "BCB",
+    "SSS"
+  ],
+  "result": {
+    "id": "setpoint:ibc"
+  }
+}

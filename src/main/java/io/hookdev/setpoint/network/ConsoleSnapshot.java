@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.hookdev.setpoint.Setpoint;
+import io.hookdev.setpoint.pid.PidLive;
 
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -14,7 +15,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
  * the alarm list and the trend of the selected tag.
  */
 public record ConsoleSnapshot(int containerId, List<Row> rows, List<AlarmRow> alarms, int unacknowledged,
-                              String trendTag, List<String> seriesNames, List<float[]> series) implements CustomPacketPayload {
+                              String trendTag, List<String> seriesNames, List<float[]> series, List<PidLive> valves) implements CustomPacketPayload {
     public static final Type<ConsoleSnapshot> TYPE = new Type<>(Setpoint.id("console_snapshot"));
     public static final StreamCodec<RegistryFriendlyByteBuf, ConsoleSnapshot> CODEC = CustomPacketPayload.codec(ConsoleSnapshot::write, ConsoleSnapshot::read);
 
@@ -25,7 +26,7 @@ public record ConsoleSnapshot(int containerId, List<Row> rows, List<AlarmRow> al
     public record AlarmRow(String time, String tag, String message, int state) {}
 
     public static ConsoleSnapshot empty(int containerId) {
-        return new ConsoleSnapshot(containerId, List.of(), List.of(), 0, "", List.of(), List.of());
+        return new ConsoleSnapshot(containerId, List.of(), List.of(), 0, "", List.of(), List.of(), List.of());
     }
 
     private void write(RegistryFriendlyByteBuf buf) {
@@ -47,6 +48,8 @@ public record ConsoleSnapshot(int containerId, List<Row> rows, List<AlarmRow> al
             buf.writeVarInt(values.length);
             for (float v : values) buf.writeFloat(v);
         }
+        buf.writeVarInt(valves.size());
+        for (PidLive v : valves) { buf.writeUtf(v.tag()); buf.writeByte(v.state()); buf.writeUtf(v.kind()); buf.writeUtf(v.status()); }
     }
 
     private static ConsoleSnapshot read(RegistryFriendlyByteBuf buf) {
@@ -65,7 +68,9 @@ public record ConsoleSnapshot(int containerId, List<Row> rows, List<AlarmRow> al
             for (int j = 0; j < values.length; j++) values[j] = buf.readFloat();
             series.add(values);
         }
-        return new ConsoleSnapshot(containerId, rows, alarms, unacknowledged, trendTag, names, series);
+        List<PidLive> valves = new ArrayList<>();
+        for (int i = buf.readVarInt(); i > 0; i--) valves.add(new PidLive(buf.readUtf(), buf.readByte(), -1, buf.readUtf(), buf.readUtf(), ""));
+        return new ConsoleSnapshot(containerId, rows, alarms, unacknowledged, trendTag, names, series, valves);
     }
 
     @Override

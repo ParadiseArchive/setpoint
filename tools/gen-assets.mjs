@@ -895,6 +895,98 @@ BS('flow_transmitter', { variants: { 'axis=z': { model: 'setpoint:block/flow_tra
 item('flow_transmitter', 'setpoint:block/flow_transmitter');
 recipe('flow_transmitter', [' G ', 'PCP'], { G: 'minecraft:glass_pane', P: 'setpoint:pipe', C: 'minecraft:comparator' }, 'setpoint:flow_transmitter');
 
+// =====================================================================================
+// Drum and IBC: containers you can carry, with their liquid inside
+// =====================================================================================
+
+// drum: a blue steel barrel. Its round side is a pixel circle: slices that step in towards the front and back,
+// so from every side it looks round. The hoops are pressed into the steel; the label sits on the front.
+texture('drum_side', (p) => {
+  p.rect(0, 0, 16, 16, '#2e5fae');
+  p.rect(0, 0, 16, 1, '#4a7ccc'); p.rect(0, 15, 16, 1, '#1f417a');      // top and bottom chime
+  for (const y of [4, 11]) { p.rect(0, y, 16, 1, '#1f417a'); p.rect(0, y - 1, 16, 1, '#3f70c2'); } // pressed hoops
+});
+texture('drum_top', (p) => {
+  p.rect(0, 0, 16, 16, '#2b58a3');
+  p.rect(2, 2, 12, 12, '#3466b6');                                        // the lid inside its rim
+  p.rect(5, 4, 2, 2, C.steel3); p.rect(10, 10, 2, 2, C.steel3);           // bungs
+  p.set(5, 4, C.steel4); p.set(10, 10, C.steel4);
+});
+texture('drum_label', (p) => {
+  p.rect(0, 0, 16, 16, '#e8ecf2');
+  p.rect(2, 3, 9, 2, '#9aa3b2'); p.rect(2, 7, 6, 2, '#9aa3b2'); p.rect(2, 11, 8, 2, '#9aa3b2');
+  p.rect(12, 9, 3, 5, '#ffb547');                                         // a hazard diamond, in pixels
+});
+texture('drum_bung', (p) => { p.rect(0, 0, 16, 16, C.steel3); p.rect(0, 0, 16, 1, C.steel4); });
+{
+  // the circle, radius 7: for each band of z, how far it reaches in x
+  const bands = [[1, 2, 5, 11], [2, 3, 3, 13], [3, 5, 2, 14], [5, 11, 1, 15], [11, 13, 2, 14], [13, 14, 3, 13], [14, 15, 5, 11]];
+  const elements = bands.map(([z1, z2, x1, x2]) => box([x1, 0, z1], [x2, 16, z2], {
+    north: { uv: [x1, 0, x2, 16], texture: '#side' }, south: { uv: [x1, 0, x2, 16], texture: '#side' },
+    east: { uv: [z1, 0, z2, 16], texture: '#side' }, west: { uv: [z1, 0, z2, 16], texture: '#side' },
+    up: { uv: [x1, z1, x2, z2], texture: '#top' }, down: { uv: [x1, z1, x2, z2], texture: '#top', cullface: 'down' },
+  }));
+  elements.push(box([5.5, 5.5, 0.9], [10.5, 9.5, 1], { north: { uv: [0, 0, 16, 16], texture: '#label' } }));        // the label on the front
+  elements.push(box([5, 16, 4], [7, 16.5, 6], allFaces([0, 0, 2, 2], '#bung', ['down'])), box([10, 16, 10], [12, 16.5, 12], allFaces([0, 0, 2, 2], '#bung', ['down'])));
+  M('drum', { parent: 'minecraft:block/block',
+    textures: { side: tex('drum_side'), top: tex('drum_top'), label: tex('drum_label'), bung: tex('drum_bung'), particle: tex('drum_side') }, elements });
+  BS('drum', { variants: Object.fromEntries(Object.entries(yaw).map(([f, y]) => [`facing=${f}`, { model: 'setpoint:block/drum', ...(y ? { y } : {}) }])) });
+  item('drum', 'setpoint:block/drum');
+}
+recipe('drum', ['I I', 'IDI', 'III'], { I: 'minecraft:iron_ingot', D: 'minecraft:blue_dye' }, 'setpoint:drum');
+
+// IBC: a white tote in a steel cage on a pallet, an outlet valve at the front. The liquid shows through the tote:
+// a dotted layer just outside it, tinted with the colour of the liquid (every other pixel, so the white shines through)
+texture('ibc_tote', (p) => {
+  p.rect(0, 0, 16, 16, '#e6e8e3');
+  for (let x = 0; x < 16; x += 4) p.rect(x, 0, 1, 16, '#d9dcd6');
+  for (const y of [3, 6, 9, 12]) p.rect(13, y, 2, 1, '#9aa09a'); // graduation marks
+});
+texture('ibc_cage', (p) => { p.rect(0, 0, 16, 16, '#8d939c'); p.rect(0, 0, 16, 1, '#b5bac2'); p.rect(0, 0, 1, 16, '#b5bac2'); p.rect(15, 0, 1, 16, '#5b6068'); });
+texture('ibc_pallet', (p) => {
+  p.rect(0, 0, 16, 16, '#3a3d42');
+  for (const x of [1, 6, 11]) p.rect(x, 4, 4, 8, '#1e2024');                // fork slots
+  p.rect(0, 0, 16, 1, '#4d5157');
+});
+texture('ibc_cap', (p) => { p.rect(0, 0, 16, 16, '#f2f2ee'); p.rect(0, 0, 16, 1, '#ffffff'); p.rect(0, 15, 16, 1, '#c9ccc6'); });
+texture('ibc_valve', (p) => { p.rect(0, 0, 16, 16, C.steel2); p.rect(0, 0, 16, 1, C.steel4); });
+texture('ibc_liquid', (p) => {
+  for (let y = 1; y < 16; y++) for (let x = 0; x < 16; x++) if ((x + y) % 2 === 0) p.set(x, y, '#d0d0d0');
+  p.rect(0, 0, 16, 1, '#ffffff');                                           // the surface
+});
+for (let level = 0; level <= 8; level++) {
+  const cage = allFaces([0, 0, 16, 16], '#cage');
+  const elements = [
+    box([0, 0, 0], [16, 2, 16], { ...allFaces([0, 0, 16, 2], '#pallet', ['up', 'down']), up: { uv: [0, 0, 16, 16], texture: '#pallet' }, down: { uv: [0, 0, 16, 16], texture: '#pallet', cullface: 'down' } }),
+    box([1, 2, 1], [15, 15, 15], { ...allFaces([1, 1, 15, 14], '#tote', ['up', 'down']), up: { uv: [1, 1, 15, 15], texture: '#tote' } }),
+  ];
+  if (level > 0) {
+    const h = 13 * level / 8;
+    const face = { uv: [0, 0, 16, Math.max(1, h)], texture: '#liquid', tintindex: 0 };
+    elements.push(box([0.99, 2, 0.99], [15.01, 2 + h, 15.01], { north: face, south: face, east: face, west: face }));
+  }
+  // the cage: corner posts, two uprights a side and three rings, all standing off the tote
+  for (const [x, z] of [[0, 0], [15, 0], [0, 15], [15, 15]]) elements.push(box([x, 2, z], [x + 1, 16, z + 1], cage));
+  for (const x of [5, 10]) elements.push(box([x, 2, 0.3], [x + 1, 15, 0.9], cage), box([x, 2, 15.1], [x + 1, 15, 15.7], cage));
+  for (const z of [5, 10]) elements.push(box([0.3, 2, z], [0.9, 15, z + 1], cage), box([15.1, 2, z], [15.7, 15, z + 1], cage));
+  for (const y of [6, 10.5]) {
+    elements.push(box([1, y, 0.3], [15, y + 1, 0.9], cage), box([1, y, 15.1], [15, y + 1, 15.7], cage),
+      box([0.3, y, 1], [0.9, y + 1, 15], cage), box([15.1, y, 1], [15.7, y + 1, 15], cage));
+  }
+  elements.push(box([1, 15, 0], [15, 16, 1], cage), box([1, 15, 15], [15, 16, 16], cage), box([0, 15, 1], [1, 16, 15], cage), box([15, 15, 1], [16, 16, 15], cage));
+  elements.push(box([6, 15, 6], [10, 16, 10], allFaces([0, 0, 4, 4], '#cap', ['down'])));            // filling cap
+  elements.push(box([6.5, 2, -0.5], [9.5, 4.5, 1], allFaces([0, 0, 3, 3], '#valve')));                 // outlet valve
+  elements.push(box([7.5, 4.5, -0.5], [8.5, 6, 0.5], allFaces([0, 0, 1, 2], '#pallet')));              // its handle
+  M('ibc_' + level, { parent: 'minecraft:block/block',
+    textures: { pallet: tex('ibc_pallet'), tote: tex('ibc_tote'), cage: tex('ibc_cage'), cap: tex('ibc_cap'), valve: tex('ibc_valve'),
+      liquid: tex('ibc_liquid'), particle: tex('ibc_tote') }, elements });
+}
+BS('ibc', { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => Array.from({ length: 9 }, (_, l) =>
+  [`facing=${f},level=${l}`, { model: 'setpoint:block/ibc_' + l, ...(y ? { y } : {}) }]))) });
+json(join(ASSETS, 'items', 'ibc.json'), { model: { type: 'minecraft:model', model: 'setpoint:block/ibc_5',
+  tints: [{ type: 'minecraft:constant', value: -12618012 }] } }); // water blue in the inventory
+recipe('ibc', ['BBB', 'BCB', 'SSS'], { B: 'minecraft:iron_bars', C: 'minecraft:cauldron', S: 'minecraft:oak_slab' }, 'setpoint:ibc');
+
 // P&ID board: a thin dark panel in a steel frame; the drawing itself is painted on it by its renderer
 texture('pid_board_front', (p) => {
   p.rect(0, 0, 16, 16, '#0c1e3a');
@@ -1090,11 +1182,16 @@ const MACHINES = ['pipe', 'tank', 'centrifugal_pump', 'creative_generator', 'lev
   'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine', 'dcs_console', 'hand_valve', 'water_intake', 'flow_transmitter',
   'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve', 'pid_board'];
 for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) lootSelf(name);
+for (const name of ['drum', 'ibc']) json(join(DATA, 'loot_table/blocks', name + '.json'), {
+  type: 'minecraft:block', random_sequence: 'setpoint:blocks/' + name,
+  pools: [{ rolls: 1, conditions: [{ condition: 'minecraft:survives_explosion' }], entries: [{ type: 'minecraft:item', name: 'setpoint:' + name,
+    modifier: { type: 'minecraft:copy_components', source: 'block_entity', include: ['minecraft:custom_name', 'setpoint:fluid_contents'] } }] }],
+});
 lootOre('hookonium_ore', 'setpoint:raw_hookonium');
 lootOre('deepslate_hookonium_ore', 'setpoint:raw_hookonium');
 const HOOKONIUM_BLOCKS = ['hookonium_ore', 'deepslate_hookonium_ore', 'hookonium_block', 'raw_hookonium_block'].map((n) => 'setpoint:' + n);
 const tag = (path, values) => json(join(ROOT, 'data', path + '.json'), { values });
-tag('minecraft/tags/block/mineable/pickaxe', [...MACHINES.map((n) => 'setpoint:' + n), ...HOOKONIUM_BLOCKS]);
+tag('minecraft/tags/block/mineable/pickaxe', [...MACHINES.map((n) => 'setpoint:' + n), 'setpoint:drum', 'setpoint:ibc', ...HOOKONIUM_BLOCKS]);
 tag('minecraft/tags/block/needs_diamond_tool', HOOKONIUM_BLOCKS);
 // the pipe wrench turns, cuts and picks up these
 tag('setpoint/tags/block/wrenchable', MACHINES.map((n) => 'setpoint:' + n));

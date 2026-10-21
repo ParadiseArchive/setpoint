@@ -57,12 +57,18 @@ public final class BoardLook {
         lastCell = cell;
         if (target == null || origin == null) return;
         if (!changed && ++age % 10 != 0) return; // keep the line up to date while looking
-        mc.gui.hud.setOverlayMessage(describe(target, origin.live().get(target.tag())), false);
+        mc.gui.hud.setOverlayMessage(describe(target, origin.live().get(target.liveKey())), false);
     }
 
     private static Component describe(PidDrawing.Cell cell, @Nullable PidLive live) {
         MutableComponent line = Component.empty();
         if (!cell.tag().isEmpty()) line.append(Component.literal(cell.tag() + "  ").withStyle(ChatFormatting.AQUA));
+        if (live != null && cell.tag().isEmpty()) { // a hand or drain valve
+            boolean open = live.status().equals("OPEN");
+            return line.append(Component.literal(PidDrawing.describe(cell.symbol()).replace(", open", "").replace(", shut", "")).withStyle(ChatFormatting.GRAY))
+                    .append(Component.literal("  " + live.status()).withStyle(open ? ChatFormatting.AQUA : ChatFormatting.GOLD))
+                    .append(Component.literal("  (right-click: " + (open ? "shut" : "open") + ")").withStyle(ChatFormatting.DARK_GRAY));
+        }
         line.append(Component.literal(PidDrawing.describe(cell.symbol())).withStyle(ChatFormatting.GRAY));
         if (live != null) {
             ChatFormatting colour = live.state() == PidLive.ALARM ? ChatFormatting.LIGHT_PURPLE : live.state() == PidLive.ATTENTION ? ChatFormatting.GOLD : ChatFormatting.WHITE;

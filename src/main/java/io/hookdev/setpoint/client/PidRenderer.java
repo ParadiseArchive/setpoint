@@ -34,6 +34,8 @@ public final class PidRenderer {
         default int accent(PidDrawing.Cell cell) { return ACCENT; }
         /** For a tank: how full it is, 0 to 1, drawn as liquid inside it. Below 0 draws the symbol as it is. */
         default float fill(PidDrawing.Cell cell) { return -1; }
+        /** The symbol to draw: a hand valve as it stands right now. */
+        default int symbol(PidDrawing.Cell cell) { return cell.symbol(); }
     }
 
     /** The biggest cell (up to {@code maxCell}, at least {@link #MIN_CELL}) that fits the drawing into the area. */
@@ -80,7 +82,7 @@ public final class PidRenderer {
             int size = 8 * l.scale();
             int sx = l.originX() + c.x() * cell + (cell - size) / 2, sy = l.originY() + c.y() * cell + (cell - size) / 2;
             g.fill(sx, sy, sx + size, sy + size, BLUEPRINT);
-            PidSymbols.draw(g, c.symbol(), c.rotation(), sx, sy, l.scale(), style.line(c), style.accent(c), style.fill(c));
+            PidSymbols.draw(g, style.symbol(c), c.rotation(), sx, sy, l.scale(), style.line(c), style.accent(c), style.fill(c));
         }
         for (PidDrawing.Link link : drawing.links()) {
             if (link.from() >= drawing.cells().size() || link.to() >= drawing.cells().size()) continue;

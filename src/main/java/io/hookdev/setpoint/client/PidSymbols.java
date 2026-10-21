@@ -46,6 +46,12 @@ public final class PidSymbols {
     // a valve body with a bar across the outlet side: flow goes left to right only
     private static final String[] CHECK_VALVE = {
             "........", "#.....##", "##....##", "#.#...##", "#..#..##", "#.#...##", "##....##", "#.....##"};
+    // a drum: a short barrel with its rolling hoops
+    private static final String[] DRUM = {
+            ".######.", "#......#", "########", "#......#", "#++++++#", "########", "#++++++#", ".######."};
+    // an IBC: a square tote in its cage, on a pallet
+    private static final String[] IBC = {
+            "########", "#.#..#.#", "########", "#+#++#+#", "#+#++#+#", "########", "##.##.##", "#..#..#."};
     private static final String[] CONSOLE = {
             "########", "#++++++#", "#+....+#", "#++++++#", "########", "...##...", "..####..", "........"};
 
@@ -68,6 +74,8 @@ public final class PidSymbols {
             case PidDrawing.PRESSURE_TRANSMITTER -> PRESSURE_TRANSMITTER;
             case PidDrawing.DRAIN_VALVE -> DRAIN_VALVE;
             case PidDrawing.CHECK_VALVE -> CHECK_VALVE;
+            case PidDrawing.DRUM -> DRUM;
+            case PidDrawing.IBC -> IBC;
             default -> null;
         };
     }
@@ -88,7 +96,7 @@ public final class PidSymbols {
      * instead of the fixed level of the drawing.
      */
     public static void draw(PidCanvas g, int symbol, int rotation, int x, int y, int scale, int line, int accent, float fill) {
-        boolean live = fill >= 0 && symbol == PidDrawing.TANK;
+        boolean live = fill >= 0 && PidDrawing.isVessel(symbol);
         if (live) { // the inside of the shell is rows and columns 1 to 6
             int inside = 6 * scale, height = Math.round(Math.min(1, fill) * inside);
             if (height > 0) g.fill(x + scale, y + 7 * scale - height, x + 7 * scale, y + 7 * scale, accent);

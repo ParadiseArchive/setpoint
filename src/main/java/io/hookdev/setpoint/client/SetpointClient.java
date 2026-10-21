@@ -4,6 +4,7 @@ import java.util.List;
 
 import io.hookdev.setpoint.Setpoint;
 import io.hookdev.setpoint.SetpointContent;
+import io.hookdev.setpoint.block.entity.ShowsFluid;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
 import io.hookdev.setpoint.menu.ConsoleMenu;
 import io.hookdev.setpoint.network.ConsoleSnapshot;
@@ -34,6 +35,8 @@ import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.network.event.RegisterClientPayloadHandlersEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.SimpleFluidContent;
 
 /** Client-only setup. Never loaded on a dedicated server. */
 @Mod(value = Setpoint.MODID, dist = Dist.CLIENT)
@@ -78,8 +81,13 @@ public class SetpointClient {
         var id = BuiltInRegistries.ITEM.getKey(event.getItemStack().getItem());
         if (!id.getNamespace().equals(Setpoint.MODID)) return;
         String key = "tooltip.setpoint." + id.getPath();
-        if (!Language.getInstance().has(key)) return;
         var lines = event.getToolTip();
+        SimpleFluidContent contents = event.getItemStack().get(SetpointContent.FLUID_CONTENTS.get());
+        if (contents != null && !contents.isEmpty()) { // a drum or IBC that was carried away full
+            FluidStack stack = contents.copy();
+            lines.add(Component.literal(String.format("%s  %.2f B", stack.getHoverName().getString(), stack.getAmount() / 1000.0)).withStyle(ChatFormatting.AQUA));
+        }
+        if (!Language.getInstance().has(key)) return;
         for (String line : I18n.get(key).split("\n")) lines.add(Component.literal(line).withStyle(ChatFormatting.GRAY));
         if (!Language.getInstance().has(key + ".more")) return;
         if (Minecraft.getInstance().hasShiftDown()) {
@@ -110,9 +118,9 @@ public class SetpointClient {
 
             @Override
             public int colorInWorld(BlockState state, BlockAndTintGetter level, BlockPos pos) {
-                return level.getBlockEntity(pos) instanceof TankBlockEntity tank ? FluidColours.of(tank.shownFluid()) : FluidColours.WATER;
+                return level.getBlockEntity(pos) instanceof ShowsFluid tank ? FluidColours.of(tank.shownFluid()) : FluidColours.WATER;
             }
-        }), SetpointContent.TANK.get());
+        }), SetpointContent.TANK.get(), SetpointContent.IBC.get());
     }
 
     private static void registerScreens(RegisterMenuScreensEvent event) {

@@ -270,6 +270,7 @@ public class ConsoleScreen extends AbstractContainerScreen<ConsoleMenu> {
     private PidRenderer.Style live() {
         Map<String, PidLive> map = new HashMap<>();
         for (ConsoleSnapshot.Row r : byTag.values()) map.put(r.tag(), PidLive.of(r.tag(), r.kind(), r.severity(), r.status(), r.value(), r.gauge()));
+        for (PidLive v : data().valves()) map.put(v.tag(), v);
         return new LiveStyle(map, blinkOn());
     }
 
