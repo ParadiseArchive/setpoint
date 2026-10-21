@@ -56,6 +56,7 @@ public class PumpBlockEntity extends BlockEntity implements NamedEquipment {
     private PumpModel.@Nullable Result last;
     private boolean commanded;
     private boolean runOnSignal; // false: runs by itself and redstone stops it; true: runs only with a redstone signal
+    private boolean remoteStop; // stopped from a P&ID board
     private boolean powered;
 
     public PumpBlockEntity(BlockPos pos, BlockState state) {
@@ -111,7 +112,7 @@ public class PumpBlockEntity extends BlockEntity implements NamedEquipment {
                 hasSource ? density(source.resource()) : 1, hasSource ? viscosity(source.resource()) : 1));
 
         // by default it runs by itself and a redstone signal is the stop button; or it runs only while it gets a signal
-        commanded = runOnSignal == level.hasNeighborSignal(pos);
+        commanded = runOnSignal == level.hasNeighborSignal(pos) && !remoteStop;
         powered = energy.getAmountAsInt() >= result.power();
         boolean running = commanded && powered;
         if (running) {
@@ -219,6 +220,17 @@ public class PumpBlockEntity extends BlockEntity implements NamedEquipment {
         return resource.isEmpty() ? 1 : Math.max(0.1, resource.getFluidType().getViscosity() / 1000.0);
     }
 
+    public boolean remoteStop() { return remoteStop; }
+
+    /** Started or stopped from a P&ID board, like the start/stop buttons of a motor on a DCS screen. */
+    public void toggleRemoteStop(Player player) {
+        remoteStop = !remoteStop;
+        setChanged();
+        if (player instanceof ServerPlayer serverPlayer) serverPlayer.sendSystemMessage(Component.literal(tag() + "  ")
+                .withStyle(ChatFormatting.AQUA).append(Component.literal(remoteStop ? "STOP from the board" : "START from the board")
+                        .withStyle(remoteStop ? ChatFormatting.GOLD : ChatFormatting.WHITE)), true);
+    }
+
     /** Sneak-right-click: switch between stop-on-signal and run-on-signal. */
     public void toggleRedstoneMode(Player player) {
         runOnSignal = !runOnSignal;
@@ -244,7 +256,7 @@ public class PumpBlockEntity extends BlockEntity implements NamedEquipment {
 
         if (!commanded) {
             line1.append(Component.literal("STOPPED").withStyle(ChatFormatting.GRAY))
-                    .append(Component.literal(runOnSignal ? "  (no redstone run signal)" : "  (redstone stop signal)").withStyle(ChatFormatting.DARK_GRAY));
+                    .append(Component.literal(remoteStop ? "  (stopped from a P&ID board)" : runOnSignal ? "  (no redstone run signal)" : "  (redstone stop signal)").withStyle(ChatFormatting.DARK_GRAY));
         } else if (!powered) {
             line1.append(Component.literal("NO POWER").withStyle(ChatFormatting.GOLD));
         } else if (r == null || r.state() == PumpModel.State.OK) {
@@ -280,6 +292,7 @@ public class PumpBlockEntity extends BlockEntity implements NamedEquipment {
         energy.serialize(output);
         output.putDouble("wear", wear);
         output.putBoolean("run_on_signal", runOnSignal);
+        output.putBoolean("remote_stop", remoteStop);
         name.save(output);
     }
 
@@ -289,6 +302,7 @@ public class PumpBlockEntity extends BlockEntity implements NamedEquipment {
         energy.deserialize(input);
         wear = input.getDoubleOr("wear", 0);
         runOnSignal = input.getBooleanOr("run_on_signal", false);
+        remoteStop = input.getBooleanOr("remote_stop", false);
         name.load(input);
     }
 }

@@ -42,6 +42,12 @@ export const HANDBOOK = {
         ['p', 'Right-click a DCS console with your P&ID to put it in. The **P&ID** tab of the console now shows your drawing, live.'],
         ['p', 'Running equipment turns **cyan**, tanks fill up to their real level, amber needs attention and alarms flash **magenta**. Grey means the console cannot see it: gone, or more than 32 blocks away.'],
         ['p', 'Scroll to zoom, drag to move, click a symbol for its trend. **VALUES** writes the numbers on the drawing, **EJECT** gives the P&ID back.'],
+        ['h', 'On the wall'],
+        ['p', 'A **P&ID board** shows a P&ID big on the wall of your control room, live, like a mimic board. Place boards side by side and below each other: together they make one panel, up to 8 x 6 blocks.'],
+        ['p', 'Right-click any board of the panel with a P&ID. Sneak-right-click with an empty hand to take it back. A board sees the plant within 32 blocks, like a console.'],
+        ['p', '**Work it from the wall.** Look at a symbol: its tag, status and value show above your hotbar. Right-click it: a controller opens its faceplate, a pump starts or stops, anything else reports its status.'],
+        ['p', 'A comparator next to the panel gives the number of alarms on the drawing: hook up a lamp or a bell.'],
+        ['craft', 'setpoint:pid_board'],
       ],
     },
     {

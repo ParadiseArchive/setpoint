@@ -1,36 +1,39 @@
 package io.hookdev.setpoint.client;
 
-import io.hookdev.setpoint.block.entity.TankBlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.client.renderer.block.BlockAndTintGetter;
-import net.minecraft.client.color.block.BlockTintSource;
 import java.util.List;
+
 import io.hookdev.setpoint.Setpoint;
 import io.hookdev.setpoint.SetpointContent;
+import io.hookdev.setpoint.block.entity.TankBlockEntity;
 import io.hookdev.setpoint.menu.ConsoleMenu;
 import io.hookdev.setpoint.network.ConsoleSnapshot;
 import io.hookdev.setpoint.pid.PidCapture;
 
+import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.color.block.BlockTintSource;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.client.resources.language.I18n;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.locale.Language;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
-import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.resources.language.I18n;
-import net.minecraft.locale.Language;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.Component;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.network.event.RegisterClientPayloadHandlersEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.particles.DustParticleOptions;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
-import net.neoforged.neoforge.client.network.event.RegisterClientPayloadHandlersEvent;
 
 /** Client-only setup. Never loaded on a dedicated server. */
 @Mod(value = Setpoint.MODID, dist = Dist.CLIENT)
@@ -38,6 +41,9 @@ public class SetpointClient {
     public SetpointClient(IEventBus modEventBus) {
         modEventBus.addListener(SetpointClient::registerScreens);
         modEventBus.addListener(SetpointClient::registerBlockTints);
+        modEventBus.addListener(SetpointClient::registerRenderers);
+        NeoForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingOut event) -> PidBoardTextures.clear());
+        NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> BoardLook.tick());
         modEventBus.addListener(SetpointClient::registerPayloadHandlers);
         NeoForge.EVENT_BUS.addListener(SetpointClient::tooltip);
         NeoForge.EVENT_BUS.addListener(SetpointClient::showPidSelection);
@@ -87,6 +93,11 @@ public class SetpointClient {
         event.register(ConsoleSnapshot.TYPE, (snapshot, context) -> {
             if (context.player().containerMenu instanceof ConsoleMenu menu && menu.containerId == snapshot.containerId()) menu.receive(snapshot);
         });
+    }
+
+    /** P&ID boards draw their drawing over the whole panel. */
+    private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerBlockEntityRenderer(SetpointContent.PID_BOARD_ENTITY.get(), PidBoardRenderer::new);
     }
 
     /** The liquid in a tank's sight glass takes the colour of the fluid in that block. */

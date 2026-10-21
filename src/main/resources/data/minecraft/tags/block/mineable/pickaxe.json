@@ -19,6 +19,7 @@
     "setpoint:safety_valve",
     "setpoint:drain_valve",
     "setpoint:check_valve",
+    "setpoint:pid_board",
     "setpoint:hookonium_ore",
     "setpoint:deepslate_hookonium_ore",
     "setpoint:hookonium_block",

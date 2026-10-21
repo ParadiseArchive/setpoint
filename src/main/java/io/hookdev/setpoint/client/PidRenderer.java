@@ -4,11 +4,10 @@ import org.jspecify.annotations.Nullable;
 
 import io.hookdev.setpoint.pid.PidDrawing;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
-
 /**
  * Draws a P&ID on blueprint paper: the grid, the pipes, the symbols and the dashed signal lines. Used by the P&ID
- * item's own screen and by the console, which colours the symbols with live plant data through a {@link Style}.
+ * item's own screen, by the console and by the P&ID board, which colour the symbols with live plant data through a
+ * {@link Style}. Small cells (a big drawing on a small board) get plain squares instead of symbols.
  */
 public final class PidRenderer {
     public static final int BLUEPRINT = 0xFF10294D, GRID = 0xFF16345F, LINE = 0xFFE8F1FF, ACCENT = 0xFF2DE2E6, SIGNAL = 0xFFFFB547;
@@ -48,7 +47,14 @@ public final class PidRenderer {
         return Layout.of(x + (areaW - drawing.width() * cell) / 2, y + (areaH - drawing.height() * cell) / 2, cell);
     }
 
-    public static void draw(GuiGraphicsExtractor g, PidDrawing drawing, Layout l, Style style) {
+    /** Below this cell size the symbols do not fit: they are drawn as plain squares. */
+    public static final int SMALL_CELL = 10;
+
+    public static void draw(PidCanvas g, PidDrawing drawing, Layout l, Style style) {
+        if (l.cell() < SMALL_CELL) {
+            drawSmall(g, drawing, l, style);
+            return;
+        }
         int cell = l.cell(), w = drawing.width() * cell, h = drawing.height() * cell;
         // the paper's grid, one line per cell
         for (int x = l.originX(); x <= l.originX() + w; x += cell) g.fill(x, l.originY(), x + 1, l.originY() + h, GRID);
@@ -83,6 +89,29 @@ public final class PidRenderer {
         }
     }
 
+    /** A drawing too big for its space: pipes as thin lines, every piece of equipment as a square in its colour. */
+    private static void drawSmall(PidCanvas g, PidDrawing drawing, Layout l, Style style) {
+        int cell = l.cell();
+        for (PidDrawing.Cell c : drawing.cells()) {
+            int x0 = l.originX() + c.x() * cell, y0 = l.originY() + c.y() * cell, cx = l.centreX(c), cy = l.centreY(c);
+            if ((c.pipes() & PidDrawing.NORTH) != 0) g.fill(cx, y0, cx + 1, cy + 1, LINE);
+            if ((c.pipes() & PidDrawing.SOUTH) != 0) g.fill(cx, cy, cx + 1, y0 + cell, LINE);
+            if ((c.pipes() & PidDrawing.WEST) != 0) g.fill(x0, cy, cx + 1, cy + 1, LINE);
+            if ((c.pipes() & PidDrawing.EAST) != 0) g.fill(cx, cy, x0 + cell, cy + 1, LINE);
+        }
+        for (PidDrawing.Cell c : drawing.cells()) {
+            if (c.symbol() == PidDrawing.PIPE) continue;
+            int x0 = l.originX() + c.x() * cell, y0 = l.originY() + c.y() * cell, size = Math.max(1, cell - 1);
+            g.fill(x0, y0, x0 + size, y0 + size, style.line(c));
+            float fill = style.fill(c);
+            if (fill > 0 && size > 2) { // a tank: its level as liquid inside
+                int inner = size - 2, height = Math.round(Math.min(1, fill) * inner);
+                g.fill(x0 + 1, y0 + 1, x0 + size - 1, y0 + size - 1, BLUEPRINT);
+                g.fill(x0 + 1, y0 + size - 1 - height, x0 + size - 1, y0 + size - 1, style.accent(c));
+            }
+        }
+    }
+
     public static PidDrawing.@Nullable Cell cellAt(PidDrawing drawing, Layout l, int mouseX, int mouseY) {
         if (mouseX < l.originX() || mouseY < l.originY()) return null;
         int x = (mouseX - l.originX()) / l.cell(), y = (mouseY - l.originY()) / l.cell();
@@ -91,7 +120,7 @@ public final class PidRenderer {
     }
 
     /** A dashed line (2 on, 2 off), like signal wiring on a P&ID. */
-    private static void dashed(GuiGraphicsExtractor g, int x0, int y0, int x1, int y1) {
+    private static void dashed(PidCanvas g, int x0, int y0, int x1, int y1) {
         int dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1, err = dx + dy;
         for (int step = 0; ; step++) {
             if ((step / 2) % 2 == 0) g.fill(x0, y0, x0 + 1, y0 + 1, SIGNAL);

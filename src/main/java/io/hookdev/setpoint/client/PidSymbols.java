@@ -2,7 +2,6 @@ package io.hookdev.setpoint.client;
 
 import io.hookdev.setpoint.pid.PidDrawing;
 
-import net.minecraft.client.gui.GuiGraphicsExtractor;
 
 /**
  * The P&ID symbols as 8x8 pixel art, after the usual P&ID conventions: a circle for a pump, a bow tie for a
@@ -80,7 +79,7 @@ public final class PidSymbols {
     }
 
     /** Draws a symbol with its top-left corner at (x, y), each mask pixel {@code scale} screen pixels big. */
-    public static void draw(GuiGraphicsExtractor g, int symbol, int rotation, int x, int y, int scale, int line, int accent) {
+    public static void draw(PidCanvas g, int symbol, int rotation, int x, int y, int scale, int line, int accent) {
         draw(g, symbol, rotation, x, y, scale, line, accent, -1);
     }
 
@@ -88,7 +87,7 @@ public final class PidSymbols {
      * Same, but a tank with {@code fill} from 0 to 1 shows its real level: liquid up to that height inside the shell
      * instead of the fixed level of the drawing.
      */
-    public static void draw(GuiGraphicsExtractor g, int symbol, int rotation, int x, int y, int scale, int line, int accent, float fill) {
+    public static void draw(PidCanvas g, int symbol, int rotation, int x, int y, int scale, int line, int accent, float fill) {
         boolean live = fill >= 0 && symbol == PidDrawing.TANK;
         if (live) { // the inside of the shell is rows and columns 1 to 6
             int inside = 6 * scale, height = Math.round(Math.min(1, fill) * inside);

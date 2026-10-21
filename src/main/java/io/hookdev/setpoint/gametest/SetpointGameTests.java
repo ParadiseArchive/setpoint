@@ -13,7 +13,9 @@ import io.hookdev.setpoint.block.entity.BiogasGeneratorBlockEntity;
 import io.hookdev.setpoint.block.ConsoleBlock;
 import io.hookdev.setpoint.block.CheckValveBlock;
 import io.hookdev.setpoint.block.DrainValveBlock;
+import io.hookdev.setpoint.block.PidBoardBlock;
 import io.hookdev.setpoint.block.SafetyValveBlock;
+import io.hookdev.setpoint.block.entity.PidBoardBlockEntity;
 import io.hookdev.setpoint.block.entity.DrainValveBlockEntity;
 import io.hookdev.setpoint.block.entity.SafetyValveBlockEntity;
 import io.hookdev.setpoint.block.FluidPipeBlock;
@@ -107,6 +109,7 @@ public final class SetpointGameTests {
         test("pid_draws_the_plant", SetpointGameTests::pidDrawsThePlant, 100);
         test("blank_pid_is_used_up_in_survival", SetpointGameTests::blankPidIsUsedUpInSurvival, 20);
         test("console_shows_a_pid_live", SetpointGameTests::consoleShowsAPidLive, 100);
+        test("pid_board_panel_shows_a_pid_live", SetpointGameTests::pidBoardPanelShowsAPidLive, 100);
         test("high_pressure_trips_the_burner", SetpointGameTests::highPressureTripsTheBurner, 400);
         test("safety_valve_saves_the_boiler", SetpointGameTests::safetyValveSavesTheBoiler, 300);
         test("overpressure_bursts_an_unprotected_boiler", SetpointGameTests::overpressureBurstsAnUnprotectedBoiler, 100);
@@ -948,6 +951,47 @@ public final class SetpointGameTests {
             helper.destroyBlock(pos);
             helper.assertItemEntityPresent(SetpointContent.PID.get());
             helper.succeed();
+        });
+    }
+
+    /**
+     * Four boards make a 2 x 2 panel. A P&ID clicked onto the bottom-right one goes to the top-left one, which reads
+     * the plant and knows the running pump; breaking it gives the P&ID back.
+     */
+    private static void pidBoardPanelShowsAPidLive(GameTestHelper helper) {
+        buildLine(helper, false);
+        fill(helper, SOURCE, 8_000);
+        BlockState board = SetpointContent.PID_BOARD.get().defaultBlockState().setValue(PidBoardBlock.FACING, Direction.NORTH);
+        for (int x = 2; x <= 3; x++) for (int y = 3; y <= 4; y++) helper.setBlock(x, y, 0, board);
+        helper.runAfterDelay(40, () -> {
+            var drawing = io.hookdev.setpoint.pid.PidCapture.capture(helper.getLevel(), helper.absolutePos(new BlockPos(0, 0, 1)), helper.absolutePos(new BlockPos(6, 2, 1))).drawing();
+            ItemStack pid = new ItemStack(SetpointContent.PID.get());
+            pid.set(SetpointContent.PID_DRAWING.get(), drawing);
+            var player = helper.makeMockPlayer(GameType.SURVIVAL);
+            player.setItemInHand(InteractionHand.MAIN_HAND, pid);
+            // facing north, the right as you look at it is west: the bottom-right board is the low one at x = 2
+            BlockPos bottomRight = new BlockPos(2, 3, 0), abs = helper.absolutePos(bottomRight);
+            helper.getBlockState(bottomRight).useItemOn(pid, helper.getLevel(), player, InteractionHand.MAIN_HAND,
+                    new BlockHitResult(Vec3.atCenterOf(abs), Direction.NORTH, abs, false));
+            BlockPos topLeft = new BlockPos(3, 4, 0);
+            PidBoardBlockEntity origin = helper.getBlockEntity(topLeft, PidBoardBlockEntity.class);
+            helper.assertTrue(origin.drawing() != null, "the top-left board should hold the P&ID");
+            int[] size = PidBoardBlock.size(helper.getLevel(), helper.absolutePos(topLeft), Direction.NORTH);
+            helper.assertTrue(size[0] == 2 && size[1] == 2, "the panel should be 2 x 2, is " + size[0] + " x " + size[1]);
+            var pump = origin.live().get(helper.getBlockEntity(PUMP, PumpBlockEntity.class).tag());
+            helper.assertTrue(pump != null && pump.state() == io.hookdev.setpoint.pid.PidLive.ACTIVE, "the board should show the pump running, has " + origin.live());
+            // the middle of the bottom-right board is three quarters across and down the panel
+            double[] uv = io.hookdev.setpoint.pid.BoardLayout.panelPoint(helper.absolutePos(topLeft), Direction.NORTH, 2, 2, abs, Vec3.atCenterOf(abs));
+            helper.assertTrue(Math.abs(uv[0] - 0.75) < 1e-6 && Math.abs(uv[1] - 0.75) < 1e-6, "panel point should be 0.75, 0.75, is " + uv[0] + ", " + uv[1]);
+            // right-clicking the pump on the board stops it
+            var pumpCell = origin.drawing().cells().stream().filter(c -> c.symbol() == io.hookdev.setpoint.pid.PidDrawing.PUMP).findFirst().orElseThrow();
+            origin.operate(pumpCell, player, abs);
+            helper.runAfterDelay(25, () -> {
+                helper.assertFalse(helper.getBlockEntity(PUMP, PumpBlockEntity.class).running(), "the pump should stop from the board");
+                helper.destroyBlock(topLeft);
+                helper.assertItemEntityPresent(SetpointContent.PID.get());
+                helper.succeed();
+            });
         });
     }
 

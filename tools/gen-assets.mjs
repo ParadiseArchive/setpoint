@@ -895,6 +895,26 @@ BS('flow_transmitter', { variants: { 'axis=z': { model: 'setpoint:block/flow_tra
 item('flow_transmitter', 'setpoint:block/flow_transmitter');
 recipe('flow_transmitter', [' G ', 'PCP'], { G: 'minecraft:glass_pane', P: 'setpoint:pipe', C: 'minecraft:comparator' }, 'setpoint:flow_transmitter');
 
+// P&ID board: a thin dark panel in a steel frame; the drawing itself is painted on it by its renderer
+texture('pid_board_front', (p) => {
+  p.rect(0, 0, 16, 16, '#0c1e3a');
+  for (let i = 3; i < 16; i += 4) { p.rect(i, 0, 1, 16, '#10294d'); p.rect(0, i, 16, 1, '#10294d'); } // blueprint grid
+  p.rect(0, 0, 16, 1, C.steel3); p.rect(0, 15, 16, 1, C.steel0); p.rect(0, 0, 1, 16, C.steel3); p.rect(15, 0, 1, 16, C.steel0);
+});
+texture('pid_board_back', (p) => { plate(p, C.steel1); rivets(p, [[2, 2], [12, 2], [2, 12], [12, 12]]); });
+M('pid_board', { // the drawing faces north: the board hangs on a wall to the south
+  parent: 'minecraft:block/block',
+  textures: { front: tex('pid_board_front'), back: tex('pid_board_back'), particle: tex('pid_board_back') },
+  elements: [box([0, 0, 15], [16, 16, 16], {
+    north: { uv: [0, 0, 16, 16], texture: '#front' }, south: { uv: [0, 0, 16, 16], texture: '#back', cullface: 'south' },
+    east: { uv: [0, 0, 1, 16], texture: '#back' }, west: { uv: [15, 0, 16, 16], texture: '#back' },
+    up: { uv: [0, 15, 16, 16], texture: '#back' }, down: { uv: [0, 0, 16, 1], texture: '#back' },
+  })],
+});
+BS('pid_board', { variants: Object.fromEntries(Object.entries(yaw).map(([f, y]) => [`facing=${f}`, { model: 'setpoint:block/pid_board', ...(y ? { y } : {}) }])) });
+item('pid_board', 'setpoint:block/pid_board');
+recipe('pid_board', ['III', 'IPI'], { I: 'minecraft:iron_ingot', P: 'minecraft:painting' }, 'setpoint:pid_board');
+
 // check valve: a swing-check body on the pipe with an arrow cast on top, pointing the way the liquid may go
 texture('check_valve_body', (p) => {
   plate(p, C.steel2);
@@ -1067,7 +1087,7 @@ const lootOre = (name, drop) => json(join(DATA, 'loot_table/blocks', name + '.js
 });
 const MACHINES = ['pipe', 'tank', 'centrifugal_pump', 'creative_generator', 'level_transmitter', 'control_valve', 'controller',
   'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine', 'dcs_console', 'hand_valve', 'water_intake', 'flow_transmitter',
-  'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve'];
+  'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve', 'pid_board'];
 for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) lootSelf(name);
 lootOre('hookonium_ore', 'setpoint:raw_hookonium');
 lootOre('deepslate_hookonium_ore', 'setpoint:raw_hookonium');

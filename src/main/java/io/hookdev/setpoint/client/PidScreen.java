@@ -73,7 +73,7 @@ public class PidScreen extends Screen {
         int px = left + PAPER_X, py = top + PAPER_Y;
         g.fill(px - 1, py - 1, px + paperW + 1, py + paperH + 1, 0xFF000000);
         g.fill(px, py, px + paperW, py + paperH, PidRenderer.BLUEPRINT);
-        PidRenderer.draw(g, drawing, layout, PidRenderer.Style.PLAIN);
+        PidRenderer.draw(g::fill, drawing, layout, PidRenderer.Style.PLAIN);
 
         g.text(font, drawing.width() + " x " + drawing.height() + "  ·  " + drawing.cells().size() + " symbols  ·  hover a symbol for its tag",
                 left + 8, top + H - 18, DIM, false);

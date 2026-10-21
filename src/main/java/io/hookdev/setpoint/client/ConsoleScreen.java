@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
 
@@ -14,6 +13,7 @@ import io.hookdev.setpoint.control.AlarmList;
 import io.hookdev.setpoint.menu.ConsoleMenu;
 import io.hookdev.setpoint.network.ConsoleSnapshot;
 import io.hookdev.setpoint.pid.PidDrawing;
+import io.hookdev.setpoint.pid.PidLive;
 
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
@@ -37,9 +37,6 @@ public class ConsoleScreen extends AbstractContainerScreen<ConsoleMenu> {
     private static final int TOP = 30, ROW = 12, ROWS = 12;
     private static final int CHART_X = 30, CHART_Y = 44, CHART_W = 278, CHART_H = 128;
     private static final int AREA_X = 8, AREA_Y = TOP + 12, AREA_W = W - 16, AREA_H = H - 32 - AREA_Y;
-    /** Equipment that is not on the plant any more (or out of range) shows in this grey. */
-    private static final int MISSING = 0xFF5C6F92;
-    private static final Set<String> ACTIVE = Set.of("RUNNING", "STEAMING", "HEATING", "FLOWING", "AUTO", "CAS", "IN CONTROL", "OK");
 
     private enum Tab { OVERVIEW, TRENDS, ALARMS, PID }
 
@@ -269,28 +266,12 @@ public class ConsoleScreen extends AbstractContainerScreen<ConsoleMenu> {
         return PidRenderer.Layout.of(AREA_X + panX, AREA_Y + panY, c);
     }
 
-    private final PidRenderer.Style live = new PidRenderer.Style() {
-        @Override
-        public int line(PidDrawing.Cell c) {
-            if (c.tag().isEmpty()) return PidRenderer.LINE;
-            ConsoleSnapshot.Row r = byTag.get(c.tag());
-            if (r == null) return MISSING;
-            if (r.severity() == Reading.ALARM) return blinkOn() ? MAGENTA : PidRenderer.LINE;
-            if (r.severity() == Reading.ATTENTION) return AMBER;
-            return ACTIVE.contains(r.status()) ? CYAN : PidRenderer.LINE;
-        }
-
-        @Override
-        public int accent(PidDrawing.Cell c) {
-            return !c.tag().isEmpty() && !byTag.containsKey(c.tag()) ? MISSING : PidRenderer.ACCENT;
-        }
-
-        @Override
-        public float fill(PidDrawing.Cell c) {
-            ConsoleSnapshot.Row r = byTag.get(c.tag());
-            return r == null || Float.isNaN(r.gauge()) || c.symbol() != PidDrawing.TANK ? -1 : r.gauge() / 100f;
-        }
-    };
+    /** The console colours its P&ID like a mimic panel, from the overview rows. */
+    private PidRenderer.Style live() {
+        Map<String, PidLive> map = new HashMap<>();
+        for (ConsoleSnapshot.Row r : byTag.values()) map.put(r.tag(), PidLive.of(r.tag(), r.kind(), r.severity(), r.status(), r.value(), r.gauge()));
+        return new LiveStyle(map, blinkOn());
+    }
 
     private void pid(GuiGraphicsExtractor g, int mx, int my) {
         PidDrawing drawing = menu.drawing();
@@ -305,7 +286,7 @@ public class ConsoleScreen extends AbstractContainerScreen<ConsoleMenu> {
         g.fill(AREA_X - 1, AREA_Y - 1, AREA_X + AREA_W + 1, AREA_Y + AREA_H + 1, 0xFF000000);
         g.fill(AREA_X, AREA_Y, AREA_X + AREA_W, AREA_Y + AREA_H, PidRenderer.BLUEPRINT);
         g.enableScissor(AREA_X, AREA_Y, AREA_X + AREA_W, AREA_Y + AREA_H);
-        PidRenderer.draw(g, drawing, l, live);
+        PidRenderer.draw(g::fill, drawing, l, live());
         PidDrawing.Cell hovered = inArea(mx, my) ? PidRenderer.cellAt(drawing, l, mx, my) : null;
         if (hovered != null) { // a thin frame around the symbol under the mouse
             int x0 = l.originX() + hovered.x() * l.cell(), y0 = l.originY() + hovered.y() * l.cell(), c = l.cell();
