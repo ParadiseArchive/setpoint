@@ -111,17 +111,28 @@ public class FloatingRoofTankBlock extends PortableTankBlock {
     /**
      * The shape of one block of the tank: the steel wall stands full height, the inside is solid up to the roof (the
      * deck, or the pontoons around its edge, a little higher), outside the wall is open. Built from columns of four
-     * pixels; dx and dz are the block's corner from the middle of the tank, in blocks.
+     * pixels; dx and dz are the block's corner from the middle of the tank, in blocks. The rolling ladder is a
+     * staircase of columns too, from the rim down to the roof: walk into it and you climb it.
      */
-    public static VoxelShape shape(int dx, int dz, int layer, int deck) {
-        long key = ((long) (dx + 8) << 24) | ((long) (dz + 8) << 16) | ((long) layer << 8) | Math.clamp(deck, 0, 255);
+    public static VoxelShape shape(int dx, int dz, int layer, int deck, Direction front) {
+        long key = ((long) front.get2DDataValue() << 32) | ((long) (dx + 8) << 24) | ((long) (dz + 8) << 16) | ((long) layer << 8) | Math.clamp(deck, 0, 255);
         return SHAPES.computeIfAbsent(key, k -> {
+            Direction right = front.getCounterClockWise();
+            double ux = Math.sin(Math.toRadians(FloatingRoofTankBlockEntity.LADDER_ANGLE)), uz = Math.cos(Math.toRadians(FloatingRoofTankBlockEntity.LADDER_ANGLE));
+            double run = FloatingRoofTankBlockEntity.ladderRun(deck), foot = FloatingRoofTankBlockEntity.LADDER_PIVOT - run;
             VoxelShape shape = Shapes.empty();
             for (int cx = 0; cx < 16; cx += COLUMN) for (int cz = 0; cz < 16; cz += COLUMN) {
-                double r = Math.hypot(dx * 16 + cx + COLUMN / 2.0, dz * 16 + cz + COLUMN / 2.0);
+                double wx = dx * 16 + cx + COLUMN / 2.0, wz = dz * 16 + cz + COLUMN / 2.0, r = Math.hypot(wx, wz);
                 if (r > RADIUS) continue;
-                int top = r >= WALL ? SHELL : r >= PONTOON ? deck + PONTOON_UP : deck;
-                int height = Math.clamp(top - layer * 16, 0, 16);
+                double top = r >= WALL ? SHELL : r >= PONTOON ? deck + PONTOON_UP : deck;
+                // the rolling ladder, in the tank's own frame (z out of its front, x to its right)
+                double lx = wx * right.getStepX() + wz * right.getStepZ(), lz = wx * front.getStepX() + wz * front.getStepZ();
+                double along = lx * ux + lz * uz;
+                if (r < WALL && run > 0 && along >= foot && along <= FloatingRoofTankBlockEntity.LADDER_PIVOT
+                        && Math.hypot(lx - along * ux, lz - along * uz) <= 6) {
+                    top = Math.max(top, deck + (along - foot) / run * (FloatingRoofTankBlockEntity.LADDER_TOP - deck));
+                }
+                double height = Math.clamp(top - layer * 16, 0, 16);
                 if (height > 0) shape = Shapes.or(shape, Block.box(cx, 0, cz, cx + COLUMN, height, cz + COLUMN));
             }
             return shape.optimize();
@@ -133,7 +144,19 @@ public class FloatingRoofTankBlock extends PortableTankBlock {
         if (tank == null) return Shapes.block();
         Vec3 centre = tank.centre();
         int dx = (int) Math.floor(pos.getX() - centre.x + 1e-6), dz = (int) Math.floor(pos.getZ() - centre.z + 1e-6);
-        return shape(dx, dz, pos.getY() - tank.getBlockPos().getY(), tank.deck());
+        return shape(dx, dz, pos.getY() - tank.getBlockPos().getY(), tank.deck(), tank.getBlockState().getValue(FACING));
+    }
+
+    /**
+     * A block of the caged ladder in the corner: the rungs on its side towards the tank, so you walk into them and
+     * climb, like a vanilla ladder; you go up through the rest of it.
+     */
+    public static VoxelShape ladderShape(@Nullable FloatingRoofTankBlockEntity tank, BlockPos pos) {
+        if (tank == null) return Shapes.empty();
+        Vec3 centre = tank.centre();
+        boolean east = pos.getX() >= centre.x, south = pos.getZ() >= centre.z;
+        return Shapes.or(east ? Block.box(0, 0, 0, 3, 16, 16) : Block.box(13, 0, 0, 16, 16, 16),
+                south ? Block.box(0, 0, 0, 16, 16, 3) : Block.box(0, 0, 13, 16, 16, 16));
     }
 
     @Override

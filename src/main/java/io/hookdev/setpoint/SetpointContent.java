@@ -347,6 +347,10 @@ public final class SetpointContent {
                 output.accept(DRUM_ITEM.get());
                 output.accept(IBC_ITEM.get());
                 output.accept(FLOATING_ROOF_TANK_ITEM.get());
+                // and one already full of water, to see the roof up high without filling 8000 buckets first
+                net.minecraft.world.item.ItemStack full = new net.minecraft.world.item.ItemStack(FLOATING_ROOF_TANK_ITEM.get());
+                full.set(FLUID_CONTENTS.get(), SimpleFluidContent.copyOf(new net.neoforged.neoforge.fluids.FluidStack(net.minecraft.world.level.material.Fluids.WATER, FloatingRoofTankBlock.CAPACITY)));
+                output.accept(full);
                 output.accept(PALLET_ITEM.get());
                 output.accept(PALLET_TRUCK.get());
                 output.accept(FORKLIFT.get());

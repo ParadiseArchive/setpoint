@@ -84,7 +84,7 @@ export const HANDBOOK = {
         ['h', 'Floating roof tank'],
         ['p', 'The big storage tank of a tank farm, built from **Hookonium steel**: round, eight blocks across and six high, and it holds **8000 buckets**. Place it with one block: it reaches four blocks to your left, three to your right and eight away from you, so clear the space first.'],
         ['p', 'Its top is open. The **roof** is a steel deck on a ring of pontoons that floats on the liquid: it rises as the tank fills and sinks as it empties, so you see the level from the rim. You can walk on the roof.'],
-        ['p', 'Climb the **caged ladder** in the front-right corner to the platform on the rim. From there the **rolling ladder** goes down to the roof; hold jump on it to climb back up.'],
+        ['p', 'Climb the **caged ladder** in the front-right corner to the platform on the rim. From there the **rolling ladder** goes down to the roof. Walk into a ladder to climb it, like any ladder.'],
         ['p', 'Pipes fit on any of its blocks; the nozzle at the front is where you placed it. Break it and the liquid goes along in the item, like a drum.'],
         ['craft', 'setpoint:floating_roof_tank'],
         ['h', 'Pallet'],

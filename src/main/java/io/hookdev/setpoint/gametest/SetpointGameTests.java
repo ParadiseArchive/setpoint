@@ -1225,9 +1225,11 @@ public final class SetpointGameTests {
         for (BlockPos part : parts) helper.assertTrue(helper.getLevel().getBlockState(part).is(SetpointContent.ROOF_TANK_PART.get()), "a part should stand at " + part);
         helper.assertBlockProperty(new BlockPos(1, 6, 1), io.hookdev.setpoint.block.RoofTankPartBlock.LADDER, true);
         helper.assertBlockNotPresent(SetpointContent.ROOF_TANK_PART.get(), new BlockPos(8, 1, 1)); // the front-left corner stays free
+        BlockPos ladder = helper.absolutePos(new BlockPos(1, 3, 1));
+        helper.assertTrue(!helper.getLevel().getBlockState(ladder).getCollisionShape(helper.getLevel(), ladder).isEmpty(), "the corner ladder should have rungs to walk into");
         FloatingRoofTankBlockEntity tank = helper.getBlockEntity(base, FloatingRoofTankBlockEntity.class);
         tank.fluid().set(0, FluidResource.of(Fluids.WATER), FloatingRoofTankBlock.CAPACITY);
-        BlockPos middle = FloatingRoofTankBlock.cell(abs, state, 3, 3, 5);
+        BlockPos middle = FloatingRoofTankBlock.cell(abs, state, 2, 5, 5); // inside the pontoons, away from the rolling ladder
         helper.runAfterDelay(2, () -> {
             helper.assertTrue(tank.deck() == FloatingRoofTankBlock.DECK_HIGH, "a full tank floats its roof just under the rim, at " + tank.deck());
             helper.assertTrue(!tank.canAccept(FluidResource.of(Fluids.WATER)), "a full tank should take no more");

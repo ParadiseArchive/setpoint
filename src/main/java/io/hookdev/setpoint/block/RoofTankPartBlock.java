@@ -43,7 +43,7 @@ public class RoofTankPartBlock extends TankPartBlock {
 
     @Override
     protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return state.getValue(LADDER) ? Shapes.empty() : getShape(state, level, pos, context);
+        return state.getValue(LADDER) ? FloatingRoofTankBlock.ladderShape(tank(level, pos), pos) : getShape(state, level, pos, context);
     }
 
     @Override

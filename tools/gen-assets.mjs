@@ -1395,18 +1395,19 @@ const segment = (r) => +(r * Math.tan(Math.PI / 24)).toFixed(4);
   mirror('rolling_ladder', [5, -1, -28], [6, 1, 0], sides('steel'));
   for (let z = -2; z > -28; z -= 4) add('rolling_ladder', [-5, -0.5, z - 0.5], [5, 0.5, z + 0.5], sides('steel', ['east', 'west']));
   // ---- the gauger's platform over the rim, where the caged ladder comes up and the rolling ladder hangs
-  add('platform', [-7, 95, 56], [7, 96, 78], { up: 'grating', down: 'grating', north: 'steel', south: 'steel', east: 'steel', west: 'steel' });
-  for (const z of [56.5, 67, 77.5]) mirror('platform', [6.5, 96, z - 0.5], [7.5, 108, z + 0.5], sides('rail', ['up', 'down']));
-  for (const y of [102, 107]) mirror('platform', [6.5, y, 56], [7.5, y + 1, 78], sides('rail'));
-  // ---- the caged ladder in the corner, two blocks at a time; the cage from two blocks up
-  mirror('ladder', [4, 0, 77], [5, 32, 79], sides('steel', ['up', 'down']));
-  for (let y = 2; y < 32; y += 4) add('ladder', [-4, y - 0.5, 77.5], [4, y + 0.5, 78.5], sides('steel', ['east', 'west']));
+  add('platform', [-7, 95, 56], [7, 96, 72], { up: 'grating', down: 'grating', north: 'steel', south: 'steel', east: 'steel', west: 'steel' });
+  for (const z of [56.5, 64, 71.5]) mirror('platform', [6.5, 96, z - 0.5], [7.5, 108, z + 0.5], sides('rail', ['up', 'down']));
+  for (const y of [102, 107]) mirror('platform', [6.5, y, 56], [7.5, y + 1, 72], sides('rail'));
+  // ---- the caged ladder in the corner, two blocks at a time; the cage from two blocks up. Its rungs stand where the
+  // ladder blocks' collision is (three pixels into the corner block), so you climb it by walking into it.
+  mirror('ladder', [4, 0, 71], [5, 32, 73], sides('steel', ['up', 'down']));
+  for (let y = 2; y < 32; y += 4) add('ladder', [-4, y - 0.5, 71.5], [4, y + 0.5, 72.5], sides('steel', ['east', 'west']));
   for (const y of [4, 14, 24]) {
-    add('cage', [-7, y, 86], [7, y + 1, 87], sides('steel'));
-    mirror('cage', [6, y, 79], [7, y + 1, 86], sides('steel'));
+    add('cage', [-7, y, 80], [7, y + 1, 81], sides('steel'));
+    mirror('cage', [6, y, 73], [7, y + 1, 80], sides('steel'));
   }
-  for (const x of [-4, 0, 4]) add('cage', [x - 0.5, 0, 86.5], [x + 0.5, 32, 87.5], sides('steel', ['up', 'down']));
-  mirror('cage', [6.5, 0, 82], [7.5, 32, 83], sides('steel', ['up', 'down']));
+  for (const x of [-4, 0, 4]) add('cage', [x - 0.5, 0, 80], [x + 0.5, 32, 81], sides('steel', ['up', 'down']));
+  mirror('cage', [6.5, 0, 76], [7.5, 32, 77], sides('steel', ['up', 'down']));
   // ---- the inlet nozzle at the front, where you placed the tank
   add('nozzle', [-3, 5, 60], [3, 11, 63], sides('steel', ['north', 'south']));
   add('nozzle', [-5, 3, 63], [5, 13, 64], { south: { t: 'flange', uv: [3, 3, 13, 13] }, north: { t: 'steel', uv: [0, 0, 10, 10] },
