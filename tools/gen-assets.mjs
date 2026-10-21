@@ -881,6 +881,36 @@ BS('flow_transmitter', { variants: { 'axis=z': { model: 'setpoint:block/flow_tra
 item('flow_transmitter', 'setpoint:block/flow_transmitter');
 recipe('flow_transmitter', [' G ', 'PCP'], { G: 'minecraft:glass_pane', P: 'setpoint:pipe', C: 'minecraft:comparator' }, 'setpoint:flow_transmitter');
 
+// drain valve: a small hand valve with an open spout, on the side of a tank; the wheel turns up when it is open
+for (const open of [false, true]) {
+  M('drain_valve' + (open ? '_open' : ''), { // outlet points north: the tank is to the south
+    parent: 'minecraft:block/block',
+    textures: { pipe: tex('pipe'), body: tex('hand_valve_body'), wheel: tex('hand_valve_wheel'), stem: tex('hand_valve_stem'), particle: tex('hand_valve_body') },
+    elements: [
+      box([5, 5, 10], [11, 11, 16], allFaces([5, 5, 11, 11], '#pipe')),
+      box([4, 4, 5], [12, 11, 10], allFaces([4, 4, 12, 11], '#body')),
+      box([6, 5, 1], [10, 9, 5], allFaces([6, 5, 10, 9], '#pipe')),
+      box([7, 3, 1], [9, 5, 3], allFaces([7, 3, 9, 5], '#pipe')),
+      box([7, 11, 7], [9, open ? 14 : 12, 9], allFaces([7, 0, 9, 3], '#stem', ['down'])),
+      box([4, open ? 14 : 12, 4], [12, open ? 15 : 13, 12], {
+        up: { uv: [0, 0, 16, 16], texture: '#wheel' }, down: { uv: [0, 0, 16, 16], texture: '#wheel' },
+        north: { uv: [4, 0, 12, 1], texture: '#wheel' }, south: { uv: [4, 0, 12, 1], texture: '#wheel' },
+        east: { uv: [4, 0, 12, 1], texture: '#wheel' }, west: { uv: [4, 0, 12, 1], texture: '#wheel' },
+      }),
+    ],
+  });
+}
+{
+  const turn = { north: {}, east: { y: 90 }, south: { y: 180 }, west: { y: 270 }, up: { x: 270 }, down: { x: 90 } };
+  const variants = {};
+  for (const [facing, rot] of Object.entries(turn)) for (const open of [false, true]) for (const powered of [false, true]) {
+    variants[`facing=${facing},open=${open},powered=${powered}`] = { model: 'setpoint:block/drain_valve' + (open || powered ? '_open' : ''), ...rot };
+  }
+  BS('drain_valve', { variants });
+  item('drain_valve', 'setpoint:block/drain_valve');
+}
+shapeless('drain_valve', ['setpoint:hand_valve', 'minecraft:bucket'], 'setpoint:drain_valve', 1);
+
 // =====================================================================================
 // M4 · Pressure: pressure transmitter and safety valve
 // =====================================================================================
@@ -993,7 +1023,7 @@ const lootOre = (name, drop) => json(join(DATA, 'loot_table/blocks', name + '.js
 });
 const MACHINES = ['pipe', 'tank', 'centrifugal_pump', 'creative_generator', 'level_transmitter', 'control_valve', 'controller',
   'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine', 'dcs_console', 'hand_valve', 'water_intake', 'flow_transmitter',
-  'pressure_transmitter', 'safety_valve'];
+  'pressure_transmitter', 'safety_valve', 'drain_valve'];
 for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) lootSelf(name);
 lootOre('hookonium_ore', 'setpoint:raw_hookonium');
 lootOre('deepslate_hookonium_ore', 'setpoint:raw_hookonium');

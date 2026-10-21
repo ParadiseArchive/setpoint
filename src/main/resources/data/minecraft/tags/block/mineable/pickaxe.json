@@ -17,6 +17,7 @@
     "setpoint:flow_transmitter",
     "setpoint:pressure_transmitter",
     "setpoint:safety_valve",
+    "setpoint:drain_valve",
     "setpoint:hookonium_ore",
     "setpoint:deepslate_hookonium_ore",
     "setpoint:hookonium_block",

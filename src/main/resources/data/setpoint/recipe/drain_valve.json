@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "setpoint:hand_valve",
+    "minecraft:bucket"
+  ],
+  "result": {
+    "count": 1,
+    "id": "setpoint:drain_valve"
+  }
+}

@@ -11,7 +11,9 @@ import io.hookdev.setpoint.block.PumpBlock;
 import io.hookdev.setpoint.block.PumpStatus;
 import io.hookdev.setpoint.block.entity.BiogasGeneratorBlockEntity;
 import io.hookdev.setpoint.block.ConsoleBlock;
+import io.hookdev.setpoint.block.DrainValveBlock;
 import io.hookdev.setpoint.block.SafetyValveBlock;
+import io.hookdev.setpoint.block.entity.DrainValveBlockEntity;
 import io.hookdev.setpoint.block.entity.SafetyValveBlockEntity;
 import io.hookdev.setpoint.block.FluidPipeBlock;
 import io.hookdev.setpoint.block.HandValveBlock;
@@ -109,6 +111,9 @@ public final class SetpointGameTests {
         test("overpressure_bursts_an_unprotected_boiler", SetpointGameTests::overpressureBurstsAnUnprotectedBoiler, 100);
         test("pressure_controller_holds_the_boiler", SetpointGameTests::pressureControllerHoldsTheBoiler, 600);
         test("pid_shows_the_safety_valve_on_a_boiler", SetpointGameTests::pidShowsTheSafetyValveOnABoiler, 20);
+        test("equipment_takes_a_new_tag", SetpointGameTests::equipmentTakesANewTag, 40);
+        test("pump_can_run_on_a_signal", SetpointGameTests::pumpCanRunOnASignal, 100);
+        test("drain_valve_empties_a_tank", SetpointGameTests::drainValveEmptiesATank, 100);
     }
 
     private static void test(String name, Consumer<GameTestHelper> function, int maxTicks) {
@@ -491,6 +496,60 @@ public final class SetpointGameTests {
             helper.assertTrue(boiler.commanded(), "the burner should follow the controller");
             helper.assertFalse(boiler.pressureTripped(), String.format("the boiler should never reach the trip, at %.1f bar", boiler.pressure()));
             helper.assertTrue(Math.abs(boiler.pressure() - 7.5) < 0.6, String.format("pressure should hold near 7.5 bar, is %.1f", boiler.pressure()));
+            helper.succeed();
+        });
+    }
+
+    // ---------- basics ----------
+
+    /** A name tag gives a pump and a tall tank their own tags; the console and the P&ID use them. */
+    private static void equipmentTakesANewTag(GameTestHelper helper) {
+        buildLine(helper, false);
+        helper.setBlock(1, 2, 1, SetpointContent.TANK.get()); // the source tank is two high now
+        PumpBlockEntity pump = helper.getBlockEntity(PUMP, PumpBlockEntity.class);
+        helper.assertTrue(pump.rename("p feed"), "the pump should take the name");
+        helper.assertTrue(helper.getBlockEntity(new BlockPos(1, 2, 1), TankBlockEntity.class).rename("T-Raw water"), "the tank should take the name");
+        helper.runAfterDelay(5, () -> {
+            helper.assertTrue(pump.tag().equals("P-FEED"), "the pump's tag should be P-FEED, is " + pump.tag());
+            String tank = helper.getBlockEntity(SOURCE, TankBlockEntity.class).tag();
+            helper.assertTrue(tank.equals("T-RAW-WATER"), "a tall tank has one tag, from any of its blocks: " + tank);
+            var reading = io.hookdev.setpoint.console.PlantScanner.read(pump);
+            helper.assertTrue(reading != null && reading.tag().equals("P-FEED"), "the console should read P-FEED");
+            var drawing = io.hookdev.setpoint.pid.PidCapture.capture(helper.getLevel(), helper.absolutePos(new BlockPos(0, 0, 0)), helper.absolutePos(new BlockPos(6, 2, 2))).drawing();
+            helper.assertTrue(drawing.cells().stream().anyMatch(c -> c.tag().equals("P-FEED")), "the P&ID should use P-FEED");
+            helper.succeed();
+        });
+    }
+
+    /** Switched to run-on-signal, the pump stands still until it gets redstone. */
+    private static void pumpCanRunOnASignal(GameTestHelper helper) {
+        buildLine(helper, false);
+        fill(helper, SOURCE, 8_000);
+        PumpBlockEntity pump = helper.getBlockEntity(PUMP, PumpBlockEntity.class);
+        pump.toggleRedstoneMode(helper.makeMockPlayer(GameType.SURVIVAL));
+        helper.runAfterDelay(20, () -> {
+            helper.assertFalse(pump.running(), "without a signal the pump should stand still");
+            helper.setBlock(3, 2, 1, Blocks.REDSTONE_BLOCK);
+            helper.runAfterDelay(20, () -> {
+                helper.assertTrue(pump.running(), "with a signal the pump should run");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** An open drain valve lets a tank run out; a shut one keeps it full. */
+    private static void drainValveEmptiesATank(GameTestHelper helper) {
+        BlockPos open = new BlockPos(1, 1, 1), shut = new BlockPos(4, 1, 1);
+        for (BlockPos tank : new BlockPos[]{open, shut}) {
+            helper.setBlock(tank, SetpointContent.TANK.get());
+            fill(helper, tank, 1_000);
+        }
+        helper.setBlock(1, 1, 0, SetpointContent.DRAIN_VALVE.get().defaultBlockState().setValue(DrainValveBlock.FACING, Direction.NORTH).setValue(DrainValveBlock.OPEN, true));
+        helper.setBlock(4, 1, 0, SetpointContent.DRAIN_VALVE.get().defaultBlockState().setValue(DrainValveBlock.FACING, Direction.NORTH));
+        helper.runAfterDelay(50, () -> {
+            int left = helper.getBlockEntity(open, TankBlockEntity.class).amount();
+            helper.assertTrue(left <= 1_000 - 40 * DrainValveBlockEntity.RATE, "the open drain should have let at least 400 mB out, " + left + " mB left");
+            helper.assertTrue(helper.getBlockEntity(shut, TankBlockEntity.class).amount() == 1_000, "the shut drain should keep the tank full");
             helper.succeed();
         });
     }

@@ -10,6 +10,7 @@ import io.hookdev.setpoint.block.FluidPipeBlock;
 import io.hookdev.setpoint.block.FlowTransmitterBlock;
 import io.hookdev.setpoint.block.GeneratorBlock;
 import io.hookdev.setpoint.block.HandValveBlock;
+import io.hookdev.setpoint.block.DrainValveBlock;
 import io.hookdev.setpoint.block.LevelTransmitterBlock;
 import io.hookdev.setpoint.block.PressureTransmitterBlock;
 import io.hookdev.setpoint.block.SafetyValveBlock;
@@ -24,6 +25,7 @@ import io.hookdev.setpoint.block.entity.ControlValveBlockEntity;
 import io.hookdev.setpoint.block.entity.ControllerBlockEntity;
 import io.hookdev.setpoint.block.entity.CreativeGeneratorBlockEntity;
 import io.hookdev.setpoint.block.entity.FlowTransmitterBlockEntity;
+import io.hookdev.setpoint.block.entity.DrainValveBlockEntity;
 import io.hookdev.setpoint.block.entity.LevelTransmitterBlockEntity;
 import io.hookdev.setpoint.block.entity.PressureTransmitterBlockEntity;
 import io.hookdev.setpoint.block.entity.SafetyValveBlockEntity;
@@ -124,6 +126,8 @@ public final class SetpointContent {
             p -> p.mapColor(MapColor.METAL).strength(2.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
     public static final DeferredBlock<PressureTransmitterBlock> PRESSURE_TRANSMITTER = BLOCKS.registerBlock("pressure_transmitter", PressureTransmitterBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(2.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<DrainValveBlock> DRAIN_VALVE = BLOCKS.registerBlock("drain_valve", DrainValveBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(2.0f, 6.0f).sound(SoundType.COPPER).noOcclusion());
     public static final DeferredBlock<SafetyValveBlock> SAFETY_VALVE = BLOCKS.registerBlock("safety_valve", SafetyValveBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
     public static final DeferredBlock<ControlValveBlock> CONTROL_VALVE = BLOCKS.registerBlock("control_valve", ControlValveBlock::new,
@@ -174,6 +178,7 @@ public final class SetpointContent {
     public static final DeferredItem<BlockItem> FLOW_TRANSMITTER_ITEM = ITEMS.registerSimpleBlockItem(FLOW_TRANSMITTER);
     public static final DeferredItem<BlockItem> PRESSURE_TRANSMITTER_ITEM = ITEMS.registerSimpleBlockItem(PRESSURE_TRANSMITTER);
     public static final DeferredItem<BlockItem> SAFETY_VALVE_ITEM = ITEMS.registerSimpleBlockItem(SAFETY_VALVE);
+    public static final DeferredItem<BlockItem> DRAIN_VALVE_ITEM = ITEMS.registerSimpleBlockItem(DRAIN_VALVE);
     public static final DeferredItem<BlockItem> CONTROL_VALVE_ITEM = ITEMS.registerSimpleBlockItem(CONTROL_VALVE);
     public static final DeferredItem<BlockItem> CONTROLLER_ITEM = ITEMS.registerSimpleBlockItem(CONTROLLER);
     public static final DeferredItem<BlockItem> HAND_VALVE_ITEM = ITEMS.registerSimpleBlockItem(HAND_VALVE);
@@ -205,6 +210,8 @@ public final class SetpointContent {
             () -> new BlockEntityType<>(FlowTransmitterBlockEntity::new, FLOW_TRANSMITTER.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PressureTransmitterBlockEntity>> PRESSURE_TRANSMITTER_ENTITY = BLOCK_ENTITIES.register("pressure_transmitter",
             () -> new BlockEntityType<>(PressureTransmitterBlockEntity::new, PRESSURE_TRANSMITTER.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DrainValveBlockEntity>> DRAIN_VALVE_ENTITY = BLOCK_ENTITIES.register("drain_valve",
+            () -> new BlockEntityType<>(DrainValveBlockEntity::new, DRAIN_VALVE.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SafetyValveBlockEntity>> SAFETY_VALVE_ENTITY = BLOCK_ENTITIES.register("safety_valve",
             () -> new BlockEntityType<>(SafetyValveBlockEntity::new, SAFETY_VALVE.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ControlValveBlockEntity>> CONTROL_VALVE_ENTITY = BLOCK_ENTITIES.register("control_valve",
@@ -246,6 +253,7 @@ public final class SetpointContent {
                 output.accept(PIPE_WRENCH.get());
                 output.accept(PIPE_ITEM.get());
                 output.accept(HAND_VALVE_ITEM.get());
+                output.accept(DRAIN_VALVE_ITEM.get());
                 output.accept(WATER_INTAKE_ITEM.get());
                 output.accept(TANK_ITEM.get());
                 output.accept(PUMP_ITEM.get());

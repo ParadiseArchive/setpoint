@@ -5,7 +5,6 @@ import java.util.List;
 
 import io.hookdev.setpoint.SetpointContent;
 import io.hookdev.setpoint.hydraulics.Vessel;
-import io.hookdev.setpoint.block.EquipmentTag;
 import io.hookdev.setpoint.block.TankBlock;
 import io.hookdev.setpoint.menu.TankMenu;
 
@@ -48,7 +47,9 @@ import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
  * from the bottom up and is drawn from the top down. As a vessel (for pumps, controllers, comparators and
  * other mods) every tank in a column speaks for the whole column; the screen shows the whole column too.
  */
-public class TankBlockEntity extends BlockEntity implements MenuProvider, Vessel {
+public class TankBlockEntity extends BlockEntity implements MenuProvider, Vessel, NamedEquipment {
+    private final EquipmentName name = new EquipmentName("T");
+
     public static final int CAPACITY = 16_000;
     public static final int BUCKET = 1_000;
     public static final int SLOT_IN = 0, SLOT_OUT = 1;
@@ -305,9 +306,24 @@ public class TankBlockEntity extends BlockEntity implements MenuProvider, Vessel
         }
     }
 
+    /** A tall tank is one tank: its tag is the tag of its bottom block. */
+    @Override
+    public String tag() {
+        TankBlockEntity bottom = bottom();
+        return bottom.name.tag(bottom.worldPosition);
+    }
+
+    @Override
+    public boolean rename(String newName) {
+        TankBlockEntity bottom = bottom();
+        if (!bottom.name.rename(newName)) return false;
+        bottom.setChanged();
+        return true;
+    }
+
     /** Extra data the client screen needs once, when it opens. */
     public void writeOpenData(RegistryFriendlyByteBuf buf) {
-        buf.writeUtf(EquipmentTag.of("T", worldPosition));
+        buf.writeUtf(tag());
     }
 
     @Override
@@ -336,6 +352,7 @@ public class TankBlockEntity extends BlockEntity implements MenuProvider, Vessel
         super.saveAdditional(output);
         fluid.serialize(output);
         buckets.serialize(output.child("buckets"));
+        name.save(output);
     }
 
     @Override
@@ -343,5 +360,6 @@ public class TankBlockEntity extends BlockEntity implements MenuProvider, Vessel
         super.loadAdditional(input);
         fluid.deserialize(input);
         buckets.deserialize(input.childOrEmpty("buckets"));
+        name.load(input);
     }
 }

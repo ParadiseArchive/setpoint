@@ -289,6 +289,30 @@
         },
         {
           "type": "h",
+          "text": "Drain valve"
+        },
+        {
+          "type": "p",
+          "text": "Place it on a tank and right-click to open it, or give it a redstone signal: the tank runs out onto the ground at 10 mB/t. Handy to empty a tank, and a steady load for a level controller to work against."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:drain_valve",
+          "grid": [
+            "setpoint:hand_valve",
+            "minecraft:bucket",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "count": 1
+        },
+        {
+          "type": "h",
           "text": "Pipe wrench"
         },
         {
@@ -310,6 +334,14 @@
             ""
           ],
           "count": 1
+        },
+        {
+          "type": "h",
+          "text": "Name your equipment"
+        },
+        {
+          "type": "p",
+          "text": "Every machine gets a tag like P-417. Write a new tag on a name tag in an anvil, like P-FEED, and right-click a pump, tank, boiler or any other machine with it: that is its tag now. The console, Jade and new P&IDs use it."
         }
       ]
     },
@@ -328,7 +360,11 @@
         },
         {
           "type": "p",
-          "text": "It starts by itself. A redstone signal stops it, like a stop button."
+          "text": "It starts by itself. A redstone signal stops it, like a stop button. **Sneak-right-click** it to turn that around: then it only runs while it gets a signal."
+        },
+        {
+          "type": "p",
+          "text": "A comparator next to a pump gives 15 while it runs."
         },
         {
           "type": "p",

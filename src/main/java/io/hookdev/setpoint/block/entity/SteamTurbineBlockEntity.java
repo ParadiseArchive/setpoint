@@ -2,7 +2,6 @@ package io.hookdev.setpoint.block.entity;
 
 import io.hookdev.setpoint.SetpointContent;
 import io.hookdev.setpoint.advancement.PlantEventTrigger;
-import io.hookdev.setpoint.block.EquipmentTag;
 import io.hookdev.setpoint.block.SteamTurbineBlock;
 import io.hookdev.setpoint.physics.TurbineModel;
 
@@ -28,7 +27,9 @@ import net.neoforged.neoforge.transfer.energy.SimpleEnergyHandler;
  * spins up and pushes FE into its other neighbours. It only takes steam while its buffer has room,
  * so an idle plant lets the boiler build up steam and stop firing.
  */
-public class SteamTurbineBlockEntity extends BlockEntity {
+public class SteamTurbineBlockEntity extends BlockEntity implements NamedEquipment {
+    private final EquipmentName name = new EquipmentName("ST");
+
     public static final int ENERGY_CAPACITY = 20_000;
 
     private final SimpleEnergyHandler energy = new SimpleEnergyHandler(ENERGY_CAPACITY, 0, EnergyPush.PER_SIDE * 6) {
@@ -49,7 +50,15 @@ public class SteamTurbineBlockEntity extends BlockEntity {
     public SimpleEnergyHandler energy() { return energy; }
     public double speed() { return speed; }
     public int output() { return output; }
-    public String tag() { return EquipmentTag.of("ST", worldPosition); }
+    @Override public String tag() { return name.tag(worldPosition); }
+
+    @Override
+    public boolean rename(String newName) {
+        if (!name.rename(newName)) return false;
+        setChanged();
+        return true;
+    }
+
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, SteamTurbineBlockEntity turbine) {
         turbine.tick((ServerLevel) level, pos, state);
@@ -106,6 +115,7 @@ public class SteamTurbineBlockEntity extends BlockEntity {
         super.saveAdditional(output);
         energy.serialize(output);
         output.putDouble("speed", speed);
+        name.save(output);
     }
 
     @Override
@@ -113,5 +123,6 @@ public class SteamTurbineBlockEntity extends BlockEntity {
         super.loadAdditional(input);
         energy.deserialize(input);
         speed = input.getDoubleOr("speed", 0);
+        name.load(input);
     }
 }

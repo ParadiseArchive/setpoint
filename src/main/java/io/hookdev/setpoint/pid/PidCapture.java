@@ -9,8 +9,8 @@ import io.hookdev.setpoint.block.BoilerBlock;
 import io.hookdev.setpoint.block.ConsoleBlock;
 import io.hookdev.setpoint.block.ControlValveBlock;
 import io.hookdev.setpoint.block.ControllerBlock;
+import io.hookdev.setpoint.block.DrainValveBlock;
 import io.hookdev.setpoint.block.CreativeGeneratorBlock;
-import io.hookdev.setpoint.block.EquipmentTag;
 import io.hookdev.setpoint.block.FlowTransmitterBlock;
 import io.hookdev.setpoint.block.FluidPipeBlock;
 import io.hookdev.setpoint.block.GeneratorBlock;
@@ -25,6 +25,7 @@ import io.hookdev.setpoint.block.WaterIntakeBlock;
 import io.hookdev.setpoint.block.entity.BoilerBlockEntity;
 import io.hookdev.setpoint.block.entity.ControllerBlockEntity;
 import io.hookdev.setpoint.block.entity.InstrumentBlockEntity;
+import io.hookdev.setpoint.block.entity.NamedEquipment;
 import io.hookdev.setpoint.block.entity.SteamTurbineBlockEntity;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
 import io.hookdev.setpoint.block.entity.WaterIntakeBlockEntity;
@@ -129,7 +130,7 @@ public final class PidCapture {
             if ("LOCAL".equals(measured)) { // it measures the tank or boiler it sits against
                 for (Direction dir : Direction.values()) {
                     BlockEntity next = level.getBlockEntity(pos.relative(dir));
-                    if (next instanceof TankBlockEntity tank) measured = EquipmentTag.of("T", tank.bottom().getBlockPos());
+                    if (next instanceof TankBlockEntity tank) measured = tank.tag();
                     else if (next instanceof BoilerBlockEntity boiler) measured = boiler.tag();
                 }
             }
@@ -145,15 +146,17 @@ public final class PidCapture {
         Block block = state.getBlock();
         BlockEntity be = level.getBlockEntity(pos);
         String tag = be instanceof InstrumentBlockEntity instrument ? instrument.tag() : "";
-        if (block instanceof PumpBlock) return new Found(PidDrawing.PUMP, quarter(state.getValue(PumpBlock.FACING)), EquipmentTag.of("P", pos), 5);
+        if (block instanceof PumpBlock && be instanceof NamedEquipment pump) return new Found(PidDrawing.PUMP, quarter(state.getValue(PumpBlock.FACING)), pump.tag(), 5);
         if (block instanceof TankBlock && be instanceof TankBlockEntity tank) {
-            return new Found(PidDrawing.TANK, 0, EquipmentTag.of("T", tank.bottom().getBlockPos()), 5);
+            return new Found(PidDrawing.TANK, 0, tank.tag(), 5);
         }
         if (block instanceof BoilerBlock && be instanceof BoilerBlockEntity boiler) return new Found(PidDrawing.BOILER, 0, boiler.tag(), 5);
         if (block instanceof SteamTurbineBlock && be instanceof SteamTurbineBlockEntity turbine) {
             return new Found(PidDrawing.TURBINE, quarter(state.getValue(SteamTurbineBlock.FACING)), turbine.tag(), 5);
         }
-        if (block instanceof GeneratorBlock || block instanceof CreativeGeneratorBlock) return new Found(PidDrawing.GENERATOR, 0, EquipmentTag.of("G", pos), 4);
+        if ((block instanceof GeneratorBlock || block instanceof CreativeGeneratorBlock) && be instanceof NamedEquipment generator) {
+            return new Found(PidDrawing.GENERATOR, 0, generator.tag(), 4);
+        }
         if (block instanceof WaterIntakeBlock && be instanceof WaterIntakeBlockEntity intake) return new Found(PidDrawing.INTAKE, 0, intake.tag(), 5);
         if (block instanceof ConsoleBlock) return new Found(PidDrawing.CONSOLE, 0, "", 4);
         if (block instanceof ControllerBlock) return new Found(PidDrawing.CONTROLLER, 0, tag, 4);
@@ -161,6 +164,10 @@ public final class PidCapture {
         if (block instanceof HandValveBlock) {
             return new Found(HandValveBlock.isOpen(state) ? PidDrawing.HAND_VALVE : PidDrawing.HAND_VALVE_SHUT,
                     axisQuarter(state.getValue(HandValveBlock.AXIS)), "", 3);
+        }
+        if (block instanceof DrainValveBlock) {
+            Direction outlet = state.getValue(DrainValveBlock.FACING);
+            return new Found(PidDrawing.DRAIN_VALVE, outlet.getAxis() == Direction.Axis.Y ? 0 : quarter(outlet), "", 3);
         }
         if (block instanceof SafetyValveBlock) return new Found(PidDrawing.SAFETY_VALVE, 0, tag, 3);
         if (block instanceof PressureTransmitterBlock) return new Found(PidDrawing.PRESSURE_TRANSMITTER, 0, tag, 2);

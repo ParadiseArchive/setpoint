@@ -74,9 +74,21 @@ public class PumpBlock extends BaseEntityBlock {
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof PumpBlockEntity pump) {
-            pump.report(player);
+            if (player.isSecondaryUseActive()) pump.toggleRedstoneMode(player);
+            else pump.report(player);
         }
         return InteractionResult.SUCCESS;
+    }
+
+    @Override
+    protected boolean hasAnalogOutputSignal(BlockState state) {
+        return true;
+    }
+
+    /** A comparator sees the pump run: 15 while it runs, 0 when it is stopped. */
+    @Override
+    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) {
+        return state.getValue(STATUS) == PumpStatus.OFF ? 0 : 15;
     }
 
     @Override

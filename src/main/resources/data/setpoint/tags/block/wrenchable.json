@@ -16,6 +16,7 @@
     "setpoint:water_intake",
     "setpoint:flow_transmitter",
     "setpoint:pressure_transmitter",
-    "setpoint:safety_valve"
+    "setpoint:safety_valve",
+    "setpoint:drain_valve"
   ]
 }

@@ -7,7 +7,6 @@ import org.jspecify.annotations.Nullable;
 import io.hookdev.setpoint.SetpointConfig;
 import io.hookdev.setpoint.SetpointContent;
 import io.hookdev.setpoint.block.BoilerBlock;
-import io.hookdev.setpoint.block.EquipmentTag;
 import io.hookdev.setpoint.hydraulics.PressureVessel;
 import io.hookdev.setpoint.hydraulics.Vessel;
 import io.hookdev.setpoint.menu.BoilerMenu;
@@ -59,7 +58,9 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
  * the burner before the design pressure; a safety valve on the drum vents it; a pressure controller (PIC) can
  * hold the pressure by turning the burner up and down, like the boiler master on a real plant.
  */
-public class BoilerBlockEntity extends BlockEntity implements MenuProvider, Vessel, PressureVessel {
+public class BoilerBlockEntity extends BlockEntity implements MenuProvider, Vessel, PressureVessel, NamedEquipment {
+    private final EquipmentName name = new EquipmentName("B");
+
     public static final int WATER_CAPACITY = 8_000;
     /** Room for steam: up to the range of a pressure transmitter. The drum bursts well before it is full. */
     public static final int STEAM_CAPACITY = (int) (BoilerModel.PRESSURE_RANGE * BoilerModel.STEAM_PER_BAR);
@@ -164,7 +165,15 @@ public class BoilerBlockEntity extends BlockEntity implements MenuProvider, Vess
     public boolean firing() { return firing; }
     public boolean tripped() { return tripped; }
     public boolean pressureTripped() { return pressureTripped; }
-    @Override public String tag() { return EquipmentTag.of("B", worldPosition); }
+    @Override public String tag() { return name.tag(worldPosition); }
+
+    @Override
+    public boolean rename(String newName) {
+        if (!name.rename(newName)) return false;
+        setChanged();
+        return true;
+    }
+
     @Override public double pressure() { return BoilerModel.pressure(steam); }
     @Override public double designPressure() { return BoilerModel.DESIGN_PRESSURE; }
 
@@ -364,6 +373,7 @@ public class BoilerBlockEntity extends BlockEntity implements MenuProvider, Vess
         output.putInt("burn_ticks_total", burnTotal);
         output.putBoolean("tripped", tripped);
         output.putBoolean("pressure_tripped", pressureTripped);
+        name.save(output);
     }
 
     @Override
@@ -377,5 +387,6 @@ public class BoilerBlockEntity extends BlockEntity implements MenuProvider, Vess
         burnTotal = input.getIntOr("burn_ticks_total", burnLeft);
         tripped = input.getBooleanOr("tripped", false);
         pressureTripped = input.getBooleanOr("pressure_tripped", false);
+        name.load(input);
     }
 }

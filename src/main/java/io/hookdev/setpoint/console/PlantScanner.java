@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.jspecify.annotations.Nullable;
 
-import io.hookdev.setpoint.block.EquipmentTag;
 import io.hookdev.setpoint.block.entity.BoilerBlockEntity;
 import io.hookdev.setpoint.block.entity.ControlValveBlockEntity;
 import io.hookdev.setpoint.block.entity.ControllerBlockEntity;
@@ -83,7 +82,7 @@ public final class PlantScanner {
                     List.of("PV", "SP", "OP"), new float[]{(float) pv, (float) lic.setpoint(), (float) lic.output()}, alarms);
         }
         if (be instanceof PumpBlockEntity pump) {
-            String tag = EquipmentTag.of("P", pos);
+            String tag = pump.tag();
             PumpModel.Result r = pump.lastResult();
             List<String> alarms = new ArrayList<>();
             String status;
@@ -124,7 +123,7 @@ public final class PlantScanner {
             String height = tank.column().size() > 1 ? "  (" + tank.column().size() + " high)" : "";
             double level = tank.fillFraction() * 100;
             String what = tank.amount() == 0 ? "EMPTY" : tank.resource().getFluidType().getDescription().getString().toUpperCase();
-            return new Reading(pos, EquipmentTag.of("T", pos), "TANK", what, Reading.NORMAL, pct(level) + height,
+            return new Reading(pos, tank.tag(), "TANK", what, Reading.NORMAL, pct(level) + height,
                     List.of("LEVEL %"), new float[]{(float) level}, List.of());
         }
         if (be instanceof FlowTransmitterBlockEntity ft) {
@@ -175,12 +174,12 @@ public final class PlantScanner {
             return new Reading(pos, intake.tag(), "INTAKE", ok ? "RUNNING" : "NO WATER", ok ? Reading.NORMAL : Reading.ATTENTION,
                     intake.sources() + " water sources", List.of("BUFFER %"), new float[]{(float) (intake.fillFraction() * 100)}, List.of());
         }
-        if (be instanceof CreativeGeneratorBlockEntity) {
-            return new Reading(pos, EquipmentTag.of("G", pos), "GEN", "RUNNING", Reading.NORMAL, "endless FE", List.of("BUFFER %"), new float[]{100}, List.of());
+        if (be instanceof CreativeGeneratorBlockEntity creative) {
+            return new Reading(pos, creative.tag(), "GEN", "RUNNING", Reading.NORMAL, "endless FE", List.of("BUFFER %"), new float[]{100}, List.of());
         }
         if (be instanceof GeneratorBlockEntity generator) {
             int stored = generator.energy().getAmountAsInt();
-            return new Reading(pos, EquipmentTag.of("G", pos), "GEN", generator.running() ? "RUNNING" : "IDLE", Reading.NORMAL,
+            return new Reading(pos, generator.tag(), "GEN", generator.running() ? "RUNNING" : "IDLE", Reading.NORMAL,
                     String.format("%,d FE", stored), List.of("BUFFER %"),
                     new float[]{stored * 100f / GeneratorBlockEntity.ENERGY_CAPACITY}, List.of());
         }

@@ -263,6 +263,7 @@ render('water_intake', [{ model: 'water_intake' }]);
 render('flow_transmitter', [{ model: 'flow_transmitter', y: 90 }], 6);
 render('pressure_transmitter', [{ model: 'pressure_transmitter', y: S }]);
 render('safety_valve', [{ model: 'safety_valve' }], 6);
+render('drain_valve', [{ model: 'drain_valve_open', y: 90 }], 6);
 // a protected boiler: turbine, boiler with a safety valve on top, pressure transmitter and its PIC
 render('pressure_plant', [
   { model: 'steam_turbine_on', at: [0, 0, 0], y: S },

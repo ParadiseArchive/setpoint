@@ -38,7 +38,9 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
  * and it pushes energy into every neighbour that accepts it. It only burns when the buffer has room,
  * so fuel is never wasted.
  */
-public abstract class GeneratorBlockEntity extends BlockEntity implements MenuProvider {
+public abstract class GeneratorBlockEntity extends BlockEntity implements MenuProvider, NamedEquipment {
+    private final EquipmentName name = new EquipmentName("G");
+
     public static final int ENERGY_CAPACITY = 20_000;
     public static final int PUSH_PER_SIDE = EnergyPush.PER_SIDE;
 
@@ -183,6 +185,16 @@ public abstract class GeneratorBlockEntity extends BlockEntity implements MenuPr
         return new GeneratorMenu(containerId, inventory, this);
     }
 
+    @Override
+    public String tag() { return name.tag(worldPosition); }
+
+    @Override
+    public boolean rename(String newName) {
+        if (!name.rename(newName)) return false;
+        setChanged();
+        return true;
+    }
+
     /** Drop the fuel when the block is broken. */
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
@@ -200,6 +212,7 @@ public abstract class GeneratorBlockEntity extends BlockEntity implements MenuPr
         input.serialize(output);
         output.putInt("run_ticks", runTicksLeft);
         output.putInt("run_ticks_total", runTicksTotal);
+        name.save(output);
     }
 
     @Override
@@ -209,5 +222,6 @@ public abstract class GeneratorBlockEntity extends BlockEntity implements MenuPr
         this.input.deserialize(input);
         runTicksLeft = input.getIntOr("run_ticks", 0);
         runTicksTotal = input.getIntOr("run_ticks_total", runTicksLeft);
+        name.load(input);
     }
 }

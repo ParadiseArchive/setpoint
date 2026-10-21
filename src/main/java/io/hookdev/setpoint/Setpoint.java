@@ -1,16 +1,20 @@
 package io.hookdev.setpoint;
 
+import com.mojang.logging.LogUtils;
 import org.slf4j.Logger;
 
-import com.mojang.logging.LogUtils;
-
+import io.hookdev.setpoint.block.entity.NamedEquipment;
 import io.hookdev.setpoint.gametest.SetpointGameTests;
 import io.hookdev.setpoint.network.ConsoleSnapshot;
 import io.hookdev.setpoint.network.PidRename;
 
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Prediction;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -19,6 +23,7 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 /**
@@ -37,6 +42,7 @@ public class Setpoint {
         modEventBus.addListener(Setpoint::registerCapabilities);
         modEventBus.addListener(Setpoint::registerPayloads);
         NeoForge.EVENT_BUS.addListener(Setpoint::giveHandbook);
+        NeoForge.EVENT_BUS.addListener(Setpoint::nameEquipment);
         LOGGER.info("Setpoint loaded. Holding steady.");
     }
 
@@ -51,6 +57,18 @@ public class Setpoint {
         player.setData(SetpointContent.HANDBOOK_GIVEN, true);
         ItemStack book = new ItemStack(SetpointContent.HANDBOOK.get());
         if (!player.getInventory().add(book)) player.drop(book, false, Prediction.SERVER_ONLY);
+    }
+
+    /** A renamed name tag on a pump, tank, boiler or other machine gives it that tag, like P-FEED. Instruments do this themselves. */
+    private static void nameEquipment(PlayerInteractEvent.RightClickBlock event) {
+        ItemStack stack = event.getItemStack();
+        Component name = stack.getCustomName();
+        if (!stack.is(Items.NAME_TAG) || name == null) return;
+        if (!(event.getLevel().getBlockEntity(event.getPos()) instanceof NamedEquipment equipment)) return;
+        event.setCanceled(true);
+        event.setCancellationResult(InteractionResult.SUCCESS);
+        if (event.getLevel().isClientSide() || !equipment.rename(name.getString())) return;
+        event.getEntity().sendSystemMessage(Component.literal("Tag set to " + equipment.tag()).withStyle(ChatFormatting.AQUA));
     }
 
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {

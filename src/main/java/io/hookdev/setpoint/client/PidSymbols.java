@@ -41,6 +41,9 @@ public final class PidSymbols {
             "..#.#...", "...#....", "..#.#...", "...#....", ".#####..", "..###+++", "...#....", "..###..."};
     private static final String[] PRESSURE_TRANSMITTER = {
             "..####..", ".#....#.", "#.+++..#", "#.+..+.#", "#.+++..#", "#.+....#", ".#....#.", "..####.."};
+    // a valve with its outlet open to the ground, and a drop coming out
+    private static final String[] DRAIN_VALVE = {
+            ".####...", "..##....", "#....#..", "##..##..", "#.##.#.+", "##..##++", "#....#++", "......+."};
     private static final String[] CONSOLE = {
             "########", "#++++++#", "#+....+#", "#++++++#", "########", "...##...", "..####..", "........"};
 
@@ -61,6 +64,7 @@ public final class PidSymbols {
             case PidDrawing.CONSOLE -> CONSOLE;
             case PidDrawing.SAFETY_VALVE -> SAFETY_VALVE;
             case PidDrawing.PRESSURE_TRANSMITTER -> PRESSURE_TRANSMITTER;
+            case PidDrawing.DRAIN_VALVE -> DRAIN_VALVE;
             default -> null;
         };
     }
@@ -68,7 +72,7 @@ public final class PidSymbols {
     /** Only symbols with a direction turn; vessels and instruments always stand upright. */
     private static boolean turns(int symbol) {
         return symbol == PidDrawing.PUMP || symbol == PidDrawing.CONTROL_VALVE || symbol == PidDrawing.HAND_VALVE
-                || symbol == PidDrawing.HAND_VALVE_SHUT || symbol == PidDrawing.TURBINE;
+                || symbol == PidDrawing.HAND_VALVE_SHUT || symbol == PidDrawing.TURBINE || symbol == PidDrawing.DRAIN_VALVE;
     }
 
     /** Draws a symbol with its top-left corner at (x, y), each mask pixel {@code scale} screen pixels big. */

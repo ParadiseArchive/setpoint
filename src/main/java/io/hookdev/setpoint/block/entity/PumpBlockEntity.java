@@ -4,7 +4,6 @@ import org.jspecify.annotations.Nullable;
 
 import io.hookdev.setpoint.SetpointContent;
 import io.hookdev.setpoint.advancement.PlantEventTrigger;
-import io.hookdev.setpoint.block.EquipmentTag;
 import io.hookdev.setpoint.block.PumpBlock;
 import io.hookdev.setpoint.block.PumpStatus;
 import io.hookdev.setpoint.hydraulics.ForeignVessel;
@@ -19,6 +18,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -32,7 +32,9 @@ import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 /** Runs the pump: finds both ends of the pipe run, solves the operating point and moves the liquid. */
-public class PumpBlockEntity extends BlockEntity {
+public class PumpBlockEntity extends BlockEntity implements NamedEquipment {
+    private final EquipmentName name = new EquipmentName("P");
+
     public static final int ENERGY_CAPACITY = 10_000;
     public static final int ENERGY_MAX_INPUT = 1_000;
     /** Wear per tick at full cavitation: a fully cavitating pump wears out in about 100 seconds. */
@@ -53,6 +55,7 @@ public class PumpBlockEntity extends BlockEntity {
     private PipeRun.@Nullable End discharge;
     private PumpModel.@Nullable Result last;
     private boolean commanded;
+    private boolean runOnSignal; // false: runs by itself and redstone stops it; true: runs only with a redstone signal
     private boolean powered;
 
     public PumpBlockEntity(BlockPos pos, BlockState state) {
@@ -106,7 +109,8 @@ public class PumpBlockEntity extends BlockEntity {
                 suction != null ? suction.valveResistance(level) : 0,
                 discharge != null ? discharge.valveResistance(level) : 0));
 
-        commanded = !level.hasNeighborSignal(pos); // runs by itself; a redstone signal is the stop button
+        // by default it runs by itself and a redstone signal is the stop button; or it runs only while it gets a signal
+        commanded = runOnSignal == level.hasNeighborSignal(pos);
         powered = energy.getAmountAsInt() >= result.power();
         boolean running = commanded && powered;
         if (running) {
@@ -144,6 +148,7 @@ public class PumpBlockEntity extends BlockEntity {
         PumpStatus status = !running ? PumpStatus.OFF : result.state() == PumpModel.State.OK ? PumpStatus.RUNNING : PumpStatus.ALARM;
         if (state.getValue(PumpBlock.STATUS) != status) {
             level.setBlock(pos, state.setValue(PumpBlock.STATUS, status), Block.UPDATE_CLIENTS);
+            level.updateNeighbourForOutputSignal(pos, state.getBlock()); // comparators see it start and stop
         }
     }
 
@@ -191,15 +196,36 @@ public class PumpBlockEntity extends BlockEntity {
         }
     }
 
+    @Override
+    public String tag() { return name.tag(worldPosition); }
+
+    @Override
+    public boolean rename(String newName) {
+        if (!name.rename(newName)) return false;
+        setChanged();
+        return true;
+    }
+
+    public boolean runOnSignal() { return runOnSignal; }
+
+    /** Sneak-right-click: switch between stop-on-signal and run-on-signal. */
+    public void toggleRedstoneMode(Player player) {
+        runOnSignal = !runOnSignal;
+        setChanged();
+        if (player instanceof ServerPlayer serverPlayer) serverPlayer.sendSystemMessage(Component.literal(tag() + "  redstone: ")
+                .withStyle(ChatFormatting.AQUA).append(Component.literal(runOnSignal ? "RUN ON SIGNAL (runs only with a signal)"
+                        : "STOP ON SIGNAL (runs by itself, a signal stops it)").withStyle(ChatFormatting.WHITE)), true);
+    }
+
     public void replaceImpeller(Player player) {
         wear = 0;
         setChanged();
-        player.sendSystemMessage(Component.literal(EquipmentTag.of("P", worldPosition) + "  new impeller fitted").withStyle(ChatFormatting.AQUA));
+        player.sendSystemMessage(Component.literal(tag() + "  new impeller fitted").withStyle(ChatFormatting.AQUA));
     }
 
     /** Field operator readout, sent to the player who right-clicks the pump. */
     public void report(Player player) {
-        String tag = EquipmentTag.of("P", worldPosition);
+        String tag = tag();
         MutableComponent line1 = Component.literal(tag + "  ").withStyle(ChatFormatting.AQUA);
         MutableComponent line2 = Component.empty();
         PumpModel.Result r = last;
@@ -207,7 +233,7 @@ public class PumpBlockEntity extends BlockEntity {
 
         if (!commanded) {
             line1.append(Component.literal("STOPPED").withStyle(ChatFormatting.GRAY))
-                    .append(Component.literal("  (redstone stop signal)").withStyle(ChatFormatting.DARK_GRAY));
+                    .append(Component.literal(runOnSignal ? "  (no redstone run signal)" : "  (redstone stop signal)").withStyle(ChatFormatting.DARK_GRAY));
         } else if (!powered) {
             line1.append(Component.literal("NO POWER").withStyle(ChatFormatting.GOLD));
         } else if (r == null || r.state() == PumpModel.State.OK) {
@@ -242,6 +268,8 @@ public class PumpBlockEntity extends BlockEntity {
         super.saveAdditional(output);
         energy.serialize(output);
         output.putDouble("wear", wear);
+        output.putBoolean("run_on_signal", runOnSignal);
+        name.save(output);
     }
 
     @Override
@@ -249,5 +277,7 @@ public class PumpBlockEntity extends BlockEntity {
         super.loadAdditional(input);
         energy.deserialize(input);
         wear = input.getDoubleOr("wear", 0);
+        runOnSignal = input.getBooleanOr("run_on_signal", false);
+        name.load(input);
     }
 }

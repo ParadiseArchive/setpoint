@@ -2,7 +2,6 @@ package io.hookdev.setpoint.block.entity;
 
 import io.hookdev.setpoint.SetpointContent;
 import io.hookdev.setpoint.advancement.PlantEventTrigger;
-import io.hookdev.setpoint.block.EquipmentTag;
 import io.hookdev.setpoint.hydraulics.Vessel;
 
 import net.minecraft.ChatFormatting;
@@ -23,7 +22,9 @@ import net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler;
  * A strainer you put in a river, lake or the sea. With at least two water source blocks next to it, it never
  * runs dry: pumps can draw from it like from a tank that is always full. Pumps cannot push into it.
  */
-public class WaterIntakeBlockEntity extends BlockEntity implements Vessel {
+public class WaterIntakeBlockEntity extends BlockEntity implements Vessel, NamedEquipment {
+    private final EquipmentName name = new EquipmentName("WI");
+
     /** How much a pump can take in one tick, refilled every tick while the intake sits in water. */
     public static final int BUFFER = 4_000;
     public static final int SOURCES_NEEDED = 2;
@@ -47,7 +48,15 @@ public class WaterIntakeBlockEntity extends BlockEntity implements Vessel {
         super(SetpointContent.WATER_INTAKE_ENTITY.get(), pos, state);
     }
 
-    public String tag() { return EquipmentTag.of("WI", worldPosition); }
+    @Override public String tag() { return name.tag(worldPosition); }
+
+    @Override
+    public boolean rename(String newName) {
+        if (!name.rename(newName)) return false;
+        setChanged();
+        return true;
+    }
+
     public int sources() { return sources; }
     public boolean submerged() { return sources >= SOURCES_NEEDED; }
 

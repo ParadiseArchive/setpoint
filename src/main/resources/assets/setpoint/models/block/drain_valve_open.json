@@ -1,0 +1,411 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "pipe": "setpoint:block/pipe",
+    "body": "setpoint:block/hand_valve_body",
+    "wheel": "setpoint:block/hand_valve_wheel",
+    "stem": "setpoint:block/hand_valve_stem",
+    "particle": "setpoint:block/hand_valve_body"
+  },
+  "elements": [
+    {
+      "from": [
+        5,
+        5,
+        10
+      ],
+      "to": [
+        11,
+        11,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ],
+          "texture": "#pipe"
+        },
+        "south": {
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ],
+          "texture": "#pipe"
+        },
+        "east": {
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ],
+          "texture": "#pipe"
+        },
+        "west": {
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ],
+          "texture": "#pipe"
+        },
+        "up": {
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ],
+          "texture": "#pipe"
+        },
+        "down": {
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ],
+          "texture": "#pipe"
+        }
+      }
+    },
+    {
+      "from": [
+        4,
+        4,
+        5
+      ],
+      "to": [
+        12,
+        11,
+        10
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4,
+            4,
+            12,
+            11
+          ],
+          "texture": "#body"
+        },
+        "south": {
+          "uv": [
+            4,
+            4,
+            12,
+            11
+          ],
+          "texture": "#body"
+        },
+        "east": {
+          "uv": [
+            4,
+            4,
+            12,
+            11
+          ],
+          "texture": "#body"
+        },
+        "west": {
+          "uv": [
+            4,
+            4,
+            12,
+            11
+          ],
+          "texture": "#body"
+        },
+        "up": {
+          "uv": [
+            4,
+            4,
+            12,
+            11
+          ],
+          "texture": "#body"
+        },
+        "down": {
+          "uv": [
+            4,
+            4,
+            12,
+            11
+          ],
+          "texture": "#body"
+        }
+      }
+    },
+    {
+      "from": [
+        6,
+        5,
+        1
+      ],
+      "to": [
+        10,
+        9,
+        5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6,
+            5,
+            10,
+            9
+          ],
+          "texture": "#pipe"
+        },
+        "south": {
+          "uv": [
+            6,
+            5,
+            10,
+            9
+          ],
+          "texture": "#pipe"
+        },
+        "east": {
+          "uv": [
+            6,
+            5,
+            10,
+            9
+          ],
+          "texture": "#pipe"
+        },
+        "west": {
+          "uv": [
+            6,
+            5,
+            10,
+            9
+          ],
+          "texture": "#pipe"
+        },
+        "up": {
+          "uv": [
+            6,
+            5,
+            10,
+            9
+          ],
+          "texture": "#pipe"
+        },
+        "down": {
+          "uv": [
+            6,
+            5,
+            10,
+            9
+          ],
+          "texture": "#pipe"
+        }
+      }
+    },
+    {
+      "from": [
+        7,
+        3,
+        1
+      ],
+      "to": [
+        9,
+        5,
+        3
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            7,
+            3,
+            9,
+            5
+          ],
+          "texture": "#pipe"
+        },
+        "south": {
+          "uv": [
+            7,
+            3,
+            9,
+            5
+          ],
+          "texture": "#pipe"
+        },
+        "east": {
+          "uv": [
+            7,
+            3,
+            9,
+            5
+          ],
+          "texture": "#pipe"
+        },
+        "west": {
+          "uv": [
+            7,
+            3,
+            9,
+            5
+          ],
+          "texture": "#pipe"
+        },
+        "up": {
+          "uv": [
+            7,
+            3,
+            9,
+            5
+          ],
+          "texture": "#pipe"
+        },
+        "down": {
+          "uv": [
+            7,
+            3,
+            9,
+            5
+          ],
+          "texture": "#pipe"
+        }
+      }
+    },
+    {
+      "from": [
+        7,
+        11,
+        7
+      ],
+      "to": [
+        9,
+        14,
+        9
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            7,
+            0,
+            9,
+            3
+          ],
+          "texture": "#stem"
+        },
+        "south": {
+          "uv": [
+            7,
+            0,
+            9,
+            3
+          ],
+          "texture": "#stem"
+        },
+        "east": {
+          "uv": [
+            7,
+            0,
+            9,
+            3
+          ],
+          "texture": "#stem"
+        },
+        "west": {
+          "uv": [
+            7,
+            0,
+            9,
+            3
+          ],
+          "texture": "#stem"
+        },
+        "up": {
+          "uv": [
+            7,
+            0,
+            9,
+            3
+          ],
+          "texture": "#stem"
+        }
+      }
+    },
+    {
+      "from": [
+        4,
+        14,
+        4
+      ],
+      "to": [
+        12,
+        15,
+        12
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wheel"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wheel"
+        },
+        "north": {
+          "uv": [
+            4,
+            0,
+            12,
+            1
+          ],
+          "texture": "#wheel"
+        },
+        "south": {
+          "uv": [
+            4,
+            0,
+            12,
+            1
+          ],
+          "texture": "#wheel"
+        },
+        "east": {
+          "uv": [
+            4,
+            0,
+            12,
+            1
+          ],
+          "texture": "#wheel"
+        },
+        "west": {
+          "uv": [
+            4,
+            0,
+            12,
+            1
+          ],
+          "texture": "#wheel"
+        }
+      }
+    }
+  ]
+}
