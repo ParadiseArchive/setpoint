@@ -29,6 +29,7 @@ Easy by default, depth for those who want it. A normal Minecraft player must be 
 - Sounds: cavitation rattle, relief valve hiss, quiet alarm tone.
 
 ## Testing
+- The dev client (runClient) also loads JEI (+ MezzConfig), Jade, Sodium and Iris from the Modrinth maven as localRuntime: for testing only, never shipped or required. Sodium is the 0.9.3 beta because 0.9.2 crashes on NeoForge 26.3.0.95. A shader pack (Complementary Reimagined) sits in run/shaderpacks, outside git.
 - Physics and control maths in plain classes with JUnit tests (no Minecraft needed).
 - NeoForge GameTests for in-world behaviour (`./gradlew runGameTestServer`).
 - The owner plays a test world per milestone with a checklist; multiplayer check with `runServer`.
