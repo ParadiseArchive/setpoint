@@ -1,19 +1,28 @@
 package io.hookdev.setpoint.block;
 
+import java.util.List;
+
 import org.jspecify.annotations.Nullable;
 
 import io.hookdev.setpoint.SetpointContent;
 import io.hookdev.setpoint.block.entity.PortableTankBlockEntity;
+import io.hookdev.setpoint.block.entity.TankPartBlockEntity;
+import io.hookdev.setpoint.hydraulics.Vessel;
 import io.hookdev.setpoint.hydraulics.VesselBlock;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -24,7 +33,8 @@ import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 
 /**
  * A container you can carry: a drum or an IBC. Holds any one liquid, works with pipes, pumps, controllers and
- * buckets like a tank, and keeps what is in it when you break it.
+ * buckets like a tank, and keeps what is in it when you break it. It is bigger than one block: this block is its
+ * base, and {@link TankPartBlock}s fill the rest of its space and pass everything on to it.
  */
 public abstract class PortableTankBlock extends BaseEntityBlock implements VesselBlock {
     private final int capacity;
@@ -41,6 +51,42 @@ public abstract class PortableTankBlock extends BaseEntityBlock implements Vesse
 
     /** The letters of its tag, like D for D-417. */
     public String prefix() { return prefix; }
+
+    /** How high the liquid can stand, in blocks: the surface is this far up when it is full. */
+    public abstract double liquidHeight();
+
+    /** The other blocks it takes up, besides this base block. */
+    public abstract List<BlockPos> parts(BlockPos base, BlockState state);
+
+    /** Which part shape a part block of this container gets. */
+    protected abstract int partKind();
+
+    /** Room for all of it? If not, it cannot be placed here. */
+    protected @Nullable BlockState fitting(BlockPlaceContext context, BlockState state) {
+        for (BlockPos part : parts(context.getClickedPos(), state)) {
+            if (!context.getLevel().getBlockState(part).canBeReplaced(context)) return null;
+        }
+        return state;
+    }
+
+    @Override
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity by, ItemStack itemStack) {
+        super.setPlacedBy(level, pos, state, by, itemStack);
+        if (level.isClientSide()) return;
+        for (BlockPos part : parts(pos, state)) {
+            level.setBlock(part, SetpointContent.TANK_PART.get().defaultBlockState().setValue(TankPartBlock.KIND, partKind()), Block.UPDATE_ALL);
+            if (level.getBlockEntity(part) instanceof TankPartBlockEntity be) be.setBase(pos);
+        }
+    }
+
+    /** Gone: its parts go too. */
+    @Override
+    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
+        for (BlockPos part : parts(pos, state)) {
+            if (level.getBlockEntity(part) instanceof TankPartBlockEntity be && pos.equals(be.base())) level.setBlock(part, Blocks.AIR.defaultBlockState(), Block.UPDATE_ALL);
+        }
+    }
 
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
@@ -76,6 +122,6 @@ public abstract class PortableTankBlock extends BaseEntityBlock implements Vesse
     /** A comparator reads the level: 0 when empty, 15 when full. */
     @Override
     protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) {
-        return level.getBlockEntity(pos) instanceof PortableTankBlockEntity tank ? io.hookdev.setpoint.hydraulics.Vessel.comparatorSignal(tank.fillFraction()) : 0;
+        return level.getBlockEntity(pos) instanceof PortableTankBlockEntity tank ? Vessel.comparatorSignal(tank.fillFraction()) : 0;
     }
 }

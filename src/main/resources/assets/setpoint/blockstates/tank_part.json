@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "kind=0": {
+      "model": "setpoint:block/tank_part"
+    },
+    "kind=1": {
+      "model": "setpoint:block/tank_part"
+    }
+  }
+}

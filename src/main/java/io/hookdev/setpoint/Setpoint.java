@@ -83,6 +83,7 @@ public class Setpoint {
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, SetpointContent.TANK_ENTITY.get(), (tank, side) -> tank.fluid());
         // Drums and IBCs hold fluid for buckets, pumps and other mods' pipes too.
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, SetpointContent.PORTABLE_TANK_ENTITY.get(), (tank, side) -> tank.fluid());
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, SetpointContent.TANK_PART_ENTITY.get(), (part, side) -> part.tank() == null ? null : part.tank().fluid());
         // Hoppers can feed the tank's bucket slot and take the result out below.
         event.registerBlockEntity(Capabilities.Item.BLOCK, SetpointContent.TANK_ENTITY.get(), (tank, side) -> tank.buckets());
         // Pumps take FE from any side; cables from other mods can power them.

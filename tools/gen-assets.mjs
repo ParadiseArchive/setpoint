@@ -899,92 +899,140 @@ recipe('flow_transmitter', [' G ', 'PCP'], { G: 'minecraft:glass_pane', P: 'setp
 // Drum and IBC: containers you can carry, with their liquid inside
 // =====================================================================================
 
-// drum: a blue steel barrel. Its round side is a pixel circle: slices that step in towards the front and back,
-// so from every side it looks round. The hoops are pressed into the steel; the label sits on the front.
-texture('drum_side', (p) => {
+// Models bigger than a block are cut at every block line, so each piece maps its texture 1 to 1:
+// the pixels stay the size of every other Minecraft pixel. texFor(face, piece) gives a face its texture (or none).
+function tiled(from, to, texFor, extra = () => ({})) {
+  const cuts = (a, b) => { const pts = [a]; for (let k = Math.floor(a / 16) * 16 + 16; k < b; k += 16) pts.push(k); pts.push(b); return pts; };
+  const xs = cuts(from[0], to[0]), ys = cuts(from[1], to[1]), zs = cuts(from[2], to[2]), out = [];
+  for (let a = 0; a < xs.length - 1; a++) for (let b = 0; b < ys.length - 1; b++) for (let c = 0; c < zs.length - 1; c++) {
+    const f = [xs[a], ys[b], zs[c]], t = [xs[a + 1], ys[b + 1], zs[c + 1]];
+    const cell = f.map((v) => Math.floor(v / 16 + 1e-9) * 16);
+    const [x1, y1, z1] = f.map((v, k) => v - cell[k]), [x2, y2, z2] = t.map((v, k) => v - cell[k]);
+    const uv = { north: [16 - x2, 16 - y2, 16 - x1, 16 - y1], south: [x1, 16 - y2, x2, 16 - y1], east: [16 - z2, 16 - y2, 16 - z1, 16 - y1],
+      west: [z1, 16 - y2, z2, 16 - y1], up: [x1, z1, x2, z2], down: [x1, 16 - z2, x2, 16 - z1] };
+    const inside = { west: a > 0, east: a < xs.length - 2, down: b > 0, up: b < ys.length - 2, north: c > 0, south: c < zs.length - 2 };
+    const faces = {};
+    for (const face of Object.keys(uv)) {
+      if (inside[face]) continue;
+      const texture = texFor(face, { from: f, to: t });
+      if (texture) faces[face] = { uv: uv[face], texture, ...extra(face) };
+    }
+    if (Object.keys(faces).length) out.push(box(f, t, faces));
+  }
+  return out;
+}
+// The inventory shows a big model shrunk to one block, around its middle.
+function shrunk(elements, centre, factor) {
+  const map = (p) => p.map((v, k) => +(8 + (v - centre[k]) * factor).toFixed(4));
+  return elements.map((e) => ({ ...e, from: map(e.from), to: map(e.to) }));
+}
+
+// drum: a blue steel barrel, one and a half blocks high. Its round side is a pixel circle: slices that step in towards
+// the front and back, so from every side it looks round. Two hoops are pressed into the steel; the label sits on the front.
+texture('drum_side', (p) => { // the lower block: bottom chime, a hoop, room for the label
   p.rect(0, 0, 16, 16, '#2e5fae');
-  p.rect(0, 0, 16, 1, '#4a7ccc'); p.rect(0, 15, 16, 1, '#1f417a');      // top and bottom chime
-  for (const y of [4, 11]) { p.rect(0, y, 16, 1, '#1f417a'); p.rect(0, y - 1, 16, 1, '#3f70c2'); } // pressed hoops
+  p.rect(0, 15, 16, 1, '#1f417a');                                         // bottom chime
+  p.rect(0, 7, 16, 1, '#3f70c2'); p.rect(0, 8, 16, 1, '#1f417a');         // pressed hoop
+  p.rect(1, 0, 1, 15, '#3f70c2');                                          // highlight
+});
+texture('drum_side_top', (p) => { // the upper half block (rows 8 to 15 are used): top chime and the second hoop
+  p.rect(0, 0, 16, 16, '#2e5fae');
+  p.rect(0, 8, 16, 1, '#4a7ccc'); p.rect(0, 9, 16, 1, '#24498a');         // top chime
+  p.rect(0, 12, 16, 1, '#3f70c2'); p.rect(0, 13, 16, 1, '#1f417a');       // pressed hoop
+  p.rect(1, 10, 1, 6, '#3f70c2');
 });
 texture('drum_top', (p) => {
   p.rect(0, 0, 16, 16, '#2b58a3');
-  p.rect(2, 2, 12, 12, '#3466b6');                                        // the lid inside its rim
-  p.rect(5, 4, 2, 2, C.steel3); p.rect(10, 10, 2, 2, C.steel3);           // bungs
+  p.rect(2, 2, 12, 12, '#3466b6');                                         // the lid inside its rim
+  p.rect(5, 4, 2, 2, C.steel3); p.rect(10, 10, 2, 2, C.steel3);            // bungs
   p.set(5, 4, C.steel4); p.set(10, 10, C.steel4);
 });
 texture('drum_label', (p) => {
   p.rect(0, 0, 16, 16, '#e8ecf2');
   p.rect(2, 3, 9, 2, '#9aa3b2'); p.rect(2, 7, 6, 2, '#9aa3b2'); p.rect(2, 11, 8, 2, '#9aa3b2');
-  p.rect(12, 9, 3, 5, '#ffb547');                                         // a hazard diamond, in pixels
+  p.rect(12, 9, 3, 5, '#ffb547');                                          // a hazard diamond, in pixels
 });
 texture('drum_bung', (p) => { p.rect(0, 0, 16, 16, C.steel3); p.rect(0, 0, 16, 1, C.steel4); });
 {
+  const H = 24;
   // the circle, radius 7: for each band of z, how far it reaches in x
   const bands = [[1, 2, 5, 11], [2, 3, 3, 13], [3, 5, 2, 14], [5, 11, 1, 15], [11, 13, 2, 14], [13, 14, 3, 13], [14, 15, 5, 11]];
-  const elements = bands.map(([z1, z2, x1, x2]) => box([x1, 0, z1], [x2, 16, z2], {
-    north: { uv: [x1, 0, x2, 16], texture: '#side' }, south: { uv: [x1, 0, x2, 16], texture: '#side' },
-    east: { uv: [z1, 0, z2, 16], texture: '#side' }, west: { uv: [z1, 0, z2, 16], texture: '#side' },
-    up: { uv: [x1, z1, x2, z2], texture: '#top' }, down: { uv: [x1, z1, x2, z2], texture: '#top', cullface: 'down' },
-  }));
-  elements.push(box([5.5, 5.5, 0.9], [10.5, 9.5, 1], { north: { uv: [0, 0, 16, 16], texture: '#label' } }));        // the label on the front
-  elements.push(box([5, 16, 4], [7, 16.5, 6], allFaces([0, 0, 2, 2], '#bung', ['down'])), box([10, 16, 10], [12, 16.5, 12], allFaces([0, 0, 2, 2], '#bung', ['down'])));
-  M('drum', { parent: 'minecraft:block/block',
-    textures: { side: tex('drum_side'), top: tex('drum_top'), label: tex('drum_label'), bung: tex('drum_bung'), particle: tex('drum_side') }, elements });
+  const elements = bands.flatMap(([z1, z2, x1, x2]) => tiled([x1, 0, z1], [x2, H, z2],
+    (face, piece) => face === 'up' || face === 'down' ? '#top' : piece.from[1] >= 16 ? '#side_top' : '#side',
+    (face) => (face === 'down' ? { cullface: 'down' } : {})));
+  elements.push(box([5.5, 9, 0.9], [10.5, 13, 1], { north: { uv: [0, 0, 16, 16], texture: '#label' } }));        // the label on the front
+  elements.push(box([5, H, 4], [7, H + 0.5, 6], allFaces([0, 0, 2, 2], '#bung', ['down'])), box([10, H, 10], [12, H + 0.5, 12], allFaces([0, 0, 2, 2], '#bung', ['down'])));
+  const textures = { side: tex('drum_side'), side_top: tex('drum_side_top'), top: tex('drum_top'), label: tex('drum_label'), bung: tex('drum_bung'), particle: tex('drum_side') };
+  M('drum', { parent: 'minecraft:block/block', textures, elements });
+  M('drum_item', { parent: 'minecraft:block/block', textures, elements: shrunk(elements, [8, (H + 0.5) / 2, 8], 16 / (H + 0.5)) });
   BS('drum', { variants: Object.fromEntries(Object.entries(yaw).map(([f, y]) => [`facing=${f}`, { model: 'setpoint:block/drum', ...(y ? { y } : {}) }])) });
-  item('drum', 'setpoint:block/drum');
+  item('drum', 'setpoint:block/drum_item');
 }
 recipe('drum', ['I I', 'IDI', 'III'], { I: 'minecraft:iron_ingot', D: 'minecraft:blue_dye' }, 'setpoint:drum');
 
-// IBC: a white tote in a steel cage on a pallet, an outlet valve at the front. The liquid shows through the tote:
-// a dotted layer just outside it, tinted with the colour of the liquid (every other pixel, so the white shines through)
+// IBC: two by two by two blocks. A white tote in a steel cage on a pallet, an outlet valve at the front. The liquid shows
+// through the tote: a dotted layer just outside it, tinted with the colour of the liquid (every other pixel, so the
+// white shines through). The model belongs to the front corner block and reaches over the other seven.
 texture('ibc_tote', (p) => {
   p.rect(0, 0, 16, 16, '#e6e8e3');
   for (let x = 0; x < 16; x += 4) p.rect(x, 0, 1, 16, '#d9dcd6');
-  for (const y of [3, 6, 9, 12]) p.rect(13, y, 2, 1, '#9aa09a'); // graduation marks
+  for (const y of [3, 7, 11]) p.rect(12, y, 3, 1, '#9aa09a');               // graduation marks
 });
 texture('ibc_cage', (p) => { p.rect(0, 0, 16, 16, '#8d939c'); p.rect(0, 0, 16, 1, '#b5bac2'); p.rect(0, 0, 1, 16, '#b5bac2'); p.rect(15, 0, 1, 16, '#5b6068'); });
 texture('ibc_pallet', (p) => {
   p.rect(0, 0, 16, 16, '#3a3d42');
-  for (const x of [1, 6, 11]) p.rect(x, 4, 4, 8, '#1e2024');                // fork slots
+  p.rect(3, 4, 10, 8, '#1e2024');                                            // fork slot
   p.rect(0, 0, 16, 1, '#4d5157');
 });
 texture('ibc_cap', (p) => { p.rect(0, 0, 16, 16, '#f2f2ee'); p.rect(0, 0, 16, 1, '#ffffff'); p.rect(0, 15, 16, 1, '#c9ccc6'); });
 texture('ibc_valve', (p) => { p.rect(0, 0, 16, 16, C.steel2); p.rect(0, 0, 16, 1, C.steel4); });
 texture('ibc_liquid', (p) => {
   for (let y = 1; y < 16; y++) for (let x = 0; x < 16; x++) if ((x + y) % 2 === 0) p.set(x, y, '#d0d0d0');
-  p.rect(0, 0, 16, 1, '#ffffff');                                           // the surface
+  p.rect(0, 0, 16, 1, '#ffffff');                                            // the surface
 });
-for (let level = 0; level <= 8; level++) {
-  const cage = allFaces([0, 0, 16, 16], '#cage');
-  const elements = [
-    box([0, 0, 0], [16, 2, 16], { ...allFaces([0, 0, 16, 2], '#pallet', ['up', 'down']), up: { uv: [0, 0, 16, 16], texture: '#pallet' }, down: { uv: [0, 0, 16, 16], texture: '#pallet', cullface: 'down' } }),
-    box([1, 2, 1], [15, 15, 15], { ...allFaces([1, 1, 15, 14], '#tote', ['up', 'down']), up: { uv: [1, 1, 15, 15], texture: '#tote' } }),
-  ];
-  if (level > 0) {
-    const h = 13 * level / 8;
-    const face = { uv: [0, 0, 16, Math.max(1, h)], texture: '#liquid', tintindex: 0 };
-    elements.push(box([0.99, 2, 0.99], [15.01, 2 + h, 15.01], { north: face, south: face, east: face, west: face }));
-  }
-  // the cage: corner posts, two uprights a side and three rings, all standing off the tote
-  for (const [x, z] of [[0, 0], [15, 0], [0, 15], [15, 15]]) elements.push(box([x, 2, z], [x + 1, 16, z + 1], cage));
-  for (const x of [5, 10]) elements.push(box([x, 2, 0.3], [x + 1, 15, 0.9], cage), box([x, 2, 15.1], [x + 1, 15, 15.7], cage));
-  for (const z of [5, 10]) elements.push(box([0.3, 2, z], [0.9, 15, z + 1], cage), box([15.1, 2, z], [15.7, 15, z + 1], cage));
-  for (const y of [6, 10.5]) {
-    elements.push(box([1, y, 0.3], [15, y + 1, 0.9], cage), box([1, y, 15.1], [15, y + 1, 15.7], cage),
-      box([0.3, y, 1], [0.9, y + 1, 15], cage), box([15.1, y, 1], [15.7, y + 1, 15], cage));
-  }
-  elements.push(box([1, 15, 0], [15, 16, 1], cage), box([1, 15, 15], [15, 16, 16], cage), box([0, 15, 1], [1, 16, 15], cage), box([15, 15, 1], [16, 16, 15], cage));
-  elements.push(box([6, 15, 6], [10, 16, 10], allFaces([0, 0, 4, 4], '#cap', ['down'])));            // filling cap
-  elements.push(box([6.5, 2, -0.5], [9.5, 4.5, 1], allFaces([0, 0, 3, 3], '#valve')));                 // outlet valve
-  elements.push(box([7.5, 4.5, -0.5], [8.5, 6, 0.5], allFaces([0, 0, 1, 2], '#pallet')));              // its handle
-  M('ibc_' + level, { parent: 'minecraft:block/block',
-    textures: { pallet: tex('ibc_pallet'), tote: tex('ibc_tote'), cage: tex('ibc_cage'), cap: tex('ibc_cap'), valve: tex('ibc_valve'),
-      liquid: tex('ibc_liquid'), particle: tex('ibc_tote') }, elements });
+{
+  const all = (t) => () => t;
+  const ibc = (level) => {
+    const elements = [
+      ...tiled([0, 0, 0], [32, 3, 32], all('#pallet'), (face) => (face === 'down' ? { cullface: 'down' } : {})),
+      ...tiled([2, 3, 2], [30, 30, 30], (face) => (face === 'down' ? null : '#tote')),
+    ];
+    if (level > 0) { // the liquid behind the tote: its surface row only at the top
+      const top = 3 + Math.round(27 * level / 8);
+      const pieces = top <= 16 ? [[3, top, 0]] : [[3, 16, 1], [16, top, 0]];
+      for (const [y1, y2, skip] of pieces) for (const [a, b] of [[1.98, 16], [16, 30.02]]) {
+        const h = y2 - y1, u = b - a;
+        const face = { uv: [0, skip, Math.min(16, u), skip + h], texture: '#liquid', tintindex: 0 };
+        elements.push(box([a, y1, 1.98], [b, y2, 1.99], { north: face }), box([a, y1, 30.01], [b, y2, 30.02], { south: face }),
+          box([1.98, y1, a], [1.99, y2, b], { west: face }), box([30.01, y1, a], [30.02, y2, b], { east: face }));
+      }
+    }
+    const cage = all('#cage');
+    for (const [x, z] of [[0, 0], [30, 0], [0, 30], [30, 30]]) elements.push(...tiled([x, 3, z], [x + 2, 32, z + 2], cage));      // corner posts
+    for (const x of [10, 21]) elements.push(...tiled([x, 3, 0.8], [x + 1, 30, 1.6], cage), ...tiled([x, 3, 30.4], [x + 1, 30, 31.2], cage));
+    for (const z of [10, 21]) elements.push(...tiled([0.8, 3, z], [1.6, 30, z + 1], cage), ...tiled([30.4, 3, z], [31.2, 30, z + 1], cage));
+    for (const y of [11, 20]) { // two rings around the tote
+      elements.push(...tiled([2, y, 0.8], [30, y + 1, 1.6], cage), ...tiled([2, y, 30.4], [30, y + 1, 31.2], cage),
+        ...tiled([0.8, y, 2], [1.6, y + 1, 30], cage), ...tiled([30.4, y, 2], [31.2, y + 1, 30], cage));
+    }
+    elements.push(...tiled([2, 30, 0], [30, 32, 2], cage), ...tiled([2, 30, 30], [30, 32, 32], cage),                         // top frame
+      ...tiled([0, 30, 2], [2, 32, 30], cage), ...tiled([30, 30, 2], [32, 32, 30], cage));
+    elements.push(...tiled([13, 30, 13], [19, 32, 19], (face) => (face === 'down' ? null : '#cap')));                           // filling cap
+    elements.push(box([14, 3, -1], [18, 7, 2], allFaces([0, 0, 4, 4], '#valve')), box([15, 7, -1], [17, 9, 0], allFaces([0, 0, 2, 2], '#pallet'))); // outlet valve
+    return elements;
+  };
+  const textures = { pallet: tex('ibc_pallet'), tote: tex('ibc_tote'), cage: tex('ibc_cage'), cap: tex('ibc_cap'), valve: tex('ibc_valve'),
+    liquid: tex('ibc_liquid'), particle: tex('ibc_tote') };
+  for (let level = 0; level <= 8; level++) M('ibc_' + level, { parent: 'minecraft:block/block', ambientocclusion: false, textures, elements: ibc(level) });
+  M('ibc_item', { parent: 'minecraft:block/block', textures, elements: shrunk(ibc(5), [16, 16, 16], 0.5) });
+  BS('ibc', { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => Array.from({ length: 9 }, (_, l) =>
+    [`facing=${f},level=${l}`, { model: 'setpoint:block/ibc_' + l, ...(y ? { y } : {}) }]))) });
+  json(join(ASSETS, 'items', 'ibc.json'), { model: { type: 'minecraft:model', model: 'setpoint:block/ibc_item',
+    tints: [{ type: 'minecraft:constant', value: -12618012 }] } }); // water blue in the inventory
 }
-BS('ibc', { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => Array.from({ length: 9 }, (_, l) =>
-  [`facing=${f},level=${l}`, { model: 'setpoint:block/ibc_' + l, ...(y ? { y } : {}) }]))) });
-json(join(ASSETS, 'items', 'ibc.json'), { model: { type: 'minecraft:model', model: 'setpoint:block/ibc_5',
-  tints: [{ type: 'minecraft:constant', value: -12618012 }] } }); // water blue in the inventory
+// the rest of a drum or IBC: nothing to draw (the base block's model reaches over it), only break particles
+M('tank_part', { textures: { particle: tex('ibc_tote') } });
+BS('tank_part', { variants: { 'kind=0': { model: 'setpoint:block/tank_part' }, 'kind=1': { model: 'setpoint:block/tank_part' } } });
 recipe('ibc', ['BBB', 'BCB', 'SSS'], { B: 'minecraft:iron_bars', C: 'minecraft:cauldron', S: 'minecraft:oak_slab' }, 'setpoint:ibc');
 
 // P&ID board: a thin dark panel in a steel frame; the drawing itself is painted on it by its renderer

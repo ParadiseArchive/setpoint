@@ -115,6 +115,7 @@ public final class SetpointGameTests {
         test("pid_board_shows_and_turns_a_hand_valve", SetpointGameTests::pidBoardShowsAndTurnsAHandValve, 100);
         test("pump_fills_an_ibc", SetpointGameTests::pumpFillsAnIbc, 300);
         test("a_broken_drum_keeps_its_liquid", SetpointGameTests::aBrokenDrumKeepsItsLiquid, 40);
+        test("an_ibc_takes_eight_blocks_and_breaks_whole", SetpointGameTests::anIbcTakesEightBlocksAndBreaksWhole, 40);
         test("high_pressure_trips_the_burner", SetpointGameTests::highPressureTripsTheBurner, 400);
         test("safety_valve_saves_the_boiler", SetpointGameTests::safetyValveSavesTheBoiler, 300);
         test("overpressure_bursts_an_unprotected_boiler", SetpointGameTests::overpressureBurstsAnUnprotectedBoiler, 100);
@@ -748,6 +749,7 @@ public final class SetpointGameTests {
         BlockPos pos = helper.absolutePos(new BlockPos(1, 1, 1));
         for (var block : SetpointContent.BLOCKS.getEntries()) {
             if (block.get() == SetpointContent.HOOKONIUM_ORE.get() || block.get() == SetpointContent.DEEPSLATE_HOOKONIUM_ORE.get()) continue;
+            if (block.get() == SetpointContent.TANK_PART.get()) continue; // the rest of a drum or IBC: its base drops
             var drops = Block.getDrops(block.get().defaultBlockState(), helper.getLevel(), pos, null, null, new ItemStack(Items.DIAMOND_PICKAXE));
             helper.assertTrue(drops.size() == 1 && drops.get(0).is(block.get().asItem()), block.getId() + " should drop itself, got " + drops);
         }
@@ -1028,11 +1030,42 @@ public final class SetpointGameTests {
     private static void pumpFillsAnIbc(GameTestHelper helper) {
         buildLine(helper, false);
         helper.setBlock(DESTINATION, SetpointContent.IBC.get());
-        fill(helper, SOURCE, 8_000);
+        fill(helper, SOURCE, 16_000);
         helper.succeedWhen(() -> {
             PortableTankBlockEntity ibc = helper.getBlockEntity(DESTINATION, PortableTankBlockEntity.class);
-            helper.assertTrue(ibc.amount() >= 4_000, "the IBC should fill up, has " + ibc.amount());
+            helper.assertTrue(ibc.amount() >= 8_000, "the IBC should fill up, has " + ibc.amount());
             helper.assertTrue(helper.getBlockState(DESTINATION).getValue(IbcBlock.LEVEL) >= 3, "the IBC should show its level");
+        });
+    }
+
+    /**
+     * Placed, an IBC takes two by two by two blocks; a bucket on a part fills the whole IBC; breaking any part breaks
+     * all of it and drops one IBC.
+     */
+    private static void anIbcTakesEightBlocksAndBreaksWhole(GameTestHelper helper) {
+        BlockPos base = new BlockPos(2, 1, 1);
+        BlockState state = SetpointContent.IBC.get().defaultBlockState().setValue(IbcBlock.FACING, Direction.NORTH);
+        helper.setBlock(base, state);
+        BlockPos abs = helper.absolutePos(base);
+        state.getBlock().setPlacedBy(helper.getLevel(), abs, helper.getLevel().getBlockState(abs), null, new ItemStack(SetpointContent.IBC_ITEM.get()));
+        var parts = ((IbcBlock) state.getBlock()).parts(abs, state);
+        helper.assertTrue(parts.size() == 7, "seven parts expected");
+        for (BlockPos part : parts) helper.assertTrue(helper.getLevel().getBlockState(part).is(SetpointContent.TANK_PART.get()), "a part should stand at " + part);
+        BlockPos farTop = abs.east().above().south();
+        var vessel = io.hookdev.setpoint.hydraulics.ForeignVessel.at(helper.getLevel(), farTop, null);
+        helper.assertTrue(vessel != null && vessel.positions().size() == 8, "a part should be the same vessel as the whole IBC");
+        helper.getBlockEntity(base, PortableTankBlockEntity.class).fluid().set(0, FluidResource.of(Fluids.WATER), 5_000);
+        helper.assertTrue(vessel.amount() == 5_000, "the part should see the IBC's water");
+        helper.getLevel().destroyBlock(farTop, true);
+        helper.runAfterDelay(2, () -> {
+            helper.assertTrue(helper.getLevel().getBlockState(abs).isAir(), "breaking a part should break the base");
+            for (BlockPos part : parts) helper.assertTrue(helper.getLevel().getBlockState(part).isAir(), "every part should be gone, not " + part);
+            var drops = helper.getLevel().getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, new net.minecraft.world.phys.AABB(abs).inflate(3));
+            helper.assertTrue(drops.stream().filter(e -> e.getItem().is(SetpointContent.IBC_ITEM.get())).count() == 1, "one IBC should drop, got " + drops);
+            var dropped = drops.stream().filter(e -> e.getItem().is(SetpointContent.IBC_ITEM.get())).findFirst().orElseThrow().getItem();
+            var contents = dropped.get(SetpointContent.FLUID_CONTENTS.get());
+            helper.assertTrue(contents != null && contents.copy().getAmount() == 5_000, "the IBC should drop with its water");
+            helper.succeed();
         });
     }
 

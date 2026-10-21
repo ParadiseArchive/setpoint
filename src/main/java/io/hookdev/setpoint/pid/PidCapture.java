@@ -23,6 +23,7 @@ import io.hookdev.setpoint.block.PumpBlock;
 import io.hookdev.setpoint.block.SafetyValveBlock;
 import io.hookdev.setpoint.block.SteamTurbineBlock;
 import io.hookdev.setpoint.block.TankBlock;
+import io.hookdev.setpoint.block.TankPartBlock;
 import io.hookdev.setpoint.block.WaterIntakeBlock;
 import io.hookdev.setpoint.block.entity.BoilerBlockEntity;
 import io.hookdev.setpoint.block.entity.ControllerBlockEntity;
@@ -157,6 +158,7 @@ public final class PidCapture {
         if (block instanceof TankBlock && be instanceof TankBlockEntity tank) {
             return new Found(PidDrawing.TANK, 0, tank.tag(), 5);
         }
+        if (block instanceof TankPartBlock) return null; // the rest of a drum or IBC: drawn once, at its base
         if (be instanceof PortableTankBlockEntity tank) {
             return new Found(block instanceof IbcBlock ? PidDrawing.IBC : PidDrawing.DRUM, 0, tank.tag(), 5);
         }

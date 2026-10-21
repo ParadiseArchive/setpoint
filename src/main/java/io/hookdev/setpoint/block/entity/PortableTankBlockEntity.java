@@ -1,5 +1,6 @@
 package io.hookdev.setpoint.block.entity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.jspecify.annotations.Nullable;
@@ -86,8 +87,23 @@ public class PortableTankBlockEntity extends BlockEntity implements Vessel, Name
 
     @Override public Fluid shownFluid() { return shownFluid; }
 
+    /** The base block and its parts. */
+    @Override
+    public List<BlockPos> positions() {
+        List<BlockPos> all = new ArrayList<>();
+        all.add(worldPosition);
+        all.addAll(((PortableTankBlock) getBlockState().getBlock()).parts(worldPosition, getBlockState()));
+        return all;
+    }
+
+    /** The liquid stands up to one and a half blocks in a drum, two in an IBC. */
+    @Override
+    public double surfaceY() {
+        return worldPosition.getY() + fillFraction() * ((PortableTankBlock) getBlockState().getBlock()).liquidHeight();
+    }
+
     public static void serverTick(Level level, BlockPos pos, BlockState state, PortableTankBlockEntity tank) {
-        tank.gravity.tick((ServerLevel) level, tank, List.of(pos)); // it drains downhill through its pipes like a tank
+        tank.gravity.tick((ServerLevel) level, tank, tank.positions()); // it drains downhill through the pipes on any of its blocks
     }
 
     private void onFluidChanged(Fluid before) {
