@@ -764,6 +764,10 @@ json(join(ASSETS, 'sounds.json'), {
     subtitle: 'subtitles.setpoint.entity.pallet_truck.horn',
     sounds: [{ name: 'setpoint:vehicle/horn', volume: 1.0 }], // made by tools/make-horn.mjs
   },
+  'entity.forklift.horn': {
+    subtitle: 'subtitles.setpoint.entity.forklift.horn',
+    sounds: [{ name: 'setpoint:vehicle/horn_low', volume: 1.0 }], // made by tools/make-horn.mjs, pitch 0.8
+  },
   'block.safety_valve.lift': {
     subtitle: 'subtitles.setpoint.block.safety_valve.lift',
     sounds: [{ name: 'minecraft:random/fizz', pitch: 0.6, volume: 0.6 }, { name: 'minecraft:random/fizz', pitch: 0.5, volume: 0.6 }],
@@ -1186,6 +1190,121 @@ texture('truck_wheel', (p) => { p.rect(0, 0, 16, 16, '#b0623a'); p.rect(6, 6, 4,
   item('pallet_truck', 'setpoint:block/pallet_truck_item');
 }
 recipe('pallet_truck', [' L ', 'IRI', 'I I'], { L: 'minecraft:lever', R: 'minecraft:redstone_block', I: 'minecraft:iron_ingot' }, 'setpoint:pallet_truck');
+
+// =====================================================================================
+// Forklift: an electric counterbalance forklift (modelled on a 3-tonne one, no brand name). Silver body, an orange
+// rounded counterweight at the back, a black triplex mast, black forks on a carriage, a silver overhead guard with a
+// slatted roof, big black drive wheels at the front and small steering wheels at the back.
+// Drawn in "forklift pixels": the entity stands at (0, 0, 0) and the forks point north (-z). Each moving part is its
+// own model (the block setpoint:forklift, one per part=), moved into a model's bounds by FORKLIFT_SHIFT;
+// ForkliftRenderer moves each part back (keep its SHIFT table in step with this one).
+// =====================================================================================
+texture('forklift_silver', (p) => {
+  p.rect(0, 0, 16, 16, '#b9bdc2');
+  p.rect(0, 0, 16, 1, '#d3d6da'); p.rect(0, 15, 16, 1, '#90949a');
+  p.set(4, 6, '#c6c9cd'); p.set(11, 10, '#a9adb2');
+});
+texture('forklift_panel', (p) => { // the hood side: silver with the black inlay
+  p.rect(0, 0, 16, 16, '#b9bdc2'); p.rect(0, 0, 16, 1, '#d3d6da'); p.rect(0, 15, 16, 1, '#90949a');
+  p.rect(2, 3, 12, 9, '#26282c'); p.rect(2, 3, 12, 1, '#3a3d42');
+  p.rect(3, 5, 5, 1, '#e8e8e8'); p.rect(3, 7, 7, 1, '#f08a1c'); // a white and an orange stripe, no name
+});
+texture('forklift_black', (p) => { p.rect(0, 0, 16, 16, '#26282c'); for (const [x, y] of [[3, 4], [11, 9], [6, 13]]) p.set(x, y, '#34373c'); });
+texture('forklift_mast', (p) => { // a steel channel: dark, with a lighter rolled edge
+  p.rect(0, 0, 16, 16, '#2d3035'); p.rect(0, 0, 1, 16, '#454950'); p.rect(15, 0, 1, 16, '#1d1f23');
+  for (let y = 2; y < 16; y += 5) p.set(8, y, '#383b41');
+});
+texture('forklift_fork', (p) => { p.rect(0, 0, 16, 16, '#35383d'); p.rect(0, 0, 16, 1, '#4a4e55'); p.rect(0, 15, 16, 1, '#24262a'); });
+texture('forklift_tyre', (p) => { p.rect(0, 0, 16, 16, '#1c1d20'); for (let x = 0; x < 16; x += 3) p.rect(x, 0, 1, 16, '#2a2c30'); });
+texture('forklift_wheel', (p) => { // the side of a wheel: tyre, black rim, a hub with its nuts
+  p.rect(0, 0, 16, 16, '#1c1d20');
+  p.rect(3, 3, 10, 10, '#2c2e33'); p.rect(5, 5, 6, 6, '#3d4046'); p.rect(7, 7, 2, 2, '#62666d');
+  for (const [x, y] of [[6, 6], [9, 6], [6, 9], [9, 9]]) p.set(x, y, '#8a8e95');
+});
+texture('forklift_roof', (p) => { // slats in a silver frame
+  p.rect(0, 0, 16, 16, '#b9bdc2');
+  for (let x = 1; x < 15; x += 3) p.rect(x, 1, 2, 14, '#2b2d31');
+});
+texture('forklift_seat', (p) => { p.rect(0, 0, 16, 16, '#232427'); p.rect(0, 7, 16, 1, '#36383c'); p.rect(7, 0, 1, 16, '#36383c'); });
+texture('forklift_light', (p) => { p.rect(0, 0, 16, 16, '#3a3d42'); p.rect(2, 2, 12, 12, '#fff3c4'); p.rect(4, 4, 8, 8, '#ffffff'); });
+texture('forklift_orange', (p) => { p.rect(0, 0, 16, 16, '#f08a1c'); p.rect(0, 0, 16, 1, '#f6a647'); p.rect(0, 15, 16, 1, '#c86e12'); p.rect(3, 6, 3, 2, '#d23a1c'); p.rect(10, 6, 3, 2, '#d23a1c'); });
+const FORKLIFT_SHIFT = { body: [0, -2, 0], outer: [0, -14, 0], middle: [0, -14, 0], inner: [0, -14, 0], carriage: [0, 0, 26] };
+{
+  const P = { body: [], outer: [], middle: [], inner: [], carriage: [] };
+  // a box in forklift pixels; t is a texture name, or { face: name, all: name }; skip lists faces left out
+  const add = (part, from, to, t, extra = {}) => P[part].push({ from, to, t, ...extra });
+  const mirror = (part, [x1, y1, z1], [x2, y2, z2], t, extra) => { add(part, [x1, y1, z1], [x2, y2, z2], t, extra); add(part, [-x2, y1, z1], [-x1, y2, z2], t, extra); };
+
+  // ---- body: hull, counterweight, hood with the seat, the dash, steering wheel, overhead guard, front wheels
+  add('body', [-9, 2, -18], [9, 10, 14], { all: 'silver', down: 'black' });                  // the hull
+  add('body', [-8, 10, -16], [8, 10.5, -4], 'black');                                         // the floor plate where your feet go
+  add('body', [-9, 10, -18], [9, 17, -15], { all: 'silver', up: 'black' });                  // the dash
+  add('body', [-9, 10, -4], [9, 15, 14], { all: 'silver', east: 'panel', west: 'panel', up: 'black' }); // the hood over the battery
+  add('body', [-4, 15, -1], [4, 17, 7], 'seat');                                              // the seat
+  add('body', [-4, 17, 6], [4, 26, 8], 'seat', { rot: { origin: [0, 17, 7], x: 10 } });      // its back, leaning back a little
+  add('body', [-9, 2, 14], [9, 17, 20], 'orange');                                            // the counterweight
+  add('body', [-8, 3, 20], [8, 16, 22], 'orange');                                            // rounded off at the back
+  add('body', [-8.5, 17, 14.5], [8.5, 18, 19.5], 'orange');                                   // and on top
+  add('body', [-1, 13, -13], [1, 23, -11], 'black', { rot: { origin: [0, 13, -12], x: 25 } }); // the steering column, leaning back to you
+  add('body', [-3.5, 22, -16], [3.5, 23, -10], 'black', { rot: { origin: [0, 13, -12], x: 25 } }); // the steering wheel
+  add('body', [1, 21, -14], [2, 25, -13], 'black', { rot: { origin: [0, 13, -12], x: 25 } });  // its knob
+  mirror('body', [7.5, 14, -17], [9, 34, -15.5], 'silver', { rot: { origin: [8, 14, -16], x: 17 } }); // front posts, leaning back
+  mirror('body', [7.5, 15, 12.5], [9, 34, 14], 'silver');                                     // rear posts
+  add('body', [-9, 32.5, -11], [9, 34, 14], { all: 'silver', up: 'roof', down: 'roof' });    // the roof
+  mirror('body', [6, 30.5, -11], [8.5, 32.5, -9], { all: 'silver', north: 'light' });        // work lights
+  mirror('body', [6, 0, -19.5], [11, 11, -8.5], { all: 'tyre', east: 'wheel', west: 'wheel' }, { whole: true }); // drive wheels
+  mirror('body', [6.5, 1, -20.5], [10.5, 10, -7.5], 'tyre');                                  // round them off a little
+  mirror('body', [6.5, -1, -18.5], [10.5, 0, -9.5], 'tyre');                                  // (and down to the floor)
+
+  // ---- the mast: three stages of steel channel, each one inside the last; the carriage runs up the inner one
+  mirror('outer', [6, 0, -22], [9, 44, -19], 'mast');
+  add('outer', [-9, 41, -22], [9, 44, -20], 'mast');                                          // top cross bar
+  add('outer', [-9, 1, -21], [9, 4, -19], 'mast');                                            // bottom cross bar
+  add('outer', [-1, 2, -20], [1, 36, -18.5], 'silver');                                       // the lift cylinder
+  mirror('middle', [4, 0, -22.5], [6, 44, -20], 'mast');
+  add('middle', [-6, 41, -22.5], [6, 43, -21], 'mast');
+  mirror('inner', [2, 0, -23], [4, 44, -21], 'mast');
+  add('inner', [-4, 40, -23], [4, 43.5, -21.5], 'mast');
+
+  // ---- the carriage with its load backrest and two forks
+  add('carriage', [-10, 1, -24.5], [10, 9, -22.5], 'mast');                                   // the carriage plates
+  mirror('carriage', [9, 9, -24], [10, 22, -23], 'mast');                                     // the backrest frame
+  add('carriage', [-10, 21, -24], [10, 22, -23], 'mast');
+  for (const x of [-6, -2, 2, 6]) add('carriage', [x - 0.5, 9, -23.8], [x + 0.5, 21, -23.2], 'mast');
+  mirror('carriage', [4, 0, -25.5], [7, 11, -24], 'fork');                                     // the fork shanks
+  mirror('carriage', [4, 0, -47], [7, 1.5, -25.5], 'fork');                                    // the tines
+  mirror('carriage', [4.5, 0, -50], [6.5, 1, -47], 'fork');                                    // their thin tips
+
+  const BUILD = (list, shift) => list.flatMap(({ from, to, t, rot, skip = [], whole }) => {
+    const m = (p) => p.map((v, k) => +(v + 8 * (k !== 1) + shift[k]).toFixed(4));
+    const pick = (f) => (skip.includes(f) ? null : '#' + (typeof t === 'string' ? t : (t[f] ?? t.all)));
+    // whole: one element, each face showing its whole texture (a wheel's side with the hub in the middle)
+    const els = whole ? [box(m(from), m(to), Object.fromEntries(['north', 'south', 'east', 'west', 'up', 'down'].map((f) => [f, { uv: [0, 0, 16, 16], texture: pick(f) }])))]
+      : tiled(m(from), m(to), pick);
+    return rot ? els.map((e) => ({ ...e, rotation: { origin: m(rot.origin), x: rot.x ?? 0, y: rot.y ?? 0, z: rot.z ?? 0 } })) : els;
+  });
+  const textures = { silver: tex('forklift_silver'), panel: tex('forklift_panel'), black: tex('forklift_black'), mast: tex('forklift_mast'),
+    fork: tex('forklift_fork'), tyre: tex('forklift_tyre'), wheel: tex('forklift_wheel'), roof: tex('forklift_roof'), seat: tex('forklift_seat'),
+    light: tex('forklift_light'), orange: tex('forklift_orange'), particle: tex('forklift_silver') };
+  const names = { body: 'forklift_body', outer: 'forklift_mast_outer', middle: 'forklift_mast_middle', inner: 'forklift_mast_inner', carriage: 'forklift_carriage' };
+  for (const [part, name] of Object.entries(names)) {
+    M(name, { parent: 'minecraft:block/block', ambientocclusion: false, textures, elements: BUILD(P[part], FORKLIFT_SHIFT[part]) });
+  }
+  // a rear steering wheel, around the model's middle so the renderer can turn it
+  const rearWheel = [
+    box([6, 0, 4.5], [10, 8, 11.5], { ...allFaces([0, 0, 7, 8], '#tyre'), east: { uv: [0, 0, 16, 16], texture: '#wheel' }, west: { uv: [0, 0, 16, 16], texture: '#wheel' } }),
+    box([6.5, 1, 3.5], [9.5, 7, 12.5], allFaces([0, 0, 3, 6], '#tyre')),
+  ];
+  M('forklift_rear_wheel', { parent: 'minecraft:block/block', ambientocclusion: false, textures, elements: rearWheel });
+  const partModels = ['forklift_body', 'forklift_mast_outer', 'forklift_mast_middle', 'forklift_mast_inner', 'forklift_carriage', 'forklift_rear_wheel', 'forklift_body', 'forklift_body'];
+  BS('forklift', { variants: Object.fromEntries(partModels.map((m, i) => [`part=${i}`, { model: 'setpoint:block/' + m }])) });
+  // the item: the whole forklift, forks down, shrunk to one block (the wheels at the back where they belong)
+  const whole = Object.values(P).flat();
+  const rear = [-6, 6].map((x) => ({ from: [x - 2, 0, 8.5], to: [x + 2, 8, 15.5], t: { all: 'tyre', east: 'wheel', west: 'wheel' }, whole: true }));
+  M('forklift_item', { parent: 'minecraft:block/block', textures, elements: shrunk(BUILD([...whole, ...rear], [-8, 0, -8]), [0, 22, -14], 16 / 74) });
+  item('forklift', 'setpoint:block/forklift_item');
+}
+recipe('forklift', ['P I', 'PRB', 'I I'], { P: 'minecraft:piston', I: 'minecraft:iron_ingot', R: 'minecraft:redstone_block', B: 'minecraft:iron_block' }, 'setpoint:forklift');
 
 // the rest of a drum or IBC: nothing to draw (the base block's model reaches over it), only break particles
 M('tank_part', { textures: { particle: tex('ibc_tote') } });

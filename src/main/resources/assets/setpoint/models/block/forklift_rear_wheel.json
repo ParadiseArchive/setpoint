@@ -1,0 +1,156 @@
+{
+  "parent": "minecraft:block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "silver": "setpoint:block/forklift_silver",
+    "panel": "setpoint:block/forklift_panel",
+    "black": "setpoint:block/forklift_black",
+    "mast": "setpoint:block/forklift_mast",
+    "fork": "setpoint:block/forklift_fork",
+    "tyre": "setpoint:block/forklift_tyre",
+    "wheel": "setpoint:block/forklift_wheel",
+    "roof": "setpoint:block/forklift_roof",
+    "seat": "setpoint:block/forklift_seat",
+    "light": "setpoint:block/forklift_light",
+    "orange": "setpoint:block/forklift_orange",
+    "particle": "setpoint:block/forklift_silver"
+  },
+  "elements": [
+    {
+      "from": [
+        6,
+        0,
+        4.5
+      ],
+      "to": [
+        10,
+        8,
+        11.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            7,
+            8
+          ],
+          "texture": "#tyre"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            7,
+            8
+          ],
+          "texture": "#tyre"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wheel"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#wheel"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            7,
+            8
+          ],
+          "texture": "#tyre"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            7,
+            8
+          ],
+          "texture": "#tyre"
+        }
+      }
+    },
+    {
+      "from": [
+        6.5,
+        1,
+        3.5
+      ],
+      "to": [
+        9.5,
+        7,
+        12.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            3,
+            6
+          ],
+          "texture": "#tyre"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            3,
+            6
+          ],
+          "texture": "#tyre"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            6
+          ],
+          "texture": "#tyre"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            6
+          ],
+          "texture": "#tyre"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            3,
+            6
+          ],
+          "texture": "#tyre"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            3,
+            6
+          ],
+          "texture": "#tyre"
+        }
+      }
+    }
+  ]
+}

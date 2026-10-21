@@ -1,5 +1,8 @@
 package io.hookdev.setpoint;
 
+import io.hookdev.setpoint.block.VehicleModelBlock;
+import io.hookdev.setpoint.entity.ForkliftEntity;
+import io.hookdev.setpoint.item.ForkliftItem;
 import com.mojang.serialization.Codec;
 
 import io.hookdev.setpoint.advancement.PlantEventTrigger;
@@ -131,6 +134,7 @@ public final class SetpointContent {
             SoundEvent::createVariableRangeEvent);
     /** The pallet truck's horn. */
     public static final DeferredHolder<SoundEvent, SoundEvent> PALLET_TRUCK_HORN = SOUNDS.register("entity.pallet_truck.horn", SoundEvent::createVariableRangeEvent);
+    public static final DeferredHolder<SoundEvent, SoundEvent> FORKLIFT_HORN = SOUNDS.register("entity.forklift.horn", SoundEvent::createVariableRangeEvent);
     /** The hiss of a safety valve blowing off steam. */
     public static final DeferredHolder<SoundEvent, SoundEvent> SAFETY_VALVE_LIFT = SOUNDS.register("block.safety_valve.lift",
             SoundEvent::createVariableRangeEvent);
@@ -244,6 +248,13 @@ public final class SetpointContent {
     public static final DeferredHolder<EntityType<?>, EntityType<PalletTruckEntity>> PALLET_TRUCK_ENTITY = ENTITIES.register("pallet_truck",
             id -> EntityType.Builder.<PalletTruckEntity>of(PalletTruckEntity::new, MobCategory.MISC).sized(1.4f, 1.0f)
                     .clientTrackingRange(10).updateInterval(1).build(ResourceKey.create(Registries.ENTITY_TYPE, id)));
+    public static final DeferredItem<ForkliftItem> FORKLIFT = ITEMS.registerItem("forklift", ForkliftItem::new, p -> p.stacksTo(1));
+    /** Holds the forklift's models (body, the three mast stages, the fork carriage), for its renderer; never placed. */
+    public static final DeferredBlock<VehicleModelBlock> FORKLIFT_MODEL = BLOCKS.registerBlock("forklift", VehicleModelBlock::new,
+            p -> p.noCollision().noOcclusion().noLootTable());
+    public static final DeferredHolder<EntityType<?>, EntityType<ForkliftEntity>> FORKLIFT_ENTITY = ENTITIES.register("forklift",
+            id -> EntityType.Builder.<ForkliftEntity>of(ForkliftEntity::new, MobCategory.MISC).sized(1.5f, 2.1f)
+                    .clientTrackingRange(10).updateInterval(1).build(ResourceKey.create(Registries.ENTITY_TYPE, id)));
     public static final DeferredItem<HandbookItem> HANDBOOK = ITEMS.registerItem("handbook", HandbookItem::new, p -> p.stacksTo(1));
     public static final DeferredItem<FieldCommunicatorItem> FIELD_COMMUNICATOR = ITEMS.registerItem("field_communicator", FieldCommunicatorItem::new,
             p -> p.stacksTo(1));
@@ -323,6 +334,7 @@ public final class SetpointContent {
                 output.accept(IBC_ITEM.get());
                 output.accept(PALLET_ITEM.get());
                 output.accept(PALLET_TRUCK.get());
+                output.accept(FORKLIFT.get());
                 output.accept(PUMP_ITEM.get());
                 output.accept(STIRLING_ENGINE_ITEM.get());
                 output.accept(BIOGAS_GENERATOR_ITEM.get());

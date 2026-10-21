@@ -1,0 +1,28 @@
+{
+  "variants": {
+    "part=0": {
+      "model": "setpoint:block/forklift_body"
+    },
+    "part=1": {
+      "model": "setpoint:block/forklift_mast_outer"
+    },
+    "part=2": {
+      "model": "setpoint:block/forklift_mast_middle"
+    },
+    "part=3": {
+      "model": "setpoint:block/forklift_mast_inner"
+    },
+    "part=4": {
+      "model": "setpoint:block/forklift_carriage"
+    },
+    "part=5": {
+      "model": "setpoint:block/forklift_rear_wheel"
+    },
+    "part=6": {
+      "model": "setpoint:block/forklift_body"
+    },
+    "part=7": {
+      "model": "setpoint:block/forklift_body"
+    }
+  }
+}

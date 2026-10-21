@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "P": "minecraft:piston",
+    "I": "minecraft:iron_ingot",
+    "R": "minecraft:redstone_block",
+    "B": "minecraft:iron_block"
+  },
+  "pattern": [
+    "P I",
+    "PRB",
+    "I I"
+  ],
+  "result": {
+    "id": "setpoint:forklift"
+  }
+}

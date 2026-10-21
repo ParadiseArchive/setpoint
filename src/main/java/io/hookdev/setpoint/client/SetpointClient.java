@@ -1,5 +1,7 @@
 package io.hookdev.setpoint.client;
 
+import io.hookdev.setpoint.network.ForkliftLift;
+import io.hookdev.setpoint.entity.ForkliftEntity;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import io.hookdev.setpoint.network.TruckLower;
 import java.util.ArrayList;
@@ -59,6 +61,11 @@ public class SetpointClient {
     public static final KeyMapping HORN = new KeyMapping("key.setpoint.horn", InputConstants.KEY_H, CATEGORY);
     /** Left CTRL: set the pallet down from the pallet truck you are driving. */
     public static final KeyMapping LOWER = new KeyMapping("key.setpoint.lower", InputConstants.KEY_LCONTROL, CATEGORY);
+    /** The arrow keys: the forks of the forklift you drive, up and down. */
+    public static final KeyMapping FORKS_UP = new KeyMapping("key.setpoint.forks_up", InputConstants.KEY_UP, CATEGORY);
+    public static final KeyMapping FORKS_DOWN = new KeyMapping("key.setpoint.forks_down", InputConstants.KEY_DOWN, CATEGORY);
+    /** What the arrow keys last told the server. */
+    private static int forksSent;
 
     public SetpointClient(IEventBus modEventBus) {
         modEventBus.addListener(SetpointClient::registerScreens);
@@ -68,10 +75,13 @@ public class SetpointClient {
             event.registerCategory(CATEGORY);
             event.register(HORN);
             event.register(LOWER);
+            event.register(FORKS_UP);
+            event.register(FORKS_DOWN);
         });
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> {
             while (HORN.consumeClick()) sendIfDriving(new TruckHorn());
             while (LOWER.consumeClick()) sendIfDriving(new TruckLower());
+            forks();
         });
         NeoForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingOut event) -> PidBoardTextures.clear());
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> BoardLook.tick());
@@ -131,10 +141,28 @@ public class SetpointClient {
         });
     }
 
-    /** The vehicle keys only do something while you drive a pallet truck. */
+    /** Holding an arrow key moves the forks: the server hears when that changes. */
+    private static void forks() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || !(mc.player.getVehicle() instanceof ForkliftEntity)) {
+            forksSent = 0;
+            return;
+        }
+        int direction = (FORKS_UP.isDown() ? 1 : 0) - (FORKS_DOWN.isDown() ? 1 : 0);
+        if (direction != forksSent) {
+            forksSent = direction;
+            ClientPacketDistributor.sendToServer(new ForkliftLift(direction));
+        }
+    }
+
+    /** The vehicle keys only do something while you drive a pallet truck or a forklift. */
     private static void sendIfDriving(CustomPacketPayload message) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) return;
+        if (mc.player.getVehicle() instanceof ForkliftEntity) {
+            if (message instanceof TruckHorn) ClientPacketDistributor.sendToServer(message);
+            return;
+        }
         for (PalletTruckEntity truck : mc.level.getEntitiesOfClass(PalletTruckEntity.class, mc.player.getBoundingBox().inflate(PalletTruckEntity.REACH))) {
             if (truck.driver() == mc.player) {
                 ClientPacketDistributor.sendToServer(message);
@@ -143,9 +171,10 @@ public class SetpointClient {
         }
     }
 
-    /** P&ID boards draw their drawing over the whole panel; the pallet truck is drawn from its model. */
+    /** P&ID boards draw their drawing over the whole panel; the pallet truck and the forklift are drawn from their models. */
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(SetpointContent.PALLET_TRUCK_ENTITY.get(), PalletTruckRenderer::new);
+        event.registerEntityRenderer(SetpointContent.FORKLIFT_ENTITY.get(), ForkliftRenderer::new);
         event.registerBlockEntityRenderer(SetpointContent.PID_BOARD_ENTITY.get(), PidBoardRenderer::new);
     }
 

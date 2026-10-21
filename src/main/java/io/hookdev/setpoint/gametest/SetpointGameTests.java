@@ -1,5 +1,6 @@
 package io.hookdev.setpoint.gametest;
 
+import io.hookdev.setpoint.entity.ForkliftEntity;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -122,6 +123,7 @@ public final class SetpointGameTests {
         test("dye_paints_drums_and_ibcs", SetpointGameTests::dyePaintsDrumsAndIbcs, 20);
         test("a_pallet_takes_up_to_four_drums", SetpointGameTests::aPalletTakesUpToFourDrums, 20);
         test("pallet_truck_picks_up_and_sets_down", SetpointGameTests::palletTruckPicksUpAndSetsDown, 40);
+        test("forklift_puts_a_pallet_on_a_shelf", SetpointGameTests::forkliftPutsAPalletOnAShelf, 40);
         test("high_pressure_trips_the_burner", SetpointGameTests::highPressureTripsTheBurner, 400);
         test("safety_valve_saves_the_boiler", SetpointGameTests::safetyValveSavesTheBoiler, 300);
         test("overpressure_bursts_an_unprotected_boiler", SetpointGameTests::overpressureBurstsAnUnprotectedBoiler, 100);
@@ -756,7 +758,7 @@ public final class SetpointGameTests {
         for (var block : SetpointContent.BLOCKS.getEntries()) {
             if (block.get() == SetpointContent.HOOKONIUM_ORE.get() || block.get() == SetpointContent.DEEPSLATE_HOOKONIUM_ORE.get()) continue;
             if (block.get() == SetpointContent.TANK_PART.get() || block.get() == SetpointContent.PALLET_PART.get()) continue; // parts: their base drops
-            if (block.get() == SetpointContent.PALLET_TRUCK_MODEL.get()) continue; // only holds a model
+            if (block.get() == SetpointContent.PALLET_TRUCK_MODEL.get() || block.get() == SetpointContent.FORKLIFT_MODEL.get()) continue; // only hold models
             var drops = Block.getDrops(block.get().defaultBlockState(), helper.getLevel(), pos, null, null, new ItemStack(Items.DIAMOND_PICKAXE));
             helper.assertTrue(drops.size() == 1 && drops.get(0).is(block.get().asItem()), block.getId() + " should drop itself, got " + drops);
         }
@@ -1159,6 +1161,39 @@ public final class SetpointGameTests {
         var pallets = BlockPos.betweenClosedStream(abs.offset(-2, 0, -2), abs.offset(2, 0, 2)).map(BlockPos::immutable).filter(p -> helper.getLevel().getBlockState(p).is(SetpointContent.PALLET.get())).toList();
         helper.assertTrue(pallets.size() == 1 && helper.getLevel().getBlockState(pallets.get(0)).getValue(PalletBlock.DRUMS) == 2, "one pallet with two drums should stand there again");
         truck.discard();
+        helper.succeed();
+    }
+
+    /**
+     * A forklift lifts a loaded pallet off the ground, sets it down on a shelf three blocks up, takes it off the shelf
+     * again, and with the shelf gone lowers it all the way to the ground.
+     */
+    private static void forkliftPutsAPalletOnAShelf(GameTestHelper helper) {
+        BlockPos base = new BlockPos(4, 1, 1);
+        BlockPos abs = helper.absolutePos(base);
+        var drums = List.of(new ItemStack(SetpointContent.DRUM_ITEM.get()), new ItemStack(SetpointContent.DRUM_ITEM.get()), new ItemStack(SetpointContent.DRUM_ITEM.get()));
+        for (BlockPos cell : List.of(base.below(), base.below().north(), base.below().east(), base.below().north().east())) helper.setBlock(cell, Blocks.STONE); // a floor
+        PalletBlock.place(helper.getLevel(), abs, Direction.WEST, drums); // covers x 4..5, z 0..1; its front to the west
+        var forklift = SetpointContent.FORKLIFT_ENTITY.get().create(helper.getLevel(), net.minecraft.world.entity.EntitySpawnReason.TRIGGERED);
+        // facing east, the middle of its forks 2.5 blocks ahead: the middle of the pallet
+        forklift.snapTo(new Vec3(abs.getX() + 1 - ForkliftEntity.PALLET_AHEAD, abs.getY(), abs.getZ()), -90, 0);
+        helper.getLevel().addFreshEntity(forklift);
+        forklift.pickUpNow();
+        helper.assertTrue(forklift.carriedDrums() == 3, "the forklift should carry the pallet with its three drums, carries " + forklift.carriedDrums());
+        helper.assertTrue(helper.getLevel().getBlockState(abs).isAir(), "the pallet should be off the ground");
+        List<BlockPos> shelf = List.of(base.above(2), base.above(2).north(), base.above(2).east(), base.above(2).north().east());
+        for (BlockPos cell : shelf) helper.setBlock(cell, Blocks.STONE);
+        forklift.raiseTo(3.5f);
+        forklift.lowerNow();
+        helper.assertTrue(!forklift.hasPallet(), "the forklift should have set the pallet down on the shelf");
+        helper.assertBlockProperty(base.above(3), PalletBlock.DRUMS, 3);
+        forklift.pickUpNow();
+        helper.assertTrue(forklift.carriedDrums() == 3, "the forklift should take the pallet off the shelf again");
+        for (BlockPos cell : shelf) helper.setBlock(cell, Blocks.AIR);
+        forklift.lowerNow();
+        helper.assertBlockProperty(base, PalletBlock.DRUMS, 3);
+        helper.assertTrue(forklift.lift() < 0.15f, "the forks should be down, in the pallet on the ground; at " + forklift.lift());
+        forklift.discard();
         helper.succeed();
     }
 

@@ -289,6 +289,22 @@ render('pallet_truck', [{ model: 'pallet_truck', y: 90 }], 4);
 // a truck carrying four drums: the pallet's middle over the middle of the forks (8, 12.5), riding 4 pixels up
 render('pallet_truck_loaded', [{ model: 'pallet_truck', y: 90 }, { model: 'pallet_4', y: 90, at: [-0.03125, 0.25, -0.5],
   tints: [[0xb0, 0x2e, 0x26], [0x3b, 0x79, 0xde], [0xfe, 0xd8, 0x3d], [0x5e, 0x7c, 0x16]] }], 3);
+// the forklift from its part models (see FORKLIFT_SHIFT in gen-assets.mjs), turned so its forks point at the right;
+// lift: fork height in blocks. The carriage rises first, then the inner mast, the middle one half as far.
+const forklift = (lift, load) => {
+  const extend = Math.max(0, lift - 1.25);
+  return [
+    { model: 'forklift_body', y: 90, at: [0, 2 / 16, 0] },
+    { model: 'forklift_rear_wheel', y: 90, at: [-0.75, 0, 0.375] }, { model: 'forklift_rear_wheel', y: 90, at: [-0.75, 0, -0.375] },
+    { model: 'forklift_mast_outer', y: 90, at: [0, 14 / 16, 0] },
+    { model: 'forklift_mast_middle', y: 90, at: [0, 14 / 16 + extend / 2, 0] },
+    { model: 'forklift_mast_inner', y: 90, at: [0, 14 / 16 + extend, 0] },
+    { model: 'forklift_carriage', y: 90, at: [26 / 16, lift, 0] },
+    ...(load ? [{ model: 'pallet_4', y: 270, at: [2, lift, 0.5], tints: load }] : []),
+  ];
+};
+render('forklift', forklift(0), 3);
+render('forklift_lifted', forklift(2.5, [[0xb0, 0x2e, 0x26], [0x3b, 0x79, 0xde], [0xfe, 0xd8, 0x3d], [0x5e, 0x7c, 0x16]]), 3);
 render('ibc_black', [{ model: 'ibc_5', y: S, tints: [[0x2a, 0x2c, 0x2f], [0x2a, 0x2c, 0x2f]] }], 4);
 render('ibc', [{ model: 'ibc_5', y: S }], 4);
 // gravity: a full tall tank runs into a low one through a check valve, until both stand at the same level

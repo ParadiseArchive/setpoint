@@ -101,6 +101,15 @@
       }
     ]
   },
+  "entity.forklift.horn": {
+    "subtitle": "subtitles.setpoint.entity.forklift.horn",
+    "sounds": [
+      {
+        "name": "setpoint:vehicle/horn_low",
+        "volume": 1
+      }
+    ]
+  },
   "block.safety_valve.lift": {
     "subtitle": "subtitles.setpoint.block.safety_valve.lift",
     "sounds": [

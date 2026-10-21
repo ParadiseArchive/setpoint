@@ -385,6 +385,38 @@
         },
         {
           "type": "h",
+          "text": "Forklift"
+        },
+        {
+          "type": "p",
+          "text": "An electric forklift you drive. Right-click the ground to set it down and right-click it to get in. **W** and **S** drive, **A** and **D** steer. It steers with its **rear wheels**, like a real one: the back swings out when you turn, so leave room behind you."
+        },
+        {
+          "type": "p",
+          "text": "The **arrow keys** raise and lower the forks, up to six blocks. Lower them to a pallet, drive them in and raise: the pallet comes up, drums and all. Lower it onto the ground, or onto anything solid higher up, and it stays there. With the load up high it only creeps along."
+        },
+        {
+          "type": "p",
+          "text": "Press **H** for the horn; sneak to get out."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:forklift",
+          "grid": [
+            "minecraft:piston",
+            "",
+            "minecraft:iron_ingot",
+            "minecraft:piston",
+            "minecraft:redstone_block",
+            "minecraft:iron_block",
+            "minecraft:iron_ingot",
+            "",
+            "minecraft:iron_ingot"
+          ],
+          "count": 1
+        },
+        {
+          "type": "h",
           "text": "Liquid runs downhill"
         },
         {
