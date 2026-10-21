@@ -1,27 +1,78 @@
-// Renders Setpoint's blocks as isometric pixel-art PNGs for the website, straight from the real
-// block models and textures (no Minecraft needed). Run from the project root:
+// Renders pictures for the website, straight from the real models and textures:
+//  - isometric pixel-art renders of Setpoint's blocks and small plants
+//  - item icons for every recipe ingredient and result, and for the items the machine screens show,
+//    taken from the vanilla Minecraft client jar (flat items as their texture, blocks rendered like in the inventory)
+//  - recipes.js: every Setpoint recipe as data, so the docs page draws its crafting grids from it
+// Run from the project root after a build (the jar comes from the Gradle cache):
 //   node tools/render-showcase.mjs <output folder>
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { join } from 'node:path';
-import { deflateSync, inflateSync } from 'node:zlib';
+import { deflateSync, inflateRawSync, inflateSync } from 'node:zlib';
 
 const ASSETS = 'src/main/resources/assets/setpoint';
 const OUT = process.argv[2] || 'build/showcase';
 mkdirSync(OUT, { recursive: true });
 
-// ---------- PNG read / write (RGBA 8 bit) ----------
-function readPng(path) {
-  const buf = readFileSync(path);
-  let o = 8, w = 0, h = 0, type = 6;
+// ---------- the vanilla client jar, read in place (a jar is a zip) ----------
+function openJar(path) {
+  const buf = readFileSync(path), entries = new Map();
+  let end = buf.length - 22;
+  while (buf.readUInt32LE(end) !== 0x06054b50) end--;
+  let o = buf.readUInt32LE(end + 16);
+  for (let i = 0, n = buf.readUInt16LE(end + 10); i < n; i++) {
+    const nameLen = buf.readUInt16LE(o + 28), extraLen = buf.readUInt16LE(o + 30), commentLen = buf.readUInt16LE(o + 32);
+    entries.set(buf.toString('utf8', o + 46, o + 46 + nameLen), {
+      method: buf.readUInt16LE(o + 10), size: buf.readUInt32LE(o + 20), local: buf.readUInt32LE(o + 42),
+    });
+    o += 46 + nameLen + extraLen + commentLen;
+  }
+  return (name) => {
+    const e = entries.get(name);
+    if (!e) return null;
+    const start = e.local + 30 + buf.readUInt16LE(e.local + 26) + buf.readUInt16LE(e.local + 28);
+    const data = buf.subarray(start, start + e.size);
+    return e.method === 8 ? inflateRawSync(data) : Buffer.from(data);
+  };
+}
+const CACHE = join(homedir(), '.gradle/caches/neoformruntime/artifacts');
+const JAR = existsSync(CACHE) && readdirSync(CACHE).filter((n) => /^minecraft_.*_client.jar$/.test(n)).sort().pop();
+if (!JAR) throw new Error('Minecraft client jar not found in ' + CACHE + ': run ./gradlew build once');
+const vanilla = openJar(join(CACHE, JAR));
+const LANG = { ...JSON.parse(vanilla('assets/minecraft/lang/en_us.json').toString('utf8')),
+  ...JSON.parse(readFileSync(join(ASSETS, 'lang/en_us.json'), 'utf8')) };
+
+/** Bytes of an asset, from the mod or from the vanilla jar. */
+function asset(ns, path) {
+  if (ns === 'setpoint') return readFileSync(join(ASSETS, path));
+  const data = vanilla('assets/' + ns + '/' + path);
+  if (!data) throw new Error('missing vanilla asset ' + ns + ':' + path);
+  return data;
+}
+const split = (id) => (id.includes(':') ? id.split(':') : ['minecraft', id]);
+
+// ---------- PNG read (any non-interlaced PNG: grey, RGB, palette, with alpha, 1 to 16 bit) / write (RGBA 8 bit) ----------
+function readPng(buf) {
+  let o = 8, w = 0, h = 0, depth = 8, type = 6, palette = null, trns = null;
   const idat = [];
   while (o < buf.length) {
     const len = buf.readUInt32BE(o), kind = buf.toString('ascii', o + 4, o + 8), data = buf.subarray(o + 8, o + 8 + len);
-    if (kind === 'IHDR') { w = data.readUInt32BE(0); h = data.readUInt32BE(4); type = data[9]; }
+    if (kind === 'IHDR') { w = data.readUInt32BE(0); h = data.readUInt32BE(4); depth = data[8]; type = data[9]; }
+    if (kind === 'PLTE') palette = data;
+    if (kind === 'tRNS') trns = data;
     if (kind === 'IDAT') idat.push(data);
     o += 12 + len;
   }
-  const bpp = type === 6 ? 4 : 3, stride = w * bpp, raw = inflateSync(Buffer.concat(idat));
+  const channels = { 0: 1, 2: 3, 3: 1, 4: 2, 6: 4 }[type], bits = channels * depth;
+  const bpp = Math.max(1, bits >> 3), stride = Math.ceil(w * bits / 8), raw = inflateSync(Buffer.concat(idat));
   const px = Buffer.alloc(w * h * 4), line = Buffer.alloc(stride), prev = Buffer.alloc(stride);
+  const max = (1 << Math.min(depth, 8)) - 1;
+  const sample = (x, c) => { // channel c of pixel x, scaled to 0..255 (palette indices left as they are)
+    if (depth === 16) return line[(x * channels + c) * 2];
+    if (depth === 8) return line[x * channels + c];
+    const bit = (x * channels + c) * depth, v = (line[bit >> 3] >> (8 - depth - (bit & 7))) & max;
+    return type === 3 ? v : Math.round(v * 255 / max);
+  };
   for (let y = 0; y < h; y++) {
     const f = raw[y * (stride + 1)];
     for (let i = 0; i < stride; i++) {
@@ -30,8 +81,21 @@ function readPng(path) {
       line[i] = (x + [0, a, b, (a + b) >> 1, pa <= pb && pa <= pc ? a : pb <= pc ? b : c][f]) & 255;
     }
     for (let x = 0; x < w; x++) {
-      for (let k = 0; k < 3; k++) px[(y * w + x) * 4 + k] = line[x * bpp + k];
-      px[(y * w + x) * 4 + 3] = bpp === 4 ? line[x * bpp + 3] : 255;
+      const i = (y * w + x) * 4;
+      if (type === 3) {
+        const k = sample(x, 0);
+        palette.copy(px, i, k * 3, k * 3 + 3);
+        px[i + 3] = trns && k < trns.length ? trns[k] : 255;
+      } else if (type === 0 || type === 4) {
+        px[i] = px[i + 1] = px[i + 2] = sample(x, 0);
+        // grey with tRNS: one grey value is transparent
+        px[i + 3] = type === 4 ? sample(x, 1) : trns && sample(x, 0) === Math.round(trns.readUInt16BE(0) * 255 / ((1 << depth) - 1)) ? 0 : 255;
+      } else {
+        for (let k = 0; k < 3; k++) px[i + k] = sample(x, k);
+        // RGB with tRNS: one colour is transparent
+        const key = trns && type === 2 && [0, 1, 2].every((k) => sample(x, k) === (depth === 16 ? trns[k * 2] : trns.readUInt16BE(k * 2)));
+        px[i + 3] = type === 6 ? sample(x, 3) : key ? 0 : 255;
+      }
     }
     line.copy(prev);
   }
@@ -54,23 +118,24 @@ function writePng(path, w, h, px) {
 // ---------- models ----------
 const textures = new Map();
 const texture = (id) => {
-  if (!textures.has(id)) textures.set(id, readPng(join(ASSETS, 'textures', id.replace('setpoint:', '') + '.png')));
-  return textures.get(id);
+  const [ns, path] = split(id);
+  if (!textures.has(ns + ':' + path)) textures.set(ns + ':' + path, readPng(asset(ns, 'textures/' + path + '.png')));
+  return textures.get(ns + ':' + path);
 };
-const cube = (t) => [{ from: [0, 0, 0], to: [16, 16, 16], faces: Object.fromEntries(Object.entries(t).map(([f, v]) => [f, { texture: v }])) }];
-const PARENTS = { // the vanilla parents the mod uses, as plain cubes
-  'minecraft:block/cube': (t) => cube({ north: t.north, south: t.south, east: t.east, west: t.west, up: t.up, down: t.down }),
-  'minecraft:block/cube_all': (t) => cube({ north: t.all, south: t.all, east: t.all, west: t.all, up: t.all, down: t.all }),
-  'minecraft:block/cube_bottom_top': (t) => cube({ north: t.side, south: t.side, east: t.side, west: t.side, up: t.top, down: t.bottom }),
-  'minecraft:block/orientable_with_bottom': (t) => cube({ north: t.front, south: t.side, east: t.side, west: t.side, up: t.top, down: t.bottom }),
-};
+/** A model with its parents merged: textures, elements, and whether it is a flat (generated) item. */
+function loadModel(id) {
+  const [ns, path] = split(id);
+  if (path === 'builtin/generated') return { textures: {}, elements: null, generated: true };
+  const m = JSON.parse(asset(ns, 'models/' + path + '.json').toString('utf8'));
+  const parent = m.parent ? loadModel(m.parent) : { textures: {}, elements: null, generated: false };
+  const own = Object.fromEntries(Object.entries(m.textures || {}).map(([k, v]) => [k, typeof v === 'object' ? v.sprite : v]));
+  return { textures: { ...parent.textures, ...own }, elements: m.elements || parent.elements, generated: parent.generated };
+}
+/** Elements of a block model with every face's texture resolved. Short names mean a Setpoint block model. */
 function model(name) {
-  const m = JSON.parse(readFileSync(join(ASSETS, 'models/block', name + '.json'), 'utf8'));
-  const t = m.textures || {};
-  const resolve = (ref) => { while (ref && ref.startsWith('#')) ref = t[ref.slice(1)]; return ref; };
-  const refs = Object.fromEntries(Object.keys(t).map((k) => [k, '#' + k]));
-  const elements = m.elements || (PARENTS[m.parent] ? PARENTS[m.parent](refs) : []);
-  return elements.map((e) => ({ ...e, faces: Object.fromEntries(Object.entries(e.faces).map(([f, v]) => [f, { ...v, texture: resolve(v.texture) }])) }));
+  const m = loadModel(name.includes('/') ? name : 'setpoint:block/' + name);
+  const resolve = (ref) => { while (ref && ref.startsWith('#')) ref = m.textures[ref.slice(1)]; return ref; };
+  return (m.elements || []).map((e) => ({ ...e, faces: Object.fromEntries(Object.entries(e.faces).map(([f, v]) => [f, { ...v, texture: resolve(v.texture) }])) }));
 }
 
 // face corners: origin at (u1, v1), then the u edge and the v edge, following Minecraft's uv layout
@@ -98,7 +163,7 @@ const rotY = ([x, y, z], deg) => { // blockstate y rotation, clockwise seen from
 const SHADE = { up: 1, down: 0.5, north: 0.8, south: 0.8, east: 0.6, west: 0.6 };
 
 /** parts: [{ model, at: [bx, by, bz] (blocks), y: rotation }] */
-function render(file, parts, scale = 4, pad = 2) {
+function render(file, parts, scale = 4, pad = 2, outline = true) {
   const quads = [];
   for (const { model: name, at = [0, 0, 0], y = 0 } of parts) {
     for (const e of model(name)) {
@@ -141,7 +206,7 @@ function render(file, parts, scale = 4, pad = 2) {
         if (a < 0 || a >= 1 || b < 0 || b >= 1) continue;
         const tex = (val, lo, hi) => Math.min(15, Math.max(0, Math.floor(hi >= lo ? val : val - 1e-6)));
         const tx = tex(u1 + a * (u2 - u1), u1, u2), ty = tex(v1 + b * (v2 - v1), v1, v2);
-        const t = q.tex, ti = ((ty * t.h / 16 | 0) * t.w + (tx * t.w / 16 | 0)) * 4;
+        const t = q.tex, ti = ((ty * t.w / 16 | 0) * t.w + (tx * t.w / 16 | 0)) * 4; // animated textures: first frame
         if (t.px[ti + 3] < 128) continue;
         const d = depth(q.o.map((c, i) => c + a * du[i] + b * dv[i])), i = py * W + pxx;
         if (d <= zbuf[i]) continue;
@@ -151,14 +216,14 @@ function render(file, parts, scale = 4, pad = 2) {
       }
     }
   }
-  save(file, W, H, px, scale);
+  save(file, W, H, px, scale, outline);
 }
 
-/** Integer upscale with a 1 px dark outline around the silhouette. */
-function save(file, W, H, px, scale) {
+/** Integer upscale, with a 1 px dark outline around the silhouette unless asked not to. */
+function save(file, W, H, px, scale, outline = true) {
   const out = Buffer.alloc(W * H * 4);
   px.copy(out);
-  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
+  for (let y = 0; outline && y < H; y++) for (let x = 0; x < W; x++) {
     const i = (y * W + x) * 4;
     if (px[i + 3]) continue;
     const near = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([ox, oy]) => {
@@ -171,6 +236,7 @@ function save(file, W, H, px, scale) {
   for (let y = 0; y < H * scale; y++) for (let x = 0; x < W * scale; x++) {
     out.copy(big, (y * W * scale + x) * 4, (((y / scale) | 0) * W + ((x / scale) | 0)) * 4, (((y / scale) | 0) * W + ((x / scale) | 0)) * 4 + 4);
   }
+  mkdirSync(join(OUT, file, '..'), { recursive: true });
   writePng(join(OUT, file + '.png'), W * scale, H * scale, big);
   console.log('wrote', file, W * scale + 'x' + H * scale);
 }
@@ -221,8 +287,57 @@ render('plant', [
 
 // the field communicator is a flat item: just scale it up
 {
-  const t = readPng(join(ASSETS, 'textures/item/field_communicator.png'));
+  const t = texture('setpoint:item/field_communicator');
   const W = t.w + 2, H = t.h + 2, px = Buffer.alloc(W * H * 4);
   for (let y = 0; y < t.h; y++) t.px.copy(px, ((y + 1) * W + 1) * 4, y * t.w * 4, (y + 1) * t.w * 4);
   save('field_communicator', W, H, px, 8);
 }
+
+// ---------- item icons and recipes for the docs ----------
+// Items the machine screens on the docs page show (fuel, buckets). Add any new ones here.
+const SCREEN_ITEMS = ['minecraft:coal', 'minecraft:bucket', 'minecraft:water_bucket'];
+
+/** Writes items/<namespace>/<name>.png: a flat item at 16x16, a block item rendered like in the inventory. */
+function icon(id) {
+  const [ns, name] = split(id);
+  const definition = JSON.parse(asset(ns, 'items/' + name + '.json').toString('utf8'));
+  const modelId = definition.model.model;
+  const m = loadModel(modelId);
+  const file = 'items/' + ns + '/' + name;
+  if (m.generated) {
+    const t = texture(m.textures.layer0), px = Buffer.alloc(16 * 16 * 4);
+    for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
+      const from = ((y * t.w / 16 | 0) * t.w + (x * t.w / 16 | 0)) * 4;
+      t.px.copy(px, (y * 16 + x) * 4, from, from + 4);
+    }
+    save(file, 16, 16, px, 1, false);
+  } else {
+    render(file, [{ model: modelId, y: 180 }], 1, 0, false); // front to the left, like the inventory
+  }
+  const key = ['item', 'block'].map((k) => k + '.' + ns + '.' + name).find((k) => LANG[k]);
+  return { name: key ? LANG[key] : name, icon: file + '.png' };
+}
+
+const items = {}, recipes = {};
+const need = (id) => { if (!items[id]) items[id] = icon(id); };
+const RECIPES = 'src/main/resources/data/setpoint/recipe';
+for (const fileName of readdirSync(RECIPES).sort()) {
+  const r = JSON.parse(readFileSync(join(RECIPES, fileName), 'utf8'));
+  if (r.type !== 'minecraft:crafting_shaped') continue;
+  const ingredient = (v) => (Array.isArray(v) ? v[0] : v);
+  const rows = r.pattern.length === 1 ? ['   ', r.pattern[0], '   '] : r.pattern; // a one-row recipe sits in the middle
+  const grid = [];
+  for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) {
+    const c = (rows[y] || '')[x];
+    const id = c && c !== ' ' ? ingredient(r.key[c]) : null;
+    if (id) need(id);
+    grid.push(id);
+  }
+  need(r.result.id);
+  recipes[r.result.id] = { grid, count: r.result.count || 1 };
+}
+SCREEN_ITEMS.forEach(need);
+writeFileSync(join(OUT, 'recipes.js'), '// Generated by setpoint/tools/render-showcase.mjs: do not edit by hand.\n'
+  + 'window.SETPOINT_ITEMS = ' + JSON.stringify(items, null, 1) + ';\n'
+  + 'window.SETPOINT_RECIPES = ' + JSON.stringify(recipes, null, 1) + ';\n');
+console.log('wrote recipes.js:', Object.keys(recipes).length, 'recipes,', Object.keys(items).length, 'items');
