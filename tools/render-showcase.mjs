@@ -165,10 +165,10 @@ const rotY = ([x, y, z], deg) => { // blockstate y rotation, clockwise seen from
 };
 const SHADE = { up: 1, down: 0.5, north: 0.8, south: 0.8, east: 0.6, west: 0.6 };
 
-/** parts: [{ model, at: [bx, by, bz] (blocks), y: rotation }] */
+/** parts: [{ model, at: [bx, by, bz] (blocks), y: rotation, xf: (pixel point) => moved point, after the rotation }] */
 function render(file, parts, scale = 4, pad = 2, outline = true) {
   const quads = [];
-  for (const { model: name, at = [0, 0, 0], y = 0, tints = [TINT, [255, 255, 255]] } of parts) {
+  for (const { model: name, at = [0, 0, 0], y = 0, tints = [TINT, [255, 255, 255]], xf = (p) => p } of parts) {
     for (const e of model(name)) {
       for (const [face, f] of Object.entries(e.faces)) {
         const q = faceQuad(face, e.from, e.to);
@@ -180,7 +180,7 @@ function render(file, parts, scale = 4, pad = 2, outline = true) {
           if (e.rotation.y) { const a = e.rotation.y * Math.PI / 180; [x, z] = [Math.cos(a) * x + Math.sin(a) * z, -Math.sin(a) * x + Math.cos(a) * z]; }
           return [x + ox, y + oy, z + oz];
         };
-        const place = (p) => rotY(turn(p), y).map((v, i) => v + at[i] * 16);
+        const place = (p) => xf(rotY(turn(p), y)).map((v, i) => v + at[i] * 16);
         const o = place(q.o), u = place(q.u), v = place(q.v);
         const n = [ // normal from the edges, to cull back faces
           (u[1] - o[1]) * (v[2] - o[2]) - (u[2] - o[2]) * (v[1] - o[1]),
@@ -308,6 +308,41 @@ render('forklift_lifted', forklift(2.5, [[0xb0, 0x2e, 0x26], [0x3b, 0x79, 0xde],
 // an IBC on a wooden pallet (tint 0 its liquid, tint 1 its tote), and one on the forklift
 render('pallet_ibc', [{ model: 'pallet_ibc_6', y: S, tints: [TINT, [255, 255, 255]] }], 4);
 render('forklift_ibc', forklift(1.5, [TINT, [255, 255, 255]], 'pallet_ibc_6'), 3);
+// the floating roof tank, put together like FloatingRoofTankRenderer does (TANK_SHIFT in gen-assets.mjs), its front
+// (the nozzle, the ladder in the front-right corner) toward the camera. deck: the roof's height in pixels.
+const TANK_SHIFT = { shell: [0, 0, -60], top: [0, -76, -56], rail: [0, -96, -56], pontoon: [0, 2, -40], deck: [0, 0, 0], manhole: [0, 0, 0],
+  rolling_ladder: [0, 0, 16], platform: [0, -80, -60], ladder: [0, 0, -66], cage: [0, 0, -66], nozzle: [0, 0, -52] };
+const floatingRoofTank = (deck) => {
+  const parts = [];
+  const spin = (deg) => { const a = deg * Math.PI / 180; return ([x, y, z]) => [x * Math.cos(a) + z * Math.sin(a), y, -x * Math.sin(a) + z * Math.cos(a)]; };
+  // a part model turned theta about the middle, after moving it (x, y, z) pixels out; then a final move, for the ladder
+  const piece = (name, theta, [x, y, z] = [0, 0, 0], then = (p) => p) => {
+    const sh = TANK_SHIFT[name], turn = spin(theta);
+    parts.push({ model: 'floating_roof_tank_' + name, xf: (p) => then(turn([p[0] + x - 8 - sh[0], p[1] + y - sh[1], p[2] + z - 8 - sh[2]])) });
+  };
+  for (let k = 0; k < 24; k++) {
+    for (const course of [0, 32, 64]) piece('shell', k * 15, [0, course, 0]);
+    piece('top', k * 15);
+    if (k !== 3) piece('rail', k * 15);
+    piece('pontoon', k * 15, [0, deck, 0]);
+  }
+  for (let x = -60; x < 60; x += 8) for (let z = -60; z < 60; z += 8) {
+    if (Math.hypot(Math.max(Math.abs(x), Math.abs(x + 8)), Math.max(Math.abs(z), Math.abs(z + 8))) < 60) piece('deck', 0, [x + 4, deck, z + 4]);
+  }
+  for (const [x, z] of [[0, 0], [-22, 14], [18, -24]]) piece('manhole', 0, [x, deck, z]);
+  for (const course of [0, 32, 64]) { piece('ladder', 45, [0, course, 0]); if (course) piece('cage', 45, [0, course, 0]); }
+  piece('platform', 45);
+  piece('nozzle', 0, [8, 0, 0]);
+  const pitch = Math.asin(Math.min(1, (97 - deck) / 84)), hinge = (p) => { // about x, then out to the hinge and round to the corner
+    const [x, y, z] = p, c = Math.cos(-pitch), sn = Math.sin(-pitch);
+    return spin(45)([x, y * c - z * sn + 97, y * sn + z * c + 58]);
+  };
+  for (let n = 0; n < 3; n++) piece('rolling_ladder', 0, [0, 0, -28 * n], hinge);
+  return parts;
+};
+render('floating_roof_tank', floatingRoofTank(52), 2);
+render('floating_roof_tank_full', floatingRoofTank(88), 2);
+render('floating_roof_tank_low', floatingRoofTank(14), 2);
 render('ibc_black', [{ model: 'ibc_5', y: S, tints: [[0x2a, 0x2c, 0x2f], [0x2a, 0x2c, 0x2f]] }], 4);
 render('ibc', [{ model: 'ibc_5', y: S }], 4);
 // gravity: a full tall tank runs into a low one through a check valve, until both stand at the same level

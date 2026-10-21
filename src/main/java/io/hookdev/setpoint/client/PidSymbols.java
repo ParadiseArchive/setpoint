@@ -52,6 +52,9 @@ public final class PidSymbols {
     // an IBC: a square tote in its cage, on a pallet
     private static final String[] IBC = {
             "########", "#.#..#.#", "########", "#+#++#+#", "#+#++#+#", "########", "##.##.##", "#..#..#."};
+    // a floating roof tank: an open shell, the roof floating on the liquid
+    private static final String[] FLOATING_ROOF_TANK = {
+            "#......#", "#......#", "#.####.#", "#++++++#", "#++++++#", "#++++++#", "#++++++#", "########"};
     private static final String[] CONSOLE = {
             "########", "#++++++#", "#+....+#", "#++++++#", "########", "...##...", "..####..", "........"};
 
@@ -76,6 +79,7 @@ public final class PidSymbols {
             case PidDrawing.CHECK_VALVE -> CHECK_VALVE;
             case PidDrawing.DRUM -> DRUM;
             case PidDrawing.IBC -> IBC;
+            case PidDrawing.FLOATING_ROOF_TANK -> FLOATING_ROOF_TANK;
             default -> null;
         };
     }

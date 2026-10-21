@@ -1,0 +1,183 @@
+{
+  "parent": "minecraft:block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "shell": "setpoint:block/frt_shell",
+    "shell_upper": "setpoint:block/frt_shell_upper",
+    "shell_in": "setpoint:block/frt_shell_in",
+    "trim": "setpoint:block/frt_trim",
+    "trim_top": "setpoint:block/frt_trim_top",
+    "rail": "setpoint:block/frt_rail",
+    "pontoon": "setpoint:block/frt_pontoon",
+    "pontoon_side": "setpoint:block/frt_pontoon_side",
+    "seal": "setpoint:block/frt_seal",
+    "deck": "setpoint:block/frt_deck",
+    "manhole": "setpoint:block/frt_manhole",
+    "steel": "setpoint:block/frt_steel",
+    "grating": "setpoint:block/frt_grating",
+    "flange": "setpoint:block/frt_flange",
+    "particle": "setpoint:block/frt_shell"
+  },
+  "elements": [
+    {
+      "from": [
+        0.1009,
+        0,
+        12
+      ],
+      "to": [
+        15.8991,
+        6,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0.10089999999999932,
+            10,
+            15.8991,
+            16
+          ],
+          "texture": "#pontoon_side"
+        },
+        "up": {
+          "uv": [
+            0.1009,
+            12,
+            15.8991,
+            16
+          ],
+          "texture": "#pontoon"
+        }
+      }
+    },
+    {
+      "from": [
+        0.1009,
+        0,
+        16
+      ],
+      "to": [
+        15.8991,
+        6,
+        28
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            0.1009,
+            10,
+            15.8991,
+            16
+          ],
+          "texture": "#pontoon_side"
+        },
+        "up": {
+          "uv": [
+            0.1009,
+            0,
+            15.8991,
+            12
+          ],
+          "texture": "#pontoon"
+        }
+      }
+    },
+    {
+      "from": [
+        -0.2941,
+        2,
+        28
+      ],
+      "to": [
+        0,
+        7,
+        31
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            9,
+            0.29410000000000025,
+            14
+          ],
+          "texture": "#seal"
+        },
+        "up": {
+          "uv": [
+            15.7059,
+            12,
+            16,
+            15
+          ],
+          "texture": "#seal"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        2,
+        28
+      ],
+      "to": [
+        16,
+        7,
+        31
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            9,
+            16,
+            14
+          ],
+          "texture": "#seal"
+        },
+        "up": {
+          "uv": [
+            0,
+            12,
+            16,
+            15
+          ],
+          "texture": "#seal"
+        }
+      }
+    },
+    {
+      "from": [
+        16,
+        2,
+        28
+      ],
+      "to": [
+        16.2941,
+        7,
+        31
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            15.7059,
+            9,
+            16,
+            14
+          ],
+          "texture": "#seal"
+        },
+        "up": {
+          "uv": [
+            0,
+            12,
+            0.29410000000000025,
+            15
+          ],
+          "texture": "#seal"
+        }
+      }
+    }
+  ]
+}

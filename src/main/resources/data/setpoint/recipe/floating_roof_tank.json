@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "I": "setpoint:hookonium_ingot",
+    "B": "setpoint:hookonium_block",
+    "T": "setpoint:tank"
+  },
+  "pattern": [
+    "IBI",
+    "BTB",
+    "IBI"
+  ],
+  "result": {
+    "id": "setpoint:floating_roof_tank"
+  }
+}

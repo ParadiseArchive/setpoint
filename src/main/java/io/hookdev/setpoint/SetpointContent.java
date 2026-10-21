@@ -18,7 +18,9 @@ import io.hookdev.setpoint.block.FlowTransmitterBlock;
 import io.hookdev.setpoint.block.FluidPipeBlock;
 import io.hookdev.setpoint.block.GeneratorBlock;
 import io.hookdev.setpoint.block.HandValveBlock;
+import io.hookdev.setpoint.block.FloatingRoofTankBlock;
 import io.hookdev.setpoint.block.IbcBlock;
+import io.hookdev.setpoint.block.RoofTankPartBlock;
 import io.hookdev.setpoint.block.LevelTransmitterBlock;
 import io.hookdev.setpoint.block.PalletBlock;
 import io.hookdev.setpoint.block.PalletPartBlock;
@@ -42,6 +44,7 @@ import io.hookdev.setpoint.block.entity.LevelTransmitterBlockEntity;
 import io.hookdev.setpoint.block.entity.MultiblockPartBlockEntity;
 import io.hookdev.setpoint.block.entity.PalletBlockEntity;
 import io.hookdev.setpoint.block.entity.PidBoardBlockEntity;
+import io.hookdev.setpoint.block.entity.FloatingRoofTankBlockEntity;
 import io.hookdev.setpoint.block.entity.PortableTankBlockEntity;
 import io.hookdev.setpoint.block.entity.PressureTransmitterBlockEntity;
 import io.hookdev.setpoint.block.entity.PumpBlockEntity;
@@ -164,6 +167,14 @@ public final class SetpointContent {
             p -> p.mapColor(MapColor.WOOD).strength(1.5f, 3.0f).sound(SoundType.WOOD).noOcclusion().noLootTable());
     public static final DeferredBlock<TankPartBlock> TANK_PART = BLOCKS.registerBlock("tank_part", TankPartBlock::new,
             p -> p.mapColor(MapColor.SNOW).strength(2.0f, 6.0f).sound(SoundType.METAL).noOcclusion().noLootTable());
+    /** Hookonium steel: as hard to break as obsidian, and it shrugs off explosions. Its shape follows the floating roof. */
+    public static final DeferredBlock<FloatingRoofTankBlock> FLOATING_ROOF_TANK = BLOCKS.registerBlock("floating_roof_tank", FloatingRoofTankBlock::new,
+            p -> p.mapColor(MapColor.SNOW).strength(5.0f, 1200.0f).sound(SoundType.NETHERITE_BLOCK).noOcclusion().dynamicShape());
+    public static final DeferredBlock<RoofTankPartBlock> ROOF_TANK_PART = BLOCKS.registerBlock("roof_tank_part", RoofTankPartBlock::new,
+            p -> p.mapColor(MapColor.SNOW).strength(5.0f, 1200.0f).sound(SoundType.NETHERITE_BLOCK).noOcclusion().dynamicShape().noLootTable());
+    /** Holds the floating roof tank's models (shell plates, roof, ladders), for its renderer; never placed. */
+    public static final DeferredBlock<VehicleModelBlock> FLOATING_ROOF_TANK_MODEL = BLOCKS.registerBlock("floating_roof_tank_model", VehicleModelBlock::new,
+            p -> p.noCollision().noOcclusion().noLootTable());
     public static final DeferredBlock<PidBoardBlock> PID_BOARD = BLOCKS.registerBlock("pid_board", PidBoardBlock::new,
             p -> p.mapColor(MapColor.COLOR_BLUE).strength(1.5f, 6.0f).sound(SoundType.METAL).noOcclusion()
                     .lightLevel(state -> state.getValue(PidBoardBlock.LIT) ? PidBoardBlock.LIGHT : 0));
@@ -226,6 +237,7 @@ public final class SetpointContent {
     public static final DeferredItem<BlockItem> PID_BOARD_ITEM = ITEMS.registerSimpleBlockItem(PID_BOARD);
     public static final DeferredItem<BlockItem> DRUM_ITEM = ITEMS.registerSimpleBlockItem(DRUM);
     public static final DeferredItem<BlockItem> IBC_ITEM = ITEMS.registerSimpleBlockItem(IBC);
+    public static final DeferredItem<BlockItem> FLOATING_ROOF_TANK_ITEM = ITEMS.registerSimpleBlockItem(FLOATING_ROOF_TANK, p -> p.rarity(Rarity.EPIC).stacksTo(1));
     public static final DeferredItem<BlockItem> PALLET_ITEM = ITEMS.registerSimpleBlockItem(PALLET);
     public static final DeferredItem<BlockItem> CONTROL_VALVE_ITEM = ITEMS.registerSimpleBlockItem(CONTROL_VALVE);
     public static final DeferredItem<BlockItem> CONTROLLER_ITEM = ITEMS.registerSimpleBlockItem(CONTROLLER);
@@ -274,12 +286,14 @@ public final class SetpointContent {
             () -> new BlockEntityType<>(PressureTransmitterBlockEntity::new, PRESSURE_TRANSMITTER.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PortableTankBlockEntity>> PORTABLE_TANK_ENTITY = BLOCK_ENTITIES.register("portable_tank",
             () -> new BlockEntityType<>(PortableTankBlockEntity::new, DRUM.get(), IBC.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FloatingRoofTankBlockEntity>> FLOATING_ROOF_TANK_ENTITY = BLOCK_ENTITIES.register("floating_roof_tank",
+            () -> new BlockEntityType<>(FloatingRoofTankBlockEntity::new, FLOATING_ROOF_TANK.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PalletBlockEntity>> PALLET_ENTITY = BLOCK_ENTITIES.register("pallet",
             () -> new BlockEntityType<>(PalletBlockEntity::new, PALLET.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MultiblockPartBlockEntity>> PALLET_PART_ENTITY = BLOCK_ENTITIES.register("pallet_part",
             () -> new BlockEntityType<>((pos, state) -> new MultiblockPartBlockEntity(SetpointContent.PALLET_PART_ENTITY.get(), pos, state), PALLET_PART.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TankPartBlockEntity>> TANK_PART_ENTITY = BLOCK_ENTITIES.register("tank_part",
-            () -> new BlockEntityType<>(TankPartBlockEntity::new, TANK_PART.get()));
+            () -> new BlockEntityType<>(TankPartBlockEntity::new, TANK_PART.get(), ROOF_TANK_PART.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PidBoardBlockEntity>> PID_BOARD_ENTITY = BLOCK_ENTITIES.register("pid_board",
             () -> new BlockEntityType<>(PidBoardBlockEntity::new, PID_BOARD.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DrainValveBlockEntity>> DRAIN_VALVE_ENTITY = BLOCK_ENTITIES.register("drain_valve",
@@ -332,6 +346,7 @@ public final class SetpointContent {
                 output.accept(TANK_ITEM.get());
                 output.accept(DRUM_ITEM.get());
                 output.accept(IBC_ITEM.get());
+                output.accept(FLOATING_ROOF_TANK_ITEM.get());
                 output.accept(PALLET_ITEM.get());
                 output.accept(PALLET_TRUCK.get());
                 output.accept(FORKLIFT.get());

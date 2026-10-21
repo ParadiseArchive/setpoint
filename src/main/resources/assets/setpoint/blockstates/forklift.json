@@ -23,6 +23,30 @@
     },
     "part=7": {
       "model": "setpoint:block/forklift_body"
+    },
+    "part=8": {
+      "model": "setpoint:block/forklift_body"
+    },
+    "part=9": {
+      "model": "setpoint:block/forklift_body"
+    },
+    "part=10": {
+      "model": "setpoint:block/forklift_body"
+    },
+    "part=11": {
+      "model": "setpoint:block/forklift_body"
+    },
+    "part=12": {
+      "model": "setpoint:block/forklift_body"
+    },
+    "part=13": {
+      "model": "setpoint:block/forklift_body"
+    },
+    "part=14": {
+      "model": "setpoint:block/forklift_body"
+    },
+    "part=15": {
+      "model": "setpoint:block/forklift_body"
     }
   }
 }

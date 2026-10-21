@@ -23,6 +23,8 @@
     "setpoint:pallet",
     "setpoint:drum",
     "setpoint:ibc",
+    "setpoint:floating_roof_tank",
+    "setpoint:roof_tank_part",
     "setpoint:hookonium_ore",
     "setpoint:deepslate_hookonium_ore",
     "setpoint:hookonium_block",

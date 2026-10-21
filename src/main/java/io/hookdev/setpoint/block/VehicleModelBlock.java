@@ -5,9 +5,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 
-/** Never placed: holds the models of a vehicle's moving parts (one per PART), for its renderer. */
+/** Never placed: holds the models of something a renderer puts together (a vehicle's moving parts, a big tank), one per PART. */
 public class VehicleModelBlock extends Block {
-    public static final IntegerProperty PART = IntegerProperty.create("part", 0, 7);
+    public static final IntegerProperty PART = IntegerProperty.create("part", 0, 15);
 
     public VehicleModelBlock(Block.Properties properties) {
         super(properties);

@@ -16,6 +16,7 @@ import io.hookdev.setpoint.block.CheckValveBlock;
 import io.hookdev.setpoint.block.ConsoleBlock;
 import io.hookdev.setpoint.block.ControlValveBlock;
 import io.hookdev.setpoint.block.DrainValveBlock;
+import io.hookdev.setpoint.block.FloatingRoofTankBlock;
 import io.hookdev.setpoint.block.FluidPipeBlock;
 import io.hookdev.setpoint.block.HandValveBlock;
 import io.hookdev.setpoint.block.IbcBlock;
@@ -31,6 +32,7 @@ import io.hookdev.setpoint.block.entity.ConsoleBlockEntity;
 import io.hookdev.setpoint.block.entity.ControlValveBlockEntity;
 import io.hookdev.setpoint.block.entity.ControllerBlockEntity;
 import io.hookdev.setpoint.block.entity.DrainValveBlockEntity;
+import io.hookdev.setpoint.block.entity.FloatingRoofTankBlockEntity;
 import io.hookdev.setpoint.block.entity.GeneratorBlockEntity;
 import io.hookdev.setpoint.block.entity.LevelTransmitterBlockEntity;
 import io.hookdev.setpoint.block.entity.PidBoardBlockEntity;
@@ -83,6 +85,8 @@ public final class SetpointGameTests {
 
     /** How long each test may take, in ticks. */
     private static final Map<String, Integer> MAX_TICKS = new LinkedHashMap<>();
+    /** Tests that need more room than the bench: they get the big bench (10 x 8 x 10). */
+    private static final java.util.Set<String> BIG = new java.util.HashSet<>();
 
     static {
         test("pump_moves_water", SetpointGameTests::pumpMovesWater, 200);
@@ -142,6 +146,8 @@ public final class SetpointGameTests {
         test("a_high_pipe_is_an_overflow", SetpointGameTests::aHighPipeIsAnOverflow, 600);
         test("check_valve_lets_one_way_through", SetpointGameTests::checkValveLetsOneWayThrough, 200);
         test("controller_holds_a_gravity_fed_tank", SetpointGameTests::controllerHoldsAGravityFedTank, 1600);
+        test("a_floating_roof_tank_floats_its_roof", SetpointGameTests::aFloatingRoofTankFloatsItsRoof, 40);
+        BIG.add("a_floating_roof_tank_floats_its_roof");
     }
 
     private static void test(String name, Consumer<GameTestHelper> function, int maxTicks) {
@@ -164,7 +170,7 @@ public final class SetpointGameTests {
         Holder<TestEnvironmentDefinition<?>> environment = event.registerEnvironment(Setpoint.id("default"));
         for (var function : FUNCTIONS.getEntries()) {
             event.registerTest(function.getId(), new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, function.getId()),
-                    new TestData<>(environment, Setpoint.id("bench"), MAX_TICKS.get(function.getId().getPath()), 0, true)));
+                    new TestData<>(environment, Setpoint.id(BIG.contains(function.getId().getPath()) ? "big_bench" : "bench"), MAX_TICKS.get(function.getId().getPath()), 0, true)));
         }
     }
 
@@ -762,8 +768,10 @@ public final class SetpointGameTests {
         BlockPos pos = helper.absolutePos(new BlockPos(1, 1, 1));
         for (var block : SetpointContent.BLOCKS.getEntries()) {
             if (block.get() == SetpointContent.HOOKONIUM_ORE.get() || block.get() == SetpointContent.DEEPSLATE_HOOKONIUM_ORE.get()) continue;
-            if (block.get() == SetpointContent.TANK_PART.get() || block.get() == SetpointContent.PALLET_PART.get()) continue; // parts: their base drops
-            if (block.get() == SetpointContent.PALLET_TRUCK_MODEL.get() || block.get() == SetpointContent.FORKLIFT_MODEL.get()) continue; // only hold models
+            if (block.get() == SetpointContent.TANK_PART.get() || block.get() == SetpointContent.PALLET_PART.get()
+                    || block.get() == SetpointContent.ROOF_TANK_PART.get()) continue; // parts: their base drops
+            if (block.get() == SetpointContent.PALLET_TRUCK_MODEL.get() || block.get() == SetpointContent.FORKLIFT_MODEL.get()
+                    || block.get() == SetpointContent.FLOATING_ROOF_TANK_MODEL.get()) continue; // only hold models
             var drops = Block.getDrops(block.get().defaultBlockState(), helper.getLevel(), pos, null, null, new ItemStack(Items.DIAMOND_PICKAXE));
             helper.assertTrue(drops.size() == 1 && drops.get(0).is(block.get().asItem()), block.getId() + " should drop itself, got " + drops);
         }
@@ -1200,6 +1208,45 @@ public final class SetpointGameTests {
         helper.assertTrue(forklift.lift() < 0.15f, "the forks should be down, in the pallet on the ground; at " + forklift.lift());
         forklift.discard();
         helper.succeed();
+    }
+
+    /**
+     * A floating roof tank takes its 8 x 8 x 6 blocks (bar three corners), holds 8000 B, its roof rises and falls with
+     * the level (and the blocks' shapes with it), and it breaks whole, its liquid going along in the item.
+     */
+    private static void aFloatingRoofTankFloatsItsRoof(GameTestHelper helper) {
+        BlockPos base = new BlockPos(4, 1, 1);
+        BlockState state = SetpointContent.FLOATING_ROOF_TANK.get().defaultBlockState().setValue(FloatingRoofTankBlock.FACING, Direction.NORTH);
+        helper.setBlock(base, state);
+        BlockPos abs = helper.absolutePos(base);
+        state.getBlock().setPlacedBy(helper.getLevel(), abs, helper.getLevel().getBlockState(abs), null, new ItemStack(SetpointContent.FLOATING_ROOF_TANK_ITEM.get()));
+        var parts = ((FloatingRoofTankBlock) state.getBlock()).parts(abs, state);
+        helper.assertTrue(parts.size() == 61 * 6 - 1, "61 columns of six blocks expected, besides the base; got " + parts.size());
+        for (BlockPos part : parts) helper.assertTrue(helper.getLevel().getBlockState(part).is(SetpointContent.ROOF_TANK_PART.get()), "a part should stand at " + part);
+        helper.assertBlockProperty(new BlockPos(1, 6, 1), io.hookdev.setpoint.block.RoofTankPartBlock.LADDER, true);
+        helper.assertBlockNotPresent(SetpointContent.ROOF_TANK_PART.get(), new BlockPos(8, 1, 1)); // the front-left corner stays free
+        FloatingRoofTankBlockEntity tank = helper.getBlockEntity(base, FloatingRoofTankBlockEntity.class);
+        tank.fluid().set(0, FluidResource.of(Fluids.WATER), FloatingRoofTankBlock.CAPACITY);
+        BlockPos middle = FloatingRoofTankBlock.cell(abs, state, 3, 3, 5);
+        helper.runAfterDelay(2, () -> {
+            helper.assertTrue(tank.deck() == FloatingRoofTankBlock.DECK_HIGH, "a full tank floats its roof just under the rim, at " + tank.deck());
+            helper.assertTrue(!tank.canAccept(FluidResource.of(Fluids.WATER)), "a full tank should take no more");
+            double top = helper.getLevel().getBlockState(middle).getCollisionShape(helper.getLevel(), middle).max(Direction.Axis.Y);
+            helper.assertTrue(Math.abs(top - 0.5) < 1e-6, "you should stand on the roof half way up the top layer, at " + top);
+            tank.fluid().set(0, FluidResource.of(Fluids.WATER), 2_000_000);
+            helper.runAfterDelay(2, () -> {
+                helper.assertTrue(tank.deck() == FloatingRoofTankBlockEntity.deckFor(0.25), "a quarter full, the roof should come down, at " + tank.deck());
+                helper.assertTrue(helper.getLevel().getBlockState(middle).getCollisionShape(helper.getLevel(), middle).isEmpty(), "the top layer should be open with the roof low");
+                var drops = Block.getDrops(helper.getLevel().getBlockState(abs), helper.getLevel(), abs, tank, null, new ItemStack(Items.DIAMOND_PICKAXE));
+                ItemStack item = drops.stream().filter(i -> i.is(SetpointContent.FLOATING_ROOF_TANK_ITEM.get())).findFirst().orElse(ItemStack.EMPTY);
+                var contents = item.get(SetpointContent.FLUID_CONTENTS.get());
+                helper.assertTrue(contents != null && contents.copy().getAmount() == 2_000_000, "the dropped tank should hold its 2000 B, drops: " + drops);
+                helper.getLevel().destroyBlock(FloatingRoofTankBlock.cell(abs, state, 6, 6, 2), false);
+                helper.assertTrue(helper.getLevel().getBlockState(abs).isAir(), "breaking a part should break the whole tank");
+                for (BlockPos part : parts) helper.assertTrue(helper.getLevel().getBlockState(part).isAir(), "every part should be gone, not " + part);
+                helper.succeed();
+            });
+        });
     }
 
     /** An IBC with water on a pallet: the pallet truck takes it up and sets it down, water and all. */

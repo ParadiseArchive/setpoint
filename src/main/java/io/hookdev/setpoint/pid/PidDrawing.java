@@ -24,7 +24,7 @@ public record PidDrawing(String name, int width, int height, List<Cell> cells, L
     // Symbols, the way they are drawn on a real P&ID
     public static final int PIPE = 0, PUMP = 1, TANK = 2, CONTROL_VALVE = 3, HAND_VALVE = 4, HAND_VALVE_SHUT = 5, LEVEL_TRANSMITTER = 6,
             FLOW_TRANSMITTER = 7, CONTROLLER = 8, BOILER = 9, TURBINE = 10, GENERATOR = 11, INTAKE = 12, CONSOLE = 13,
-            SAFETY_VALVE = 14, PRESSURE_TRANSMITTER = 15, DRAIN_VALVE = 16, CHECK_VALVE = 17, DRUM = 18, IBC = 19;
+            SAFETY_VALVE = 14, PRESSURE_TRANSMITTER = 15, DRAIN_VALVE = 16, CHECK_VALVE = 17, DRUM = 18, IBC = 19, FLOATING_ROOF_TANK = 20;
     // Pipe connections in the drawing: the four sides, plus a riser going up or down
     public static final int NORTH = 1, EAST = 2, SOUTH = 4, WEST = 8, UP = 16, DOWN = 32;
 
@@ -93,7 +93,7 @@ public record PidDrawing(String name, int width, int height, List<Cell> cells, L
 
     /** Symbols that hold liquid with a level: drawn filled to it when live. */
     public static boolean isVessel(int symbol) {
-        return symbol == TANK || symbol == DRUM || symbol == IBC;
+        return symbol == TANK || symbol == DRUM || symbol == IBC || symbol == FLOATING_ROOF_TANK;
     }
 
     /** Plain words for a symbol, for tooltips. */
@@ -118,6 +118,7 @@ public record PidDrawing(String name, int width, int height, List<Cell> cells, L
             case CHECK_VALVE -> "Check valve";
             case DRUM -> "Drum";
             case IBC -> "IBC";
+            case FLOATING_ROOF_TANK -> "Floating roof tank";
             default -> "Pipe";
         };
     }

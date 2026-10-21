@@ -33,6 +33,7 @@ import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
@@ -61,7 +62,11 @@ public class PortableTankBlockEntity extends BlockEntity implements Vessel, Name
     public static final int IBC_WHITE = 0xFFFFFFFF, IBC_BLACK = 0xFF2A2C2F;
 
     public PortableTankBlockEntity(BlockPos pos, BlockState state) {
-        super(SetpointContent.PORTABLE_TANK_ENTITY.get(), pos, state);
+        this(SetpointContent.PORTABLE_TANK_ENTITY.get(), pos, state);
+    }
+
+    protected PortableTankBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+        super(type, pos, state);
         PortableTankBlock block = (PortableTankBlock) state.getBlock();
         this.name = new EquipmentName(block.prefix());
         this.fluid = new FluidStacksResourceHandler(1, block.capacity()) {
@@ -141,7 +146,7 @@ public class PortableTankBlockEntity extends BlockEntity implements Vessel, Name
         tank.gravity.tick((ServerLevel) level, tank, tank.positions()); // it drains downhill through the pipes on any of its blocks
     }
 
-    private void onFluidChanged(Fluid before) {
+    protected void onFluidChanged(Fluid before) {
         setChanged();
         if (level == null || level.isClientSide()) return;
         BlockState state = getBlockState();
@@ -223,7 +228,7 @@ public class PortableTankBlockEntity extends BlockEntity implements Vessel, Name
         readShownFluid(input);
     }
 
-    private void readShownFluid(ValueInput input) {
+    protected void readShownFluid(ValueInput input) {
         Identifier id = Identifier.tryParse(input.getStringOr("shown_fluid", "minecraft:empty"));
         shownFluid = id == null ? Fluids.EMPTY : BuiltInRegistries.FLUID.getValue(id);
         colour = DyeColor.byName(input.getStringOr("colour", ""), null);

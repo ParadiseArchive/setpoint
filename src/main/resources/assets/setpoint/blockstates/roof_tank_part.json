@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "kind=0,ladder=false": {
+      "model": "setpoint:block/floating_roof_tank"
+    },
+    "kind=0,ladder=true": {
+      "model": "setpoint:block/floating_roof_tank"
+    },
+    "kind=1,ladder=false": {
+      "model": "setpoint:block/floating_roof_tank"
+    },
+    "kind=1,ladder=true": {
+      "model": "setpoint:block/floating_roof_tank"
+    }
+  }
+}

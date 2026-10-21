@@ -12,6 +12,7 @@ import io.hookdev.setpoint.block.ControlValveBlock;
 import io.hookdev.setpoint.block.ControllerBlock;
 import io.hookdev.setpoint.block.CreativeGeneratorBlock;
 import io.hookdev.setpoint.block.DrainValveBlock;
+import io.hookdev.setpoint.block.FloatingRoofTankBlock;
 import io.hookdev.setpoint.block.FlowTransmitterBlock;
 import io.hookdev.setpoint.block.FluidPipeBlock;
 import io.hookdev.setpoint.block.GeneratorBlock;
@@ -158,9 +159,10 @@ public final class PidCapture {
         if (block instanceof TankBlock && be instanceof TankBlockEntity tank) {
             return new Found(PidDrawing.TANK, 0, tank.tag(), 5);
         }
-        if (block instanceof TankPartBlock) return null; // the rest of a drum or IBC: drawn once, at its base
+        if (block instanceof TankPartBlock) return null; // the rest of a drum, IBC or floating roof tank: drawn once, at its base
         if (be instanceof PortableTankBlockEntity tank) {
-            return new Found(block instanceof IbcBlock ? PidDrawing.IBC : PidDrawing.DRUM, 0, tank.tag(), 5);
+            int symbol = block instanceof FloatingRoofTankBlock ? PidDrawing.FLOATING_ROOF_TANK : block instanceof IbcBlock ? PidDrawing.IBC : PidDrawing.DRUM;
+            return new Found(symbol, 0, tank.tag(), 5);
         }
         if (block instanceof BoilerBlock && be instanceof BoilerBlockEntity boiler) return new Found(PidDrawing.BOILER, 0, boiler.tag(), 5);
         if (block instanceof SteamTurbineBlock && be instanceof SteamTurbineBlockEntity turbine) {

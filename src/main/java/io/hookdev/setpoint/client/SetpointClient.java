@@ -213,6 +213,7 @@ public class SetpointClient {
         event.registerEntityRenderer(SetpointContent.PALLET_TRUCK_ENTITY.get(), PalletTruckRenderer::new);
         event.registerEntityRenderer(SetpointContent.FORKLIFT_ENTITY.get(), ForkliftRenderer::new);
         event.registerBlockEntityRenderer(SetpointContent.PID_BOARD_ENTITY.get(), PidBoardRenderer::new);
+        event.registerBlockEntityRenderer(SetpointContent.FLOATING_ROOF_TANK_ENTITY.get(), FloatingRoofTankRenderer::new);
     }
 
     /** The liquid in a tank's sight glass takes the colour of the fluid in that block. */

@@ -14,6 +14,7 @@ import io.hookdev.setpoint.block.entity.CreativeGeneratorBlockEntity;
 import io.hookdev.setpoint.block.entity.FlowTransmitterBlockEntity;
 import io.hookdev.setpoint.block.entity.GeneratorBlockEntity;
 import io.hookdev.setpoint.block.entity.LevelTransmitterBlockEntity;
+import io.hookdev.setpoint.block.entity.FloatingRoofTankBlockEntity;
 import io.hookdev.setpoint.block.entity.PortableTankBlockEntity;
 import io.hookdev.setpoint.block.entity.PressureTransmitterBlockEntity;
 import io.hookdev.setpoint.block.entity.PumpBlockEntity;
@@ -131,7 +132,7 @@ public final class PlantScanner {
         if (be instanceof PortableTankBlockEntity tank) {
             double level = tank.fillFraction() * 100;
             String what = tank.amount() == 0 ? "EMPTY" : tank.resource().getFluidType().getDescription().getString().toUpperCase();
-            String kind = tank.getBlockState().getBlock() instanceof IbcBlock ? "IBC" : "DRUM";
+            String kind = tank instanceof FloatingRoofTankBlockEntity ? "TANK" : tank.getBlockState().getBlock() instanceof IbcBlock ? "IBC" : "DRUM";
             return new Reading(pos, tank.tag(), kind, what, Reading.NORMAL, pct(level), List.of("LEVEL %"), new float[]{(float) level}, List.of());
         }
         if (be instanceof FlowTransmitterBlockEntity ft) {

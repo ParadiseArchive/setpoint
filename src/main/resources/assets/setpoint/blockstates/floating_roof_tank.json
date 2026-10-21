@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "setpoint:block/floating_roof_tank"
+    },
+    "facing=east": {
+      "model": "setpoint:block/floating_roof_tank"
+    },
+    "facing=south": {
+      "model": "setpoint:block/floating_roof_tank"
+    },
+    "facing=west": {
+      "model": "setpoint:block/floating_roof_tank"
+    }
+  }
+}

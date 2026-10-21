@@ -1303,7 +1303,8 @@ const FORKLIFT_SHIFT = { body: [0, -2, 0], outer: [0, -14, 0], middle: [0, -14, 
     box([6.5, 1, 3.5], [9.5, 7, 12.5], allFaces([0, 0, 3, 6], '#tyre')),
   ];
   M('forklift_rear_wheel', { parent: 'minecraft:block/block', ambientocclusion: false, textures, elements: rearWheel });
-  const partModels = ['forklift_body', 'forklift_mast_outer', 'forklift_mast_middle', 'forklift_mast_inner', 'forklift_carriage', 'forklift_rear_wheel', 'forklift_body', 'forklift_body'];
+  const partModels = ['forklift_body', 'forklift_mast_outer', 'forklift_mast_middle', 'forklift_mast_inner', 'forklift_carriage', 'forklift_rear_wheel'];
+  while (partModels.length < 16) partModels.push('forklift_body'); // the unused part= states
   BS('forklift', { variants: Object.fromEntries(partModels.map((m, i) => [`part=${i}`, { model: 'setpoint:block/' + m }])) });
   // the item: the whole forklift, forks down, shrunk to one block (the wheels at the back where they belong)
   const whole = Object.values(P).flat();
@@ -1316,6 +1317,143 @@ recipe('forklift', ['P I', 'PRB', 'I I'], { P: 'minecraft:piston', I: 'minecraft
 // the rest of a drum or IBC: nothing to draw (the base block's model reaches over it), only break particles
 M('tank_part', { textures: { particle: tex('ibc_tote') } });
 BS('tank_part', { variants: { 'kind=0': { model: 'setpoint:block/tank_part' }, 'kind=1': { model: 'setpoint:block/tank_part' } } });
+
+// =====================================================================================
+// Floating roof tank: the big storage tank, eight blocks across and six high, in Hookonium steel
+// =====================================================================================
+// Its renderer puts it together from part models (the never-placed block setpoint:floating_roof_tank_model, one per
+// part=). Each is built in "tank pixels": from the middle of the tank, up from its floor, looking out along +z. Round
+// pieces are one 15° segment that the renderer turns all the way round. TANK_SHIFT moves each into a model's bounds;
+// FloatingRoofTankRenderer.SHIFT must match, and so must the sizes in FloatingRoofTankBlock.
+const HKS = { shell: '#d9dce4', shellHi: '#e8eaf0', shellLo: '#c3c7d1', seam: '#a9aeb9' };
+texture('frt_shell', (p) => { // the lower half of a two-block plate: the weld seam to the plate below, and the seam to the next one
+  p.rect(0, 0, 16, 16, HKS.shell);
+  for (const [x, y] of [[4, 3], [11, 6], [7, 11], [13, 13], [2, 9]]) p.set(x, y, HKS.shellLo);
+  for (const [x, y] of [[9, 2], [5, 7], [12, 10]]) p.set(x, y, HKS.shellHi);
+  p.rect(0, 0, 1, 16, HKS.seam); p.rect(1, 0, 1, 16, HKS.shellHi);
+  p.rect(0, 15, 16, 1, HKS.seam); p.rect(0, 14, 16, 1, HKS.shellHi);
+});
+texture('frt_shell_upper', (p) => { // the upper half: only the seam to the next plate
+  p.rect(0, 0, 16, 16, HKS.shell);
+  for (const [x, y] of [[6, 4], [12, 8], [3, 12], [9, 14]]) p.set(x, y, HKS.shellLo);
+  for (const [x, y] of [[10, 3], [4, 9]]) p.set(x, y, HKS.shellHi);
+  p.rect(0, 0, 1, 16, HKS.seam); p.rect(1, 0, 1, 16, HKS.shellHi);
+});
+texture('frt_shell_in', (p) => { p.rect(0, 0, 16, 16, '#8b909b'); p.rect(0, 0, 1, 16, '#767b86'); p.rect(0, 15, 16, 1, '#767b86'); });
+texture('frt_trim', (p) => { p.rect(0, 0, 16, 16, HK.m); p.rect(0, 0, 16, 1, HK.l); p.rect(0, 15, 16, 1, HK.k); });
+texture('frt_trim_top', (p) => p.rect(0, 0, 16, 16, HK.m)); // flat: the segments overlap a little, so their tops must look alike
+texture('frt_rail', (p) => p.rect(0, 0, 16, 16, HK.l));
+texture('frt_pontoon', (p) => p.rect(0, 0, 16, 16, '#8f96a3'));
+texture('frt_pontoon_side', (p) => { p.rect(0, 0, 16, 16, '#6f7683'); p.rect(0, 0, 16, 1, '#a3abbb'); });
+texture('frt_seal', (p) => p.rect(0, 0, 16, 16, '#1d1e22'));
+texture('frt_deck', (p) => { // the roof deck: plates welded in an 8-pixel grid (each 8 x 8 quarter is the same)
+  p.rect(0, 0, 16, 16, '#9aa1ad');
+  for (const o of [0, 8]) { p.rect(o + 7, 0, 1, 16, '#848b97'); p.rect(0, o + 7, 16, 1, '#848b97'); }
+  for (const [x, y] of [[2, 3], [5, 1], [3, 5]]) for (const o of [[0, 0], [8, 0], [0, 8], [8, 8]]) p.set(x + o[0], y + o[1], '#a6adb9');
+});
+texture('frt_manhole', (p) => { // a bolted cover in the middle 8 x 8
+  p.rect(0, 0, 16, 16, '#5d6370');
+  p.rect(5, 4, 6, 8, '#737a87'); p.rect(4, 5, 8, 6, '#737a87');
+  for (const [x, y] of [[5, 4], [10, 4], [4, 7], [11, 8], [5, 11], [10, 11]]) p.set(x, y, '#b9bfca');
+  p.rect(7, 7, 2, 2, '#3f444e');
+});
+texture('frt_steel', (p) => { p.rect(0, 0, 16, 16, '#b6bbc4'); p.rect(0, 15, 16, 1, '#8e939c'); p.rect(0, 0, 16, 1, '#cdd1d8'); });
+texture('frt_grating', (p) => { // open floor grating
+  p.rect(0, 0, 16, 16, '#3a3e46');
+  for (let i = 0; i < 16; i += 2) { p.rect(i, 0, 1, 16, '#8e939c'); p.rect(0, i, 16, 1, '#6f747d'); }
+});
+texture('frt_flange', (p) => { // the inlet nozzle: a steel flange with its bolts round the bore
+  p.rect(0, 0, 16, 16, '#9aa0ab');
+  p.rect(5, 5, 6, 6, '#3f444e'); p.rect(6, 6, 4, 4, C.outline);
+  for (const [x, y] of [[7, 1], [13, 7], [8, 14], [1, 8], [3, 3], [12, 3], [3, 12], [12, 12]]) p.set(x, y, '#d4d8de');
+});
+const TANK_SHIFT = { shell: [0, 0, -60], top: [0, -76, -56], rail: [0, -96, -56], pontoon: [0, 2, -40], deck: [0, 0, 0], manhole: [0, 0, 0],
+  rolling_ladder: [0, 0, 16], platform: [0, -80, -60], ladder: [0, 0, -66], cage: [0, 0, -66], nozzle: [0, 0, -52] };
+// half the width of a 15° segment at this radius
+const segment = (r) => +(r * Math.tan(Math.PI / 24)).toFixed(4);
+{
+  const P = Object.fromEntries(Object.keys(TANK_SHIFT).map((k) => [k, []]));
+  // a box in tank pixels; faces: { face: texture } cut 1:1 at block lines, or with stretch, each face its whole uv
+  const add = (part, from, to, faces, stretch = false) => P[part].push({ from, to, faces, stretch });
+  const sides = (t, skip = []) => Object.fromEntries(['north', 'south', 'east', 'west', 'up', 'down'].filter((f) => !skip.includes(f)).map((f) => [f, t]));
+  const mirror = (part, [x1, y1, z1], [x2, y2, z2], faces) => { add(part, [x1, y1, z1], [x2, y2, z2], faces); add(part, [-x2, y1, z1], [-x1, y2, z2], faces); };
+
+  // ---- the shell: one plate two blocks high; three courses all round
+  for (const y of [0, 16]) add('shell', [-segment(64), y, 63], [segment(64), y + 16, 64],
+    { south: { t: y ? 'shell_upper' : 'shell', uv: [0, 0, 16, 16] }, north: { t: 'shell_in', uv: [0, 0, 16, 16] } }, true);
+  // ---- the top: the curb angle on the rim, the wind girder below it; the handrail on the rim
+  add('top', [-segment(66), 94, 62], [segment(66), 97, 66], { ...sides('trim', ['up', 'east', 'west']), up: 'trim_top' });
+  add('top', [-segment(68), 76, 64], [segment(68), 78, 68], { south: 'trim', down: 'trim', up: 'trim_top' });
+  add('rail', [-0.5, 97, 64.5], [0.5, 108, 65.5], sides('rail', ['up', 'down']));
+  for (const y of [102, 107]) add('rail', [-segment(65.5), y, 64.5], [segment(65.5), y + 1, 65.5], sides('rail', ['east', 'west']));
+  // ---- the roof (y from the top of its deck): a ring of pontoons with the rim seal against the shell
+  add('pontoon', [-segment(60), -2, 44], [segment(60), 4, 60], { up: 'pontoon', north: 'pontoon_side', south: 'pontoon_side' });
+  add('pontoon', [-segment(63), 0, 60], [segment(63), 5, 63], { up: 'seal', north: 'seal' });
+  add('deck', [-4, -1, -4], [4, 0, 4], { up: { t: 'deck', uv: [0, 0, 8, 8] } }, true);
+  add('manhole', [-4, 0, -4], [4, 1.5, 4], { up: { t: 'manhole', uv: [4, 4, 12, 12] }, ...Object.fromEntries(['north', 'south', 'east', 'west'].map((f) => [f, { t: 'steel', uv: [0, 0, 8, 1.5] }])) }, true);
+  // ---- the rolling ladder: one length of it, hanging from its hinge at (0, 0, 0) towards the middle (-z)
+  mirror('rolling_ladder', [5, -1, -28], [6, 1, 0], sides('steel'));
+  for (let z = -2; z > -28; z -= 4) add('rolling_ladder', [-5, -0.5, z - 0.5], [5, 0.5, z + 0.5], sides('steel', ['east', 'west']));
+  // ---- the gauger's platform over the rim, where the caged ladder comes up and the rolling ladder hangs
+  add('platform', [-7, 95, 56], [7, 96, 78], { up: 'grating', down: 'grating', north: 'steel', south: 'steel', east: 'steel', west: 'steel' });
+  for (const z of [56.5, 67, 77.5]) mirror('platform', [6.5, 96, z - 0.5], [7.5, 108, z + 0.5], sides('rail', ['up', 'down']));
+  for (const y of [102, 107]) mirror('platform', [6.5, y, 56], [7.5, y + 1, 78], sides('rail'));
+  // ---- the caged ladder in the corner, two blocks at a time; the cage from two blocks up
+  mirror('ladder', [4, 0, 77], [5, 32, 79], sides('steel', ['up', 'down']));
+  for (let y = 2; y < 32; y += 4) add('ladder', [-4, y - 0.5, 77.5], [4, y + 0.5, 78.5], sides('steel', ['east', 'west']));
+  for (const y of [4, 14, 24]) {
+    add('cage', [-7, y, 86], [7, y + 1, 87], sides('steel'));
+    mirror('cage', [6, y, 79], [7, y + 1, 86], sides('steel'));
+  }
+  for (const x of [-4, 0, 4]) add('cage', [x - 0.5, 0, 86.5], [x + 0.5, 32, 87.5], sides('steel', ['up', 'down']));
+  mirror('cage', [6.5, 0, 82], [7.5, 32, 83], sides('steel', ['up', 'down']));
+  // ---- the inlet nozzle at the front, where you placed the tank
+  add('nozzle', [-3, 5, 60], [3, 11, 63], sides('steel', ['north', 'south']));
+  add('nozzle', [-5, 3, 63], [5, 13, 64], { south: { t: 'flange', uv: [3, 3, 13, 13] }, north: { t: 'steel', uv: [0, 0, 10, 10] },
+    east: { t: 'steel', uv: [0, 0, 1, 10] }, west: { t: 'steel', uv: [0, 0, 1, 10] }, up: { t: 'steel', uv: [0, 0, 10, 1] }, down: { t: 'steel', uv: [0, 0, 10, 1] } }, true);
+
+  const BUILD = (list, shift) => list.flatMap(({ from, to, faces, stretch }) => {
+    const m = (p) => p.map((v, k) => +(v + 8 * (k !== 1) + shift[k]).toFixed(4));
+    if (stretch) return [box(m(from), m(to), Object.fromEntries(Object.entries(faces).map(([f, { t, uv }]) => [f, { uv, texture: '#' + t }])))];
+    return tiled(m(from), m(to), (f) => (faces[f] ? '#' + faces[f] : null));
+  });
+  const names = ['shell', 'shell_upper', 'shell_in', 'trim', 'trim_top', 'rail', 'pontoon', 'pontoon_side', 'seal', 'deck', 'manhole', 'steel', 'grating', 'flange'];
+  const textures = { ...Object.fromEntries(names.map((n) => [n, tex('frt_' + n)])), particle: tex('frt_shell') };
+  const parts = Object.keys(TANK_SHIFT);
+  for (const part of parts) M('floating_roof_tank_' + part, { parent: 'minecraft:block/block', ambientocclusion: false, textures, elements: BUILD(P[part], TANK_SHIFT[part]) });
+  BS('floating_roof_tank_model', { variants: Object.fromEntries(Array.from({ length: 16 }, (_, i) => [`part=${i}`, { model: 'setpoint:block/floating_roof_tank_' + (parts[i] ?? 'shell') }])) });
+  // the placed blocks draw nothing themselves; only their breaking crumbs need a texture
+  M('floating_roof_tank', { textures: { particle: tex('frt_shell') } });
+  BS('floating_roof_tank', { variants: Object.fromEntries(['north', 'east', 'south', 'west'].map((f) => [`facing=${f}`, { model: 'setpoint:block/floating_roof_tank' }])) });
+  BS('roof_tank_part', { variants: Object.fromEntries([0, 1].flatMap((k) => ['false', 'true'].map((l) => [`kind=${k},ladder=${l}`, { model: 'setpoint:block/floating_roof_tank' }]))) });
+
+  // the item: the whole tank shrunk to one block. Round pieces are turned at most 45° and laid along the nearest axis.
+  const turned = (theta, [x1, y1, z1], [x2, y2, z2], faces) => {
+    const k = ((Math.round(theta / 90) % 4) + 4) % 4, phi = theta - 90 * Math.round(theta / 90);
+    const quarter = [(x, z) => [x, z], (x, z) => [z, -x], (x, z) => [-x, -z], (x, z) => [-z, x]][k];
+    const a = quarter(x1, z1), b = quarter(x2, z2);
+    const rename = [{}, { south: 'east', east: 'north', north: 'west', west: 'south' }, { south: 'north', north: 'south', east: 'west', west: 'east' },
+      { south: 'west', west: 'north', north: 'east', east: 'south' }][k];
+    return { from: [Math.min(a[0], b[0]), y1, Math.min(a[1], b[1])], to: [Math.max(a[0], b[0]), y2, Math.max(a[1], b[1])],
+      faces: Object.fromEntries(Object.entries(faces).map(([f, v]) => [rename[f] ?? f, v])),
+      ...(Math.abs(phi) > 1e-6 ? { rotation: { origin: [0, y1, 0], x: 0, y: +phi.toFixed(3), z: 0 } } : {}) };
+  };
+  const whole = [];
+  for (let s = 0; s < 24; s++) {
+    const theta = s * 15;
+    whole.push(turned(theta, [-segment(64), 0, 63], [segment(64), 96, 64], { south: { uv: [0, 0, 16, 16], texture: '#shell' } }));
+    whole.push(turned(theta, [-segment(66), 94, 62], [segment(66), 97, 66], { up: { uv: [0, 0, 16, 4], texture: '#trim_top' }, south: { uv: [0, 0, 16, 3], texture: '#trim' } }));
+    whole.push(turned(theta, [-segment(60), 66, 44], [segment(60), 72, 60], { up: { uv: [0, 0, 16, 16], texture: '#pontoon' } }));
+  }
+  for (let z = -48; z < 48; z += 8) { // the deck as strips across, each as wide as the circle there
+    const w = Math.sqrt(48 * 48 - (z + 4) ** 2) + 2;
+    whole.push({ from: [-w, 67, z], to: [w, 68, z + 8], faces: { up: { uv: [0, 0, 16, 8], texture: '#deck' } } });
+  }
+  M('floating_roof_tank_item', { parent: 'minecraft:block/block', textures,
+    elements: shrunk(whole, [0, 54, 0], 16 / 136) });
+  item('floating_roof_tank', 'setpoint:block/floating_roof_tank_item');
+}
+recipe('floating_roof_tank', ['IBI', 'BTB', 'IBI'], { I: 'setpoint:hookonium_ingot', B: 'setpoint:hookonium_block', T: 'setpoint:tank' }, 'setpoint:floating_roof_tank');
 recipe('ibc', ['BBB', 'BCB', 'SSS'], { B: 'minecraft:iron_bars', C: 'minecraft:cauldron', S: 'minecraft:oak_slab' }, 'setpoint:ibc');
 
 // P&ID board: a thin dark panel in a steel frame; the drawing itself is painted on it by its renderer
@@ -1513,7 +1651,7 @@ const MACHINES = ['pipe', 'tank', 'centrifugal_pump', 'creative_generator', 'lev
   'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine', 'dcs_console', 'hand_valve', 'water_intake', 'flow_transmitter',
   'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve', 'pid_board', 'pallet'];
 for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) lootSelf(name);
-for (const name of ['drum', 'ibc']) json(join(DATA, 'loot_table/blocks', name + '.json'), {
+for (const name of ['drum', 'ibc', 'floating_roof_tank']) json(join(DATA, 'loot_table/blocks', name + '.json'), {
   type: 'minecraft:block', random_sequence: 'setpoint:blocks/' + name,
   pools: [{ rolls: 1, conditions: [{ condition: 'minecraft:survives_explosion' }], entries: [{ type: 'minecraft:item', name: 'setpoint:' + name,
     modifier: { type: 'minecraft:copy_components', source: 'block_entity', include: ['minecraft:custom_name', 'setpoint:fluid_contents', 'minecraft:dyed_color'] } }] }],
@@ -1522,7 +1660,7 @@ lootOre('hookonium_ore', 'setpoint:raw_hookonium');
 lootOre('deepslate_hookonium_ore', 'setpoint:raw_hookonium');
 const HOOKONIUM_BLOCKS = ['hookonium_ore', 'deepslate_hookonium_ore', 'hookonium_block', 'raw_hookonium_block'].map((n) => 'setpoint:' + n);
 const tag = (path, values) => json(join(ROOT, 'data', path + '.json'), { values });
-tag('minecraft/tags/block/mineable/pickaxe', [...MACHINES.map((n) => 'setpoint:' + n), 'setpoint:drum', 'setpoint:ibc', ...HOOKONIUM_BLOCKS]);
+tag('minecraft/tags/block/mineable/pickaxe', [...MACHINES.map((n) => 'setpoint:' + n), 'setpoint:drum', 'setpoint:ibc', 'setpoint:floating_roof_tank', 'setpoint:roof_tank_part', ...HOOKONIUM_BLOCKS]);
 tag('minecraft/tags/block/needs_diamond_tool', HOOKONIUM_BLOCKS);
 // the pipe wrench turns, cuts and picks up these
 tag('setpoint/tags/block/wrenchable', MACHINES.map((n) => 'setpoint:' + n));
@@ -1553,8 +1691,9 @@ function nbt() {
     end() { u8(0); },
   };
 }
+// the test benches: empty rooms, the normal one and a big one for the floating roof tank
+for (const [name, W, H, D] of [['bench', 7, 11, 3], ['big_bench', 10, 8, 10]]) {
 const n = nbt();
-const [W, H, D] = [7, 11, 3];
 n.named(10, '');                                       // root compound
 n.named(3, 'DataVersion'); n.i32(5023);                // Minecraft 26.3
 n.named(9, 'size'); n.u8(3); n.i32(3); n.i32(W); n.i32(H); n.i32(D);
@@ -1567,7 +1706,8 @@ for (let y = 0; y < H; y++) for (let z = 0; z < D; z++) for (let x = 0; x < W; x
 }
 n.named(9, 'entities'); n.u8(0); n.i32(0);
 n.end();
-write(join(DATA, 'structure/bench.nbt'), gzipSync(Buffer.concat(n.parts)));
+write(join(DATA, 'structure', name + '.nbt'), gzipSync(Buffer.concat(n.parts)));
+}
 
 // =====================================================================================
 // The Setpoint Handbook: item, recipe, and the book's content with every recipe filled in

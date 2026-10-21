@@ -1,0 +1,52 @@
+{
+  "variants": {
+    "part=0": {
+      "model": "setpoint:block/floating_roof_tank_shell"
+    },
+    "part=1": {
+      "model": "setpoint:block/floating_roof_tank_top"
+    },
+    "part=2": {
+      "model": "setpoint:block/floating_roof_tank_rail"
+    },
+    "part=3": {
+      "model": "setpoint:block/floating_roof_tank_pontoon"
+    },
+    "part=4": {
+      "model": "setpoint:block/floating_roof_tank_deck"
+    },
+    "part=5": {
+      "model": "setpoint:block/floating_roof_tank_manhole"
+    },
+    "part=6": {
+      "model": "setpoint:block/floating_roof_tank_rolling_ladder"
+    },
+    "part=7": {
+      "model": "setpoint:block/floating_roof_tank_platform"
+    },
+    "part=8": {
+      "model": "setpoint:block/floating_roof_tank_ladder"
+    },
+    "part=9": {
+      "model": "setpoint:block/floating_roof_tank_cage"
+    },
+    "part=10": {
+      "model": "setpoint:block/floating_roof_tank_nozzle"
+    },
+    "part=11": {
+      "model": "setpoint:block/floating_roof_tank_shell"
+    },
+    "part=12": {
+      "model": "setpoint:block/floating_roof_tank_shell"
+    },
+    "part=13": {
+      "model": "setpoint:block/floating_roof_tank_shell"
+    },
+    "part=14": {
+      "model": "setpoint:block/floating_roof_tank_shell"
+    },
+    "part=15": {
+      "model": "setpoint:block/floating_roof_tank_shell"
+    }
+  }
+}

@@ -69,6 +69,11 @@ public abstract class PortableTankBlock extends BaseEntityBlock implements Vesse
     /** Which part shape a part block of this container gets. */
     protected abstract int partKind();
 
+    /** The block that fills this part of it. */
+    protected BlockState partState(BlockPos base, BlockState state, BlockPos part) {
+        return SetpointContent.TANK_PART.get().defaultBlockState().setValue(TankPartBlock.KIND, partKind());
+    }
+
     /** Room for all of it? If not, it cannot be placed here. */
     protected @Nullable BlockState fitting(BlockPlaceContext context, BlockState state) {
         for (BlockPos part : parts(context.getClickedPos(), state)) {
@@ -82,7 +87,7 @@ public abstract class PortableTankBlock extends BaseEntityBlock implements Vesse
         super.setPlacedBy(level, pos, state, by, itemStack);
         if (level.isClientSide()) return;
         for (BlockPos part : parts(pos, state)) {
-            level.setBlock(part, SetpointContent.TANK_PART.get().defaultBlockState().setValue(TankPartBlock.KIND, partKind()), Block.UPDATE_ALL);
+            level.setBlock(part, partState(pos, state, part), Block.UPDATE_ALL);
             if (level.getBlockEntity(part) instanceof TankPartBlockEntity be) be.setBase(pos);
         }
     }
