@@ -48,9 +48,11 @@ import io.hookdev.setpoint.block.entity.StirlingEngineBlockEntity;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
 import io.hookdev.setpoint.block.entity.TankPartBlockEntity;
 import io.hookdev.setpoint.block.entity.WaterIntakeBlockEntity;
+import io.hookdev.setpoint.entity.PalletTruckEntity;
 import io.hookdev.setpoint.item.BlankPidItem;
 import io.hookdev.setpoint.item.FieldCommunicatorItem;
 import io.hookdev.setpoint.item.HandbookItem;
+import io.hookdev.setpoint.item.PalletTruckItem;
 import io.hookdev.setpoint.item.PidItem;
 import io.hookdev.setpoint.item.PipeWrenchItem;
 import io.hookdev.setpoint.menu.BoilerMenu;
@@ -64,8 +66,11 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.valueproviders.UniformInt;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
@@ -95,6 +100,7 @@ public final class SetpointContent {
     public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, Setpoint.MODID);
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(Registries.MENU, Setpoint.MODID);
     public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(Registries.SOUND_EVENT, Setpoint.MODID);
+    public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(Registries.ENTITY_TYPE, Setpoint.MODID);
     public static final DeferredRegister<net.minecraft.advancements.triggers.CriterionTrigger<?>> TRIGGERS = DeferredRegister.create(Registries.TRIGGER_TYPE, Setpoint.MODID);
     public static final DeferredHolder<net.minecraft.advancements.triggers.CriterionTrigger<?>, PlantEventTrigger> PLANT_EVENT = TRIGGERS.register("plant_event", PlantEventTrigger::new);
     public static final DeferredRegister<DataComponentType<?>> COMPONENTS = DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, Setpoint.MODID);
@@ -123,6 +129,8 @@ public final class SetpointContent {
     /** A soft two-tone chime for new alarms in the control room. */
     public static final DeferredHolder<SoundEvent, SoundEvent> CONSOLE_ALARM = SOUNDS.register("block.dcs_console.alarm",
             SoundEvent::createVariableRangeEvent);
+    /** The pallet truck's horn. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> PALLET_TRUCK_HORN = SOUNDS.register("entity.pallet_truck.horn", SoundEvent::createVariableRangeEvent);
     /** The hiss of a safety valve blowing off steam. */
     public static final DeferredHolder<SoundEvent, SoundEvent> SAFETY_VALVE_LIFT = SOUNDS.register("block.safety_valve.lift",
             SoundEvent::createVariableRangeEvent);
@@ -229,6 +237,13 @@ public final class SetpointContent {
     public static final DeferredItem<Item> HOOKONIUM_INGOT = ITEMS.registerSimpleItem("hookonium_ingot", p -> p.rarity(Rarity.RARE));
     public static final DeferredItem<BlankPidItem> BLANK_PID = ITEMS.registerItem("blank_pid", BlankPidItem::new);
     public static final DeferredItem<PidItem> PID = ITEMS.registerItem("pid", PidItem::new, p -> p.stacksTo(1));
+    public static final DeferredItem<PalletTruckItem> PALLET_TRUCK = ITEMS.registerItem("pallet_truck", PalletTruckItem::new, p -> p.stacksTo(1));
+    /** Holds the pallet truck's model, for its renderer; never placed. */
+    public static final DeferredBlock<Block> PALLET_TRUCK_MODEL = BLOCKS.registerBlock("pallet_truck", Block::new,
+            p -> p.noCollision().noOcclusion().noLootTable());
+    public static final DeferredHolder<EntityType<?>, EntityType<PalletTruckEntity>> PALLET_TRUCK_ENTITY = ENTITIES.register("pallet_truck",
+            id -> EntityType.Builder.<PalletTruckEntity>of(PalletTruckEntity::new, MobCategory.MISC).sized(1.4f, 1.0f)
+                    .clientTrackingRange(10).updateInterval(1).build(ResourceKey.create(Registries.ENTITY_TYPE, id)));
     public static final DeferredItem<HandbookItem> HANDBOOK = ITEMS.registerItem("handbook", HandbookItem::new, p -> p.stacksTo(1));
     public static final DeferredItem<FieldCommunicatorItem> FIELD_COMMUNICATOR = ITEMS.registerItem("field_communicator", FieldCommunicatorItem::new,
             p -> p.stacksTo(1));
@@ -307,6 +322,7 @@ public final class SetpointContent {
                 output.accept(DRUM_ITEM.get());
                 output.accept(IBC_ITEM.get());
                 output.accept(PALLET_ITEM.get());
+                output.accept(PALLET_TRUCK.get());
                 output.accept(PUMP_ITEM.get());
                 output.accept(STIRLING_ENGINE_ITEM.get());
                 output.accept(BIOGAS_GENERATOR_ITEM.get());
@@ -336,6 +352,7 @@ public final class SetpointContent {
         BLOCKS.register(modEventBus);
         ITEMS.register(modEventBus);
         BLOCK_ENTITIES.register(modEventBus);
+        ENTITIES.register(modEventBus);
         TABS.register(modEventBus);
         SOUNDS.register(modEventBus);
         MENUS.register(modEventBus);

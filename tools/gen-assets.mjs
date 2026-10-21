@@ -760,6 +760,10 @@ json(join(ASSETS, 'sounds.json'), {
     subtitle: 'subtitles.setpoint.block.dcs_console.alarm',
     sounds: [{ name: 'minecraft:note/bell', pitch: 1.0, volume: 0.5 }],
   },
+  'entity.pallet_truck.horn': {
+    subtitle: 'subtitles.setpoint.entity.pallet_truck.horn',
+    sounds: [{ name: 'minecraft:note/bit', pitch: 1.3, volume: 1.0 }],
+  },
   'block.safety_valve.lift': {
     subtitle: 'subtitles.setpoint.block.safety_valve.lift',
     sounds: [{ name: 'minecraft:random/fizz', pitch: 0.6, volume: 0.6 }, { name: 'minecraft:random/fizz', pitch: 0.5, volume: 0.6 }],
@@ -924,7 +928,7 @@ function tiled(from, to, texFor, extra = () => ({})) {
 // The inventory shows a big model shrunk to one block, around its middle.
 function shrunk(elements, centre, factor) {
   const map = (p) => p.map((v, k) => +(8 + (v - centre[k]) * factor).toFixed(4));
-  return elements.map((e) => ({ ...e, from: map(e.from), to: map(e.to) }));
+  return elements.map((e) => ({ ...e, from: map(e.from), to: map(e.to), ...(e.rotation ? { rotation: { ...e.rotation, origin: map(e.rotation.origin) } } : {}) }));
 }
 
 // drum: a blue steel barrel, one and a half blocks high. Its round side is a pixel circle: slices that step in towards
@@ -1129,6 +1133,59 @@ function strapAround(centres, y, h = 1.5, r = 7.35, t = 0.5) {
   BS('pallet_part', { variants: Object.fromEntries([0, 1, 2].map((k) => [`kind=${k}`, { model: 'setpoint:block/pallet_part' }])) });
 }
 recipe('pallet', ['SSS', 'P P'], { S: 'minecraft:oak_slab', P: 'minecraft:oak_planks' }, 'setpoint:pallet');
+
+// =====================================================================================
+// Pallet truck: an electric walkie pallet truck. Silver battery box, an orange rounded nose, a black top, a grey
+// tiller leaning forward with black handles and a red belly button, and two long forks with load rollers.
+// The model's tiller points north; the entity stands at (8, 0, 8) in it.
+// =====================================================================================
+texture('truck_body', (p) => {
+  p.rect(0, 0, 16, 16, '#b6babf');
+  p.rect(0, 0, 16, 1, '#cfd2d6'); p.rect(0, 15, 16, 1, '#8e9297');
+  p.rect(3, 4, 10, 6, '#aeb2b7'); p.rect(3, 4, 10, 1, '#9a9ea4'); p.rect(3, 9, 10, 1, '#c7cace'); // a pressed panel
+  p.set(14, 13, '#6f7378');
+});
+texture('truck_body_dark', (p) => { p.rect(0, 0, 16, 16, '#7d8187'); p.rect(0, 0, 16, 1, '#8e9297'); });
+texture('truck_orange', (p) => { p.rect(0, 0, 16, 16, '#f08a1c'); p.rect(0, 0, 16, 1, '#f6a647'); p.rect(0, 15, 16, 1, '#c86e12'); });
+texture('truck_black', (p) => { p.rect(0, 0, 16, 16, '#2a2c30'); for (const [x, y] of [[3, 4], [11, 9], [6, 13]]) p.set(x, y, '#3a3d42'); });
+texture('truck_red', (p) => { p.rect(0, 0, 16, 16, '#c62828'); p.rect(0, 0, 16, 1, '#e04848'); });
+texture('truck_tiller', (p) => { p.rect(0, 0, 16, 16, '#8f949a'); p.rect(0, 0, 1, 16, '#a9adb2'); p.rect(15, 0, 1, 16, '#6f7378'); });
+texture('truck_fork', (p) => { p.rect(0, 0, 16, 16, '#c4c7cb'); p.rect(0, 0, 16, 1, '#dadde0'); p.rect(0, 15, 16, 1, '#a3a7ac'); });
+texture('truck_wheel', (p) => { p.rect(0, 0, 16, 16, '#b0623a'); p.rect(6, 6, 4, 4, '#7a3f22'); });
+{
+  const all = (t) => () => t;
+  const tilt = { origin: [8, 15, -13], x: -20, y: 0, z: 0 }; // the tiller leans forward (its origin is already two pixels back)
+  const elements = [
+    ...tiled([-1, 1, -14], [17, 14, -3], (f) => (f === 'up' ? null : '#body')),                       // battery box
+    ...tiled([-1, 0, -17], [17, 1, -3], all('#body_dark')),                                             // chassis
+    ...tiled([-1, 1, -16], [17, 12, -14], (f) => (f === 'south' ? null : '#orange')),                  // the nose
+    ...tiled([0, 1.5, -17], [16, 11, -16], (f) => (f === 'south' ? null : '#orange')),                 // rounded off
+    ...tiled([-1, 12, -16], [17, 14, -14], all('#orange')),                                             // the band over the top
+    ...tiled([-1, 14, -14], [17, 15, -3], all('#black')),                                               // black lid
+    box([6, 15, -12], [10, 15.6, -10], allFaces([0, 0, 4, 2], '#red', ['down'])),                       // the red grip
+    box([6, 0, -12], [10, 1, -6], allFaces([0, 0, 4, 6], '#black')),                                    // drive wheel
+  ];
+  for (const x of [-1, 12]) { // the forks, raised a little at the tips over their load rollers
+    elements.push(...tiled([x, 1, -3], [x + 5, 3, 28], all('#fork')), ...tiled([x, 0, -3], [x + 5, 1, 2], all('#fork')),
+      box([x + 1.5, 0, 22], [x + 3.5, 1.2, 26], allFaces([0, 0, 2, 4], '#wheel')));
+  }
+  const tiller = [
+    box([7, 15, -16], [9, 27, -14], allFaces([0, 0, 2, 12], '#tiller')),
+    box([3.5, 27, -16.5], [12.5, 28, -13.5], allFaces([0, 0, 9, 1], '#black')),
+    box([3, 23, -16], [4, 28, -14], allFaces([0, 0, 1, 5], '#black')), box([12, 23, -16], [13, 28, -14], allFaces([0, 0, 1, 5], '#black')),
+    box([7, 28, -16], [9, 29.5, -14], allFaces([0, 0, 2, 2], '#red')),
+  ].map((e) => ({ ...e, rotation: tilt }));
+  elements.push(...tiller);
+  // two pixels back, so the nose and the tiller stay inside a model's bounds (the entity stands at (8, 0, 8))
+  for (const e of elements) { e.from = [e.from[0], e.from[1], e.from[2] + 2]; e.to = [e.to[0], e.to[1], e.to[2] + 2]; }
+  const textures = { body: tex('truck_body'), body_dark: tex('truck_body_dark'), orange: tex('truck_orange'), black: tex('truck_black'), red: tex('truck_red'),
+    tiller: tex('truck_tiller'), fork: tex('truck_fork'), wheel: tex('truck_wheel'), particle: tex('truck_body') };
+  M('pallet_truck', { parent: 'minecraft:block/block', ambientocclusion: false, textures, elements });
+  M('pallet_truck_item', { parent: 'minecraft:block/block', textures, elements: shrunk(elements, [8, 14.75, 7.5], 16 / 46) });
+  BS('pallet_truck', { variants: { '': { model: 'setpoint:block/pallet_truck' } } });
+  item('pallet_truck', 'setpoint:block/pallet_truck_item');
+}
+recipe('pallet_truck', [' L ', 'IRI', 'I I'], { L: 'minecraft:lever', R: 'minecraft:redstone_block', I: 'minecraft:iron_ingot' }, 'setpoint:pallet_truck');
 
 // the rest of a drum or IBC: nothing to draw (the base block's model reaches over it), only break particles
 M('tank_part', { textures: { particle: tex('ibc_tote') } });

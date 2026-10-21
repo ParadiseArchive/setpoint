@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "L": "minecraft:lever",
+    "R": "minecraft:redstone_block",
+    "I": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    " L ",
+    "IRI",
+    "I I"
+  ],
+  "result": {
+    "id": "setpoint:pallet_truck"
+  }
+}

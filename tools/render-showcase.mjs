@@ -172,10 +172,13 @@ function render(file, parts, scale = 4, pad = 2, outline = true) {
     for (const e of model(name)) {
       for (const [face, f] of Object.entries(e.faces)) {
         const q = faceQuad(face, e.from, e.to);
-        const turn = (p) => { // an element turned about its origin (only the y axis is used)
-          if (!e.rotation || !e.rotation.y) return p;
-          const th = e.rotation.y * Math.PI / 180, [ox, , oz] = e.rotation.origin, dx = p[0] - ox, dz = p[2] - oz;
-          return [ox + Math.cos(th) * dx + Math.sin(th) * dz, p[1], oz - Math.sin(th) * dx + Math.cos(th) * dz];
+        const turn = (p) => { // an element turned about its origin, about x and then y
+          if (!e.rotation) return p;
+          const [ox, oy, oz] = e.rotation.origin;
+          let [x, y, z] = [p[0] - ox, p[1] - oy, p[2] - oz];
+          if (e.rotation.x) { const a = e.rotation.x * Math.PI / 180; [y, z] = [Math.cos(a) * y - Math.sin(a) * z, Math.sin(a) * y + Math.cos(a) * z]; }
+          if (e.rotation.y) { const a = e.rotation.y * Math.PI / 180; [x, z] = [Math.cos(a) * x + Math.sin(a) * z, -Math.sin(a) * x + Math.cos(a) * z]; }
+          return [x + ox, y + oy, z + oz];
         };
         const place = (p) => rotY(turn(p), y).map((v, i) => v + at[i] * 16);
         const o = place(q.o), u = place(q.u), v = place(q.v);
@@ -282,6 +285,10 @@ render('drum_colours', [
 render('pallet_4', [{ model: 'pallet_4', y: S, tints: [[0xb0, 0x2e, 0x26], [0x3b, 0x79, 0xde], [0xfe, 0xd8, 0x3d], [0x3b, 0x79, 0xde]] }], 4);
 render('pallet_3', [{ model: 'pallet_3', y: S, tints: [[0x3b, 0x79, 0xde], [0x3b, 0x79, 0xde], [0x3b, 0x79, 0xde]] }], 4);
 render('pallet', [{ model: 'pallet_0', y: S }], 4);
+render('pallet_truck', [{ model: 'pallet_truck', y: 90 }], 4);
+// a truck carrying four drums: the pallet's middle over the middle of the forks (8, 12.5), riding 4 pixels up
+render('pallet_truck_loaded', [{ model: 'pallet_truck', y: 90 }, { model: 'pallet_4', y: 90, at: [-0.03125, 0.25, -0.5],
+  tints: [[0xb0, 0x2e, 0x26], [0x3b, 0x79, 0xde], [0xfe, 0xd8, 0x3d], [0x5e, 0x7c, 0x16]] }], 3);
 render('ibc_black', [{ model: 'ibc_5', y: S, tints: [[0x2a, 0x2c, 0x2f], [0x2a, 0x2c, 0x2f]] }], 4);
 render('ibc', [{ model: 'ibc_5', y: S }], 4);
 // gravity: a full tall tank runs into a low one through a check valve, until both stand at the same level

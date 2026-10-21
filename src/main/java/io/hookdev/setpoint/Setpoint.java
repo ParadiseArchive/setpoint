@@ -7,6 +7,7 @@ import io.hookdev.setpoint.block.entity.NamedEquipment;
 import io.hookdev.setpoint.gametest.SetpointGameTests;
 import io.hookdev.setpoint.network.ConsoleSnapshot;
 import io.hookdev.setpoint.network.PidRename;
+import io.hookdev.setpoint.network.TruckHorn;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
@@ -75,7 +76,8 @@ public class Setpoint {
         // The control room screen's live data; the client handler is registered in SetpointClient.
         event.registrar("1")
                 .playToClient(ConsoleSnapshot.TYPE, ConsoleSnapshot.CODEC)
-                .playToServer(PidRename.TYPE, PidRename.CODEC, PidRename::handle);
+                .playToServer(PidRename.TYPE, PidRename.CODEC, PidRename::handle)
+                .playToServer(TruckHorn.TYPE, TruckHorn.CODEC, TruckHorn::handle);
     }
 
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {

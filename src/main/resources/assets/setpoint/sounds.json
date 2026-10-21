@@ -92,6 +92,16 @@
       }
     ]
   },
+  "entity.pallet_truck.horn": {
+    "subtitle": "subtitles.setpoint.entity.pallet_truck.horn",
+    "sounds": [
+      {
+        "name": "minecraft:note/bit",
+        "pitch": 1.3,
+        "volume": 1
+      }
+    ]
+  },
   "block.safety_valve.lift": {
     "subtitle": "subtitles.setpoint.block.safety_valve.lift",
     "sounds": [

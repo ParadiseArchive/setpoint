@@ -48,6 +48,14 @@ public class PalletBlockEntity extends BlockEntity {
         changed();
     }
 
+    /** Everything off at once (onto a pallet truck): the block can then go without dropping the drums. */
+    public List<ItemStack> takeAll() {
+        List<ItemStack> all = new ArrayList<>(drums);
+        drums.clear();
+        changed();
+        return all;
+    }
+
     public ItemStack takeLast() {
         if (drums.isEmpty()) return ItemStack.EMPTY;
         ItemStack drum = drums.remove(drums.size() - 1);

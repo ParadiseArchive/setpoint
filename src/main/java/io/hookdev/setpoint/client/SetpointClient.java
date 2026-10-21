@@ -3,17 +3,22 @@ package io.hookdev.setpoint.client;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.mojang.blaze3d.platform.InputConstants;
+
 import io.hookdev.setpoint.Setpoint;
 import io.hookdev.setpoint.SetpointContent;
 import io.hookdev.setpoint.block.entity.PalletBlockEntity;
 import io.hookdev.setpoint.block.entity.PortableTankBlockEntity;
 import io.hookdev.setpoint.block.entity.ShowsFluid;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
+import io.hookdev.setpoint.entity.PalletTruckEntity;
 import io.hookdev.setpoint.menu.ConsoleMenu;
 import io.hookdev.setpoint.network.ConsoleSnapshot;
+import io.hookdev.setpoint.network.TruckHorn;
 import io.hookdev.setpoint.pid.PidCapture;
 
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.color.block.BlockTintSource;
 import net.minecraft.client.renderer.block.BlockAndTintGetter;
@@ -35,7 +40,9 @@ import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.client.network.event.RegisterClientPayloadHandlersEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
@@ -45,10 +52,21 @@ import net.neoforged.neoforge.fluids.SimpleFluidContent;
 /** Client-only setup. Never loaded on a dedicated server. */
 @Mod(value = Setpoint.MODID, dist = Dist.CLIENT)
 public class SetpointClient {
+    private static final KeyMapping.Category CATEGORY = new KeyMapping.Category(Setpoint.id("setpoint"));
+    /** H: the horn of the pallet truck you are driving. */
+    public static final KeyMapping HORN = new KeyMapping("key.setpoint.horn", InputConstants.KEY_H, CATEGORY);
+
     public SetpointClient(IEventBus modEventBus) {
         modEventBus.addListener(SetpointClient::registerScreens);
         modEventBus.addListener(SetpointClient::registerBlockTints);
         modEventBus.addListener(SetpointClient::registerRenderers);
+        modEventBus.addListener((RegisterKeyMappingsEvent event) -> {
+            event.registerCategory(CATEGORY);
+            event.register(HORN);
+        });
+        NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> {
+            while (HORN.consumeClick()) sendHorn();
+        });
         NeoForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingOut event) -> PidBoardTextures.clear());
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> BoardLook.tick());
         modEventBus.addListener(SetpointClient::registerPayloadHandlers);
@@ -107,8 +125,21 @@ public class SetpointClient {
         });
     }
 
-    /** P&ID boards draw their drawing over the whole panel. */
+    /** The horn only does something while you drive a pallet truck. */
+    private static void sendHorn() {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.level == null) return;
+        for (PalletTruckEntity truck : mc.level.getEntitiesOfClass(PalletTruckEntity.class, mc.player.getBoundingBox().inflate(PalletTruckEntity.REACH))) {
+            if (truck.driver() == mc.player) {
+                ClientPacketDistributor.sendToServer(new TruckHorn());
+                return;
+            }
+        }
+    }
+
+    /** P&ID boards draw their drawing over the whole panel; the pallet truck is drawn from its model. */
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerEntityRenderer(SetpointContent.PALLET_TRUCK_ENTITY.get(), PalletTruckRenderer::new);
         event.registerBlockEntityRenderer(SetpointContent.PID_BOARD_ENTITY.get(), PidBoardRenderer::new);
     }
 

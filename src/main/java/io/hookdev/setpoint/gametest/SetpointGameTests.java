@@ -1,40 +1,41 @@
 package io.hookdev.setpoint.gametest;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
 import io.hookdev.setpoint.Setpoint;
 import io.hookdev.setpoint.SetpointContent;
-import io.hookdev.setpoint.block.ControlValveBlock;
-import io.hookdev.setpoint.block.PumpBlock;
-import io.hookdev.setpoint.block.PumpStatus;
-import io.hookdev.setpoint.block.entity.BiogasGeneratorBlockEntity;
-import io.hookdev.setpoint.block.ConsoleBlock;
 import io.hookdev.setpoint.block.CheckValveBlock;
+import io.hookdev.setpoint.block.ConsoleBlock;
+import io.hookdev.setpoint.block.ControlValveBlock;
 import io.hookdev.setpoint.block.DrainValveBlock;
+import io.hookdev.setpoint.block.FluidPipeBlock;
+import io.hookdev.setpoint.block.HandValveBlock;
 import io.hookdev.setpoint.block.IbcBlock;
 import io.hookdev.setpoint.block.PalletBlock;
 import io.hookdev.setpoint.block.PidBoardBlock;
 import io.hookdev.setpoint.block.PortableTankBlock;
+import io.hookdev.setpoint.block.PumpBlock;
+import io.hookdev.setpoint.block.PumpStatus;
 import io.hookdev.setpoint.block.SafetyValveBlock;
-import io.hookdev.setpoint.block.entity.PidBoardBlockEntity;
-import io.hookdev.setpoint.block.entity.PortableTankBlockEntity;
-import io.hookdev.setpoint.block.entity.DrainValveBlockEntity;
-import io.hookdev.setpoint.block.entity.SafetyValveBlockEntity;
-import io.hookdev.setpoint.block.FluidPipeBlock;
-import io.hookdev.setpoint.block.HandValveBlock;
+import io.hookdev.setpoint.block.entity.BiogasGeneratorBlockEntity;
 import io.hookdev.setpoint.block.entity.BoilerBlockEntity;
 import io.hookdev.setpoint.block.entity.ConsoleBlockEntity;
-import io.hookdev.setpoint.control.AlarmList;
 import io.hookdev.setpoint.block.entity.ControlValveBlockEntity;
 import io.hookdev.setpoint.block.entity.ControllerBlockEntity;
-import io.hookdev.setpoint.block.entity.LevelTransmitterBlockEntity;
+import io.hookdev.setpoint.block.entity.DrainValveBlockEntity;
 import io.hookdev.setpoint.block.entity.GeneratorBlockEntity;
+import io.hookdev.setpoint.block.entity.LevelTransmitterBlockEntity;
+import io.hookdev.setpoint.block.entity.PidBoardBlockEntity;
+import io.hookdev.setpoint.block.entity.PortableTankBlockEntity;
 import io.hookdev.setpoint.block.entity.PumpBlockEntity;
+import io.hookdev.setpoint.block.entity.SafetyValveBlockEntity;
 import io.hookdev.setpoint.block.entity.SteamTurbineBlockEntity;
 import io.hookdev.setpoint.block.entity.StirlingEngineBlockEntity;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
+import io.hookdev.setpoint.control.AlarmList;
 import io.hookdev.setpoint.control.PidController;
 import io.hookdev.setpoint.physics.BoilerModel;
 import io.hookdev.setpoint.physics.PumpModel;
@@ -43,18 +44,16 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.gametest.framework.FunctionGameTestInstance;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.TestData;
 import net.minecraft.gametest.framework.TestEnvironmentDefinition;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.GameType;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.Vec3;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -62,6 +61,8 @@ import net.minecraft.world.level.block.entity.FurnaceBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.material.Fluids;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -120,6 +121,7 @@ public final class SetpointGameTests {
         test("an_ibc_takes_eight_blocks_and_breaks_whole", SetpointGameTests::anIbcTakesEightBlocksAndBreaksWhole, 40);
         test("dye_paints_drums_and_ibcs", SetpointGameTests::dyePaintsDrumsAndIbcs, 20);
         test("a_pallet_takes_up_to_four_drums", SetpointGameTests::aPalletTakesUpToFourDrums, 20);
+        test("pallet_truck_picks_up_and_sets_down", SetpointGameTests::palletTruckPicksUpAndSetsDown, 40);
         test("high_pressure_trips_the_burner", SetpointGameTests::highPressureTripsTheBurner, 400);
         test("safety_valve_saves_the_boiler", SetpointGameTests::safetyValveSavesTheBoiler, 300);
         test("overpressure_bursts_an_unprotected_boiler", SetpointGameTests::overpressureBurstsAnUnprotectedBoiler, 100);
@@ -754,6 +756,7 @@ public final class SetpointGameTests {
         for (var block : SetpointContent.BLOCKS.getEntries()) {
             if (block.get() == SetpointContent.HOOKONIUM_ORE.get() || block.get() == SetpointContent.DEEPSLATE_HOOKONIUM_ORE.get()) continue;
             if (block.get() == SetpointContent.TANK_PART.get() || block.get() == SetpointContent.PALLET_PART.get()) continue; // parts: their base drops
+            if (block.get() == SetpointContent.PALLET_TRUCK_MODEL.get()) continue; // only holds a model
             var drops = Block.getDrops(block.get().defaultBlockState(), helper.getLevel(), pos, null, null, new ItemStack(Items.DIAMOND_PICKAXE));
             helper.assertTrue(drops.size() == 1 && drops.get(0).is(block.get().asItem()), block.getId() + " should drop itself, got " + drops);
         }
@@ -1135,6 +1138,27 @@ public final class SetpointGameTests {
             if (contents != null && contents.copy().getAmount() == 3_000) gotLava = true;
         }
         helper.assertTrue(gotLava, "the lava drum should come off with its lava");
+        helper.succeed();
+    }
+
+    /** Forks in a loaded pallet: the truck lifts it, drums and all, and sets it down again with the same drums. */
+    private static void palletTruckPicksUpAndSetsDown(GameTestHelper helper) {
+        BlockPos base = new BlockPos(3, 1, 2);
+        BlockPos abs = helper.absolutePos(base);
+        PalletBlock.place(helper.getLevel(), abs, Direction.NORTH, List.of(new ItemStack(SetpointContent.DRUM_ITEM.get()), new ItemStack(SetpointContent.DRUM_ITEM.get())));
+        helper.assertBlockProperty(base, PalletBlock.DRUMS, 2);
+        var truck = SetpointContent.PALLET_TRUCK_ENTITY.get().create(helper.getLevel(), net.minecraft.world.entity.EntitySpawnReason.TRIGGERED);
+        // facing north, the forks reach back south into the pallet (which covers x 3..4 and z 2..3)
+        truck.snapTo(new Vec3(abs.getX() + 1.0, abs.getY(), abs.getZ() - 0.1), 180, 0);
+        helper.getLevel().addFreshEntity(truck);
+        truck.coupleNow();
+        helper.assertTrue(truck.carriedDrums() == 2, "the truck should carry the pallet with its two drums, carries " + truck.carriedDrums());
+        helper.assertTrue(helper.getLevel().getBlockState(abs).isAir(), "the pallet should be off the ground");
+        truck.putDown(helper.makeMockPlayer(GameType.SURVIVAL));
+        helper.assertTrue(!truck.hasPallet(), "the truck should have set the pallet down");
+        var pallets = BlockPos.betweenClosedStream(abs.offset(-2, 0, -2), abs.offset(2, 0, 2)).map(BlockPos::immutable).filter(p -> helper.getLevel().getBlockState(p).is(SetpointContent.PALLET.get())).toList();
+        helper.assertTrue(pallets.size() == 1 && helper.getLevel().getBlockState(pallets.get(0)).getValue(PalletBlock.DRUMS) == 2, "one pallet with two drums should stand there again");
+        truck.discard();
         helper.succeed();
     }
 

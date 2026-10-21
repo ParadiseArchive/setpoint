@@ -65,6 +65,20 @@ public class PalletBlock extends BaseEntityBlock implements MultiblockBase {
         return parts(base, state.getValue(FACING), state.getValue(DRUMS) > 0);
     }
 
+    /** The other blocks of a pallet whose base is here, facing this way, with or without drums. */
+    public static List<BlockPos> footprint(BlockPos base, Direction front, boolean loaded) {
+        return parts(base, front, loaded);
+    }
+
+    /** Sets a pallet down here, with these drums on it (a pallet truck does this). */
+    public static void place(Level level, BlockPos base, Direction facing, List<ItemStack> drums) {
+        int count = Math.min(PalletBlockEntity.MAX_DRUMS, drums.size());
+        BlockState state = SetpointContent.PALLET.get().defaultBlockState().setValue(FACING, facing).setValue(DRUMS, count);
+        level.setBlock(base, state, Block.UPDATE_ALL);
+        if (level.getBlockEntity(base) instanceof PalletBlockEntity pallet) for (int i = 0; i < count; i++) pallet.add(drums.get(i));
+        placeParts(level, base, state);
+    }
+
     private static List<BlockPos> parts(BlockPos base, Direction front, boolean loaded) {
         Direction side = front.getClockWise(), back = front.getOpposite();
         List<BlockPos> parts = new ArrayList<>();
