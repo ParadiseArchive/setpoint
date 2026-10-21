@@ -109,4 +109,26 @@ class PumpModelTest {
         Result r = PumpModel.solve(new Inputs(0, 1, 2, 2, true, true, 0, 2e-3, 0));
         assertEquals(State.CAVITATING, r.state(), "throttling the suction should starve the pump of NPSH");
     }
+
+    @Test
+    void lavaIsThickAndFlowsSlower() {
+        double water = PumpModel.solve(new Inputs(0.5, 2, 20, 20, true, true, 0, 0, 0, 1, 1)).flow();
+        double lava = PumpModel.solve(new Inputs(0.5, 2, 20, 20, true, true, 0, 0, 0, 3, 6)).flow();
+        assertTrue(lava < water * 0.9, "lava should flow clearly slower than water through the same line");
+    }
+
+    @Test
+    void lavaIsHeavyAndTakesMorePower() {
+        Result water = PumpModel.solve(new Inputs(0.5, 2, 3, 3, true, true, 0, 0, 0, 1, 1));
+        Result lava = PumpModel.solve(new Inputs(0.5, 2, 3, 3, true, true, 0, 0, 0, 3, 6));
+        assertTrue(lava.power() / lava.flow() > water.power() / water.flow() * 2, "lifting lava should cost about three times the power per mB");
+    }
+
+    @Test
+    void lavaCannotBeSuckedUpFar() {
+        Result water = PumpModel.solve(new Inputs(-3, 1, 2, 2, true, true, 0, 0, 0, 1, 1));
+        Result lava = PumpModel.solve(new Inputs(-3, 1, 2, 2, true, true, 0, 0, 0, 3, 6));
+        assertEquals(State.OK, water.state(), "water from 3 m down is fine");
+        assertEquals(State.CAVITATING, lava.state(), "the air pushes lava only 3.4 m up, so it cavitates");
+    }
 }

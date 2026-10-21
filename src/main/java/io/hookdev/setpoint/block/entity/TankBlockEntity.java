@@ -8,7 +8,16 @@ import io.hookdev.setpoint.hydraulics.Vessel;
 import io.hookdev.setpoint.block.TankBlock;
 import io.hookdev.setpoint.menu.TankMenu;
 
+import org.jspecify.annotations.Nullable;
+
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -25,6 +34,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.Fluid;
+import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -64,9 +75,11 @@ public class TankBlockEntity extends BlockEntity implements MenuProvider, Vessel
     private final FluidStacksResourceHandler fluid = new FluidStacksResourceHandler(1, CAPACITY) {
         @Override
         protected void onContentsChanged(int index, FluidStack previousContents) {
-            onFluidChanged();
+            onFluidChanged(previousContents.getFluid());
         }
     };
+    /** Client side: the fluid behind this block's sight glass, for its colour. */
+    private Fluid shownFluid = Fluids.EMPTY;
 
     private final ItemStacksResourceHandler buckets = new ItemStacksResourceHandler(2) {
         @Override
@@ -295,15 +308,50 @@ public class TankBlockEntity extends BlockEntity implements MenuProvider, Vessel
         return false;
     }
 
-    private void onFluidChanged() {
+    private void onFluidChanged(Fluid before) {
         setChanged();
         if (level != null && !level.isClientSide()) {
+            // a different liquid (or none): the clients redraw the sight glass in its colour
+            if (!before.isSame(blockResource().getFluid())) level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
             BlockState state = getBlockState();
             int shown = TankBlock.levelFor(blockAmount(), CAPACITY);
             if (state.getValue(TankBlock.LEVEL) != shown) {
                 level.setBlock(worldPosition, state.setValue(TankBlock.LEVEL, shown), Block.UPDATE_CLIENTS);
             }
         }
+    }
+
+    /** The fluid behind this block's sight glass, as the client knows it. */
+    public Fluid shownFluid() {
+        return shownFluid;
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        CompoundTag tag = new CompoundTag();
+        tag.putString("shown_fluid", BuiltInRegistries.FLUID.getKey(blockResource().getFluid()).toString());
+        return tag;
+    }
+
+    @Override
+    public @Nullable Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    public void handleUpdateTag(ValueInput input) {
+        readShownFluid(input);
+    }
+
+    @Override
+    public void onDataPacket(Connection connection, ValueInput input) {
+        readShownFluid(input);
+    }
+
+    private void readShownFluid(ValueInput input) {
+        Identifier id = Identifier.tryParse(input.getStringOr("shown_fluid", "minecraft:empty"));
+        shownFluid = id == null ? Fluids.EMPTY : BuiltInRegistries.FLUID.getValue(id);
+        if (level != null) level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS); // redraw
     }
 
     /** A tall tank is one tank: its tag is the tag of its bottom block. */

@@ -213,7 +213,7 @@
         },
         {
           "type": "p",
-          "text": "Holds 16 buckets of one fluid. The sight glass shows the level. Click it with a bucket, or open it and use the bucket slots: full bucket in at the top, empty bucket out below."
+          "text": "Holds 16 buckets of one fluid. The sight glass shows the level, in the colour of the liquid. Click it with a bucket, or open it and use the bucket slots: full bucket in at the top, empty bucket out below."
         },
         {
           "type": "p",
@@ -369,6 +369,10 @@
         {
           "type": "p",
           "text": "It works with tanks from other mods too: anything with fluid storage at the end of a pipe."
+        },
+        {
+          "type": "p",
+          "text": "**Any liquid.** Pumps move lava and other mods' liquids too, and feel the difference: lava is three times as heavy and six times as thick, so it flows slower, takes more power, and cannot be sucked up from far below."
         },
         {
           "type": "craft",

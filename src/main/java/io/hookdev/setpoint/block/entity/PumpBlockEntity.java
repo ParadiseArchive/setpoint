@@ -107,7 +107,8 @@ public class PumpBlockEntity extends BlockEntity implements NamedEquipment {
                 discharge != null ? discharge.length() : 0,
                 hasSource, hasDestination, wear,
                 suction != null ? suction.valveResistance(level) : 0,
-                discharge != null ? discharge.valveResistance(level) : 0));
+                discharge != null ? discharge.valveResistance(level) : 0,
+                hasSource ? density(source.resource()) : 1, hasSource ? viscosity(source.resource()) : 1));
 
         // by default it runs by itself and a redstone signal is the stop button; or it runs only while it gets a signal
         commanded = runOnSignal == level.hasNeighborSignal(pos);
@@ -207,6 +208,16 @@ public class PumpBlockEntity extends BlockEntity implements NamedEquipment {
     }
 
     public boolean runOnSignal() { return runOnSignal; }
+
+    /** How heavy a liquid is compared to water: from its fluid type (water 1000, lava 3000). */
+    public static double density(FluidResource resource) {
+        return resource.isEmpty() ? 1 : Math.max(0.1, resource.getFluidType().getDensity() / 1000.0);
+    }
+
+    /** How thick a liquid is compared to water (water 1000, lava 6000). */
+    public static double viscosity(FluidResource resource) {
+        return resource.isEmpty() ? 1 : Math.max(0.1, resource.getFluidType().getViscosity() / 1000.0);
+    }
 
     /** Sneak-right-click: switch between stop-on-signal and run-on-signal. */
     public void toggleRedstoneMode(Player player) {

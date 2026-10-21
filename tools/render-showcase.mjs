@@ -131,6 +131,9 @@ function loadModel(id) {
   const own = Object.fromEntries(Object.entries(m.textures || {}).map(([k, v]) => [k, typeof v === 'object' ? v.sprite : v]));
   return { textures: { ...parent.textures, ...own }, elements: m.elements || parent.elements, generated: parent.generated };
 }
+/** Tinted faces (the liquid in a tank's sight glass) are drawn in water blue, like in a plain world. */
+const TINT = [0x3f, 0x76, 0xe4];
+
 /** Elements of a block model with every face's texture resolved. Short names mean a Setpoint block model. */
 function model(name) {
   const m = loadModel(name.includes('/') ? name : 'setpoint:block/' + name);
@@ -180,7 +183,7 @@ function render(file, parts, scale = 4, pad = 2, outline = true) {
         if (-(n[0] * VIEW[0] + n[1] * VIEW[1] + n[2] * VIEW[2]) <= 1e-9) continue;
         const axis = Math.abs(n[1]) > Math.abs(n[0]) && Math.abs(n[1]) > Math.abs(n[2]) ? (n[1] < 0 ? 'up' : 'down')
           : Math.abs(n[0]) > Math.abs(n[2]) ? (n[0] < 0 ? 'east' : 'west') : (n[2] < 0 ? 'south' : 'north');
-        quads.push({ o, u, v, uv: f.uv || q.uv, tex: texture(f.texture), shade: SHADE[axis] });
+        quads.push({ o, u, v, uv: f.uv || q.uv, tex: texture(f.texture), shade: SHADE[axis], tint: f.tintindex === undefined ? null : TINT });
       }
     }
   }
@@ -211,7 +214,7 @@ function render(file, parts, scale = 4, pad = 2, outline = true) {
         const d = depth(q.o.map((c, i) => c + a * du[i] + b * dv[i])), i = py * W + pxx;
         if (d < zbuf[i] - 1e-6) continue;
         zbuf[i] = d;
-        for (let k = 0; k < 3; k++) px[i * 4 + k] = Math.round(t.px[ti + k] * q.shade);
+        for (let k = 0; k < 3; k++) px[i * 4 + k] = Math.round(t.px[ti + k] * q.shade * (q.tint ? q.tint[k] / 255 : 1));
         px[i * 4 + 3] = 255;
       }
     }

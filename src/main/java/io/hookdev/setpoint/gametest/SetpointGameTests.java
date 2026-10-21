@@ -114,6 +114,7 @@ public final class SetpointGameTests {
         test("equipment_takes_a_new_tag", SetpointGameTests::equipmentTakesANewTag, 40);
         test("pump_can_run_on_a_signal", SetpointGameTests::pumpCanRunOnASignal, 100);
         test("drain_valve_empties_a_tank", SetpointGameTests::drainValveEmptiesATank, 100);
+        test("pump_moves_lava_slower_and_harder", SetpointGameTests::pumpMovesLavaSlowerAndHarder, 200);
     }
 
     private static void test(String name, Consumer<GameTestHelper> function, int maxTicks) {
@@ -534,6 +535,22 @@ public final class SetpointGameTests {
                 helper.assertTrue(pump.running(), "with a signal the pump should run");
                 helper.succeed();
             });
+        });
+    }
+
+    /** Lava goes through the same line as water, but slower and for more power: it is three times as heavy and six times as thick. */
+    private static void pumpMovesLavaSlowerAndHarder(GameTestHelper helper) {
+        buildLine(helper, false);
+        helper.getBlockEntity(SOURCE, TankBlockEntity.class).own().set(0, FluidResource.of(Fluids.LAVA), 8_000);
+        PumpBlockEntity pump = helper.getBlockEntity(PUMP, PumpBlockEntity.class);
+        helper.runAfterDelay(60, () -> {
+            TankBlockEntity destination = helper.getBlockEntity(DESTINATION, TankBlockEntity.class);
+            helper.assertTrue(destination.amount() > 0 && destination.resource().getFluid().isSame(Fluids.LAVA), "lava should arrive in the second tank");
+            var lava = pump.lastResult();
+            var water = io.hookdev.setpoint.physics.PumpModel.solve(new io.hookdev.setpoint.physics.PumpModel.Inputs(0, 0, 1, 1, true, true, 0));
+            helper.assertTrue(lava != null && lava.flow() < water.flow(), "lava should flow slower than water");
+            helper.assertTrue(lava.power() / lava.flow() > water.power() / water.flow(), "lava should take more power per mB");
+            helper.succeed();
         });
     }
 

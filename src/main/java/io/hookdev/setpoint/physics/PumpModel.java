@@ -51,13 +51,29 @@ public final class PumpModel {
      * @param suctionValveK    extra resistance of valves in the suction line (head = k * Q^2), infinite when one is shut
      * @param dischargeValveK  same for the discharge line
      */
+    /**
+     * @param density   how heavy the liquid is compared to water (lava: 3)
+     * @param viscosity how thick it is compared to water (lava: 6)
+     */
     public record Inputs(double suctionSurface, double dischargeSurface, double suctionLength, double dischargeLength,
-                         boolean hasSource, boolean hasDestination, double wear, double suctionValveK, double dischargeValveK) {
-        /** A line without valves. */
+                         boolean hasSource, boolean hasDestination, double wear, double suctionValveK, double dischargeValveK,
+                         double density, double viscosity) {
+        /** Water. */
+        public Inputs(double suctionSurface, double dischargeSurface, double suctionLength, double dischargeLength,
+                      boolean hasSource, boolean hasDestination, double wear, double suctionValveK, double dischargeValveK) {
+            this(suctionSurface, dischargeSurface, suctionLength, dischargeLength, hasSource, hasDestination, wear, suctionValveK, dischargeValveK, 1, 1);
+        }
+
+        /** Water, in a line without valves. */
         public Inputs(double suctionSurface, double dischargeSurface, double suctionLength, double dischargeLength,
                       boolean hasSource, boolean hasDestination, double wear) {
             this(suctionSurface, dischargeSurface, suctionLength, dischargeLength, hasSource, hasDestination, wear, 0, 0);
         }
+    }
+
+    /** Pipe friction grows with how thick the liquid is (roughly with the square root, between laminar and turbulent). */
+    public static double frictionFactor(double viscosity) {
+        return Math.sqrt(clamp(viscosity, 0.1, 100));
     }
 
     /**
@@ -92,35 +108,49 @@ public final class PumpModel {
     }
 
     public static double npshAvailable(double suctionSurface, double suctionLength, double suctionValveK, double flow) {
-        return ATMOSPHERIC_HEAD + suctionSurface - (FRICTION * suctionLength + suctionValveK) * flow * flow - VAPOUR_HEAD;
+        return npshAvailable(suctionSurface, suctionLength, suctionValveK, flow, 1, 1);
+    }
+
+    /** The air pushes a heavy liquid up less far: atmospheric pressure as head is 10.3 m of water but 3.4 m of lava. */
+    public static double npshAvailable(double suctionSurface, double suctionLength, double suctionValveK, double flow, double density, double viscosity) {
+        double sg = clamp(density, 0.1, 20);
+        return (ATMOSPHERIC_HEAD - VAPOUR_HEAD) / sg + suctionSurface
+                - (FRICTION * suctionLength * frictionFactor(viscosity) + suctionValveK) * flow * flow;
     }
 
     public static int power(double flow, double head) {
-        return 4 + (int) Math.round(flow * head / 40.0);
+        return power(flow, head, 1);
+    }
+
+    /** A heavier liquid takes more power to lift the same height. */
+    public static int power(double flow, double head, double density) {
+        return 4 + (int) Math.round(flow * head * clamp(density, 0.1, 20) / 40.0);
     }
 
     public static Result solve(Inputs in) {
         double h0 = shutoffHead(in.wear());
+        double sg = in.density(), mu = in.viscosity();
         // A shut suction valve starves the pump just like an empty source.
         if (!in.hasSource() || Double.isInfinite(in.suctionValveK())) {
             return new Result(State.DRY_RUN, 0, h0, 0, npshRequired(0), 1.0, power(0, h0));
         }
         if (!in.hasDestination() || Double.isInfinite(in.dischargeValveK())) {
-            return new Result(State.DEADHEAD, 0, h0, npshAvailable(in.suctionSurface(), in.suctionLength(), 0), npshRequired(0), 0, power(0, h0));
+            return new Result(State.DEADHEAD, 0, h0, npshAvailable(in.suctionSurface(), in.suctionLength(), 0, 0, sg, mu), npshRequired(0), 0, power(0, h0, sg));
         }
 
         // Operating point: pump curve h0 * (1 - (Q/Qmax)^2) meets system curve static + k * Q^2.
+        // A thick liquid rubs harder along the pipe walls; the valves throttle the same.
         double staticHead = in.dischargeSurface() - in.suctionSurface();
-        double k = FRICTION * (in.suctionLength() + in.dischargeLength()) + in.suctionValveK() + in.dischargeValveK();
+        double k = FRICTION * (in.suctionLength() + in.dischargeLength()) * frictionFactor(mu) + in.suctionValveK() + in.dischargeValveK();
         double flow = 0;
         if (h0 > staticHead) {
             flow = Math.sqrt((h0 - staticHead) / (h0 / (MAX_FLOW * MAX_FLOW) + k));
         }
         if (flow <= 0) {
-            return new Result(State.DEADHEAD, 0, h0, npshAvailable(in.suctionSurface(), in.suctionLength(), 0), npshRequired(0), 0, power(0, h0));
+            return new Result(State.DEADHEAD, 0, h0, npshAvailable(in.suctionSurface(), in.suctionLength(), 0, 0, sg, mu), npshRequired(0), 0, power(0, h0, sg));
         }
 
-        double npshA = npshAvailable(in.suctionSurface(), in.suctionLength(), in.suctionValveK(), flow);
+        double npshA = npshAvailable(in.suctionSurface(), in.suctionLength(), in.suctionValveK(), flow, sg, mu);
         double npshR = npshRequired(flow);
         double cavitation = 0;
         State state = State.OK;
@@ -130,7 +160,7 @@ public final class PumpModel {
             state = State.CAVITATING;
         }
         double head = curveHead(flow, in.wear());
-        return new Result(state, flow, head, npshA, npshR, cavitation, power(flow, head));
+        return new Result(state, flow, head, npshA, npshR, cavitation, power(flow, head, sg));
     }
 
     private static double clamp(double v, double min, double max) {

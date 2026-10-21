@@ -87,12 +87,7 @@ for (let level = 0; level <= 8; level++) {
     rivets(p, [[2, 2], [12, 2], [2, 12], [12, 12]]);
     p.rect(5, 1, 6, 14, C.steel1);                 // glass frame
     p.rect(6, 2, 4, 12, C.glass);                  // glass
-    const rows = Math.round(level / 8 * 12);
-    if (rows > 0) {
-      p.rect(6, 14 - rows, 4, rows, C.water);
-      p.rect(6, 14 - rows, 4, 1, C.waterTop);      // meniscus
-    }
-    p.set(6, 3, '#2a3140');                        // glint
+    p.set(6, 3, '#2a3140');                        // glint (the liquid is its own layer, coloured per fluid)
     for (const y of [2, 5, 8, 11]) p.set(11, y, C.steel4); // scale marks
     p.set(4, 2, C.amber);                          // high level mark
   });
@@ -171,8 +166,26 @@ M('pipe_item', {
     east: face([0, 5, 16, 11]), west: face([0, 5, 16, 11]), up: face([5, 0, 11, 16]), down: face([5, 0, 11, 16]),
   })],
 });
+// the liquid in the sight glass: light grey, tinted with the colour of the fluid in the tank (tintindex 0)
+for (let level = 1; level <= 8; level++) {
+  texture('tank_liquid_' + level, (p) => {
+    const rows = Math.round(level / 8 * 12);
+    p.rect(6, 14 - rows, 4, rows, '#c8c8c8');
+    p.rect(6, 14 - rows, 4, 1, '#ffffff');       // meniscus
+    p.rect(9, 15 - rows, 1, rows - 1, '#b0b0b0'); // shade along the frame
+  });
+}
 for (let level = 0; level <= 8; level++) {
-  M('tank_' + level, { parent: 'minecraft:block/cube_bottom_top', textures: { side: tex('tank_side_' + level), top: tex('tank_top'), bottom: tex('tank_bottom') } });
+  const sides = (t, extra = {}) => Object.fromEntries(['north', 'south', 'east', 'west'].map((f) => [f, { uv: [0, 0, 16, 16], texture: t, cullface: f, ...extra }]));
+  M('tank_' + level, {
+    parent: 'minecraft:block/block',
+    textures: { side: tex('tank_side_' + level), top: tex('tank_top'), bottom: tex('tank_bottom'), particle: tex('tank_side_' + level),
+      ...(level > 0 ? { liquid: tex('tank_liquid_' + level) } : {}) },
+    elements: [
+      box([0, 0, 0], [16, 16, 16], { ...sides('#side'), up: { uv: [0, 0, 16, 16], texture: '#top', cullface: 'up' }, down: { uv: [0, 0, 16, 16], texture: '#bottom', cullface: 'down' } }),
+      ...(level > 0 ? [box([-0.01, 0, -0.01], [16.01, 16, 16.01], sides('#liquid', { tintindex: 0 }))] : []),
+    ],
+  });
 }
 for (const status of ['off', 'running', 'alarm']) {
   M('pump_' + status, {
@@ -205,7 +218,8 @@ BS('creative_generator', { variants: { '': { model: 'setpoint:block/creative_gen
 // ---------- item models ----------
 const item = (name, model) => json(join(ASSETS, 'items', name + '.json'), { model: { type: 'minecraft:model', model } });
 item('pipe', 'setpoint:block/pipe_item');
-item('tank', 'setpoint:block/tank_5');
+json(join(ASSETS, 'items', 'tank.json'), { model: { type: 'minecraft:model', model: 'setpoint:block/tank_5',
+  tints: [{ type: 'minecraft:constant', value: -12618012 }] } }); // water blue in the inventory
 item('centrifugal_pump', 'setpoint:block/pump_running');
 item('creative_generator', 'setpoint:block/creative_generator');
 

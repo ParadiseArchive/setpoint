@@ -1,5 +1,10 @@
 package io.hookdev.setpoint.client;
 
+import io.hookdev.setpoint.block.entity.TankBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.client.renderer.block.BlockAndTintGetter;
+import net.minecraft.client.color.block.BlockTintSource;
+import java.util.List;
 import io.hookdev.setpoint.Setpoint;
 import io.hookdev.setpoint.SetpointContent;
 import io.hookdev.setpoint.menu.ConsoleMenu;
@@ -15,6 +20,7 @@ import net.minecraft.client.resources.language.I18n;
 import net.minecraft.locale.Language;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
@@ -31,6 +37,7 @@ import net.neoforged.neoforge.client.network.event.RegisterClientPayloadHandlers
 public class SetpointClient {
     public SetpointClient(IEventBus modEventBus) {
         modEventBus.addListener(SetpointClient::registerScreens);
+        modEventBus.addListener(SetpointClient::registerBlockTints);
         modEventBus.addListener(SetpointClient::registerPayloadHandlers);
         NeoForge.EVENT_BUS.addListener(SetpointClient::tooltip);
         NeoForge.EVENT_BUS.addListener(SetpointClient::showPidSelection);
@@ -80,6 +87,21 @@ public class SetpointClient {
         event.register(ConsoleSnapshot.TYPE, (snapshot, context) -> {
             if (context.player().containerMenu instanceof ConsoleMenu menu && menu.containerId == snapshot.containerId()) menu.receive(snapshot);
         });
+    }
+
+    /** The liquid in a tank's sight glass takes the colour of the fluid in that block. */
+    private static void registerBlockTints(RegisterColorHandlersEvent.BlockTintSources event) {
+        event.register(List.of(new BlockTintSource() {
+            @Override
+            public int color(BlockState state) {
+                return FluidColours.WATER;
+            }
+
+            @Override
+            public int colorInWorld(BlockState state, BlockAndTintGetter level, BlockPos pos) {
+                return level.getBlockEntity(pos) instanceof TankBlockEntity tank ? FluidColours.of(tank.shownFluid()) : FluidColours.WATER;
+            }
+        }), SetpointContent.TANK.get());
     }
 
     private static void registerScreens(RegisterMenuScreensEvent event) {

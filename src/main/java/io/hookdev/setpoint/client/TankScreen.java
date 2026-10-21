@@ -37,9 +37,7 @@ public class TankScreen extends MachineScreen<TankMenu> {
     }
 
     private static int colour(Fluid fluid) {
-        if (fluid.isSame(Fluids.LAVA)) return 0xFFE0661F;
-        if (fluid.isSame(Fluids.WATER)) return 0xFF3A6FD8;
-        return 0xFF8D95A5;
+        return FluidColours.of(fluid);
     }
 
     @Override
