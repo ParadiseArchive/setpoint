@@ -1,5 +1,7 @@
 package io.hookdev.setpoint.client;
 
+import net.minecraft.world.item.ItemStack;
+import java.util.List;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 
@@ -8,7 +10,6 @@ import io.hookdev.setpoint.block.PalletBlock;
 import io.hookdev.setpoint.block.VehicleModelBlock;
 import io.hookdev.setpoint.entity.ForkliftEntity;
 
-import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.block.BlockModelRenderState;
 import net.minecraft.client.renderer.block.BlockModelResolver;
@@ -24,7 +25,7 @@ import net.minecraft.util.Mth;
 /**
  * Draws the forklift from its part models: the body, the three mast stages and the fork carriage, each lifted as far
  * as the forks are up, the two rear wheels turned as far as it steers, and the pallet it carries with each drum in its
- * own colour.
+ * own colour (or an IBC with its liquid).
  */
 public class ForkliftRenderer extends EntityRenderer<ForkliftEntity, ForkliftRenderer.State> {
     private static final BlockDisplayContext DISPLAY = BlockDisplayContext.create();
@@ -70,11 +71,9 @@ public class ForkliftRenderer extends EntityRenderer<ForkliftEntity, ForkliftRen
         }
         state.drums = forklift.carriedDrums();
         if (state.drums >= 0) { // the pallet's front towards the forklift
-            models.update(state.pallet, SetpointContent.PALLET.get().defaultBlockState()
-                    .setValue(PalletBlock.FACING, Direction.SOUTH).setValue(PalletBlock.DRUMS, state.drums), DISPLAY);
-            IntList tints = state.pallet.tintLayers(); // each drum in its colour
-            tints.clear();
-            for (int i = 0; i < 4; i++) tints.add(forklift.drumColour(i));
+            List<ItemStack> load = forklift.load();
+            models.update(state.pallet, PalletBlock.stateFor(Direction.SOUTH, load), DISPLAY);
+            PalletLook.tints(state.pallet.tintLayers(), load); // each drum in its colour, or the IBC with its liquid
         }
     }
 

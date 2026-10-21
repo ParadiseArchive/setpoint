@@ -1,5 +1,6 @@
 package io.hookdev.setpoint.entity;
 
+import net.minecraft.sounds.SoundEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,12 +11,10 @@ import io.hookdev.setpoint.block.PalletBlock;
 import io.hookdev.setpoint.block.PalletPartBlock;
 import io.hookdev.setpoint.block.entity.MultiblockPartBlockEntity;
 import io.hookdev.setpoint.block.entity.PalletBlockEntity;
-import io.hookdev.setpoint.block.entity.PortableTankBlockEntity;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -40,7 +39,6 @@ import net.minecraft.world.entity.vehicle.DismountHelper;
 import net.minecraft.world.entity.vehicle.VehicleEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
@@ -49,13 +47,13 @@ import net.minecraft.world.phys.Vec3;
 
 /**
  * An electric counterbalance forklift. Right-click to get in; W and S drive, A and D steer the rear wheels (so the
- * back swings out, like a real one), the arrow keys raise and lower the forks, H is the horn, sneak gets you out.
+ * back swings out, like a real one), the arrow keys raise and lower the forks, holding H sounds the horn, sneak gets you out.
  * Lower the forks to a pallet, drive them in and raise: the pallet comes up, drums and all. Lower it onto the ground
  * or onto something solid at height and it stays there.
  * <p>
  * Like a boat, the driver's game moves it and the server checks; the forks are run by the server.
  */
-public class ForkliftEntity extends VehicleEntity {
+public class ForkliftEntity extends VehicleEntity implements HornVehicle {
     /** From the middle of the forklift to its front axle (fixed wheels) and its rear axle (steering wheels), in blocks. */
     public static final double FRONT_AXLE = 0.875, REAR_AXLE = 0.75;
     /** From the middle of the forklift to the middle of a pallet on its forks, and the forks' reach, in blocks. */
@@ -70,13 +68,15 @@ public class ForkliftEntity extends VehicleEntity {
     private static final double SEAT_UP = 0.85, SEAT_BACK = 0.25;
 
     private static final EntityDataAccessor<Float> DATA_LIFT = SynchedEntityData.defineId(ForkliftEntity.class, EntityDataSerializers.FLOAT);
-    /** Drums on the pallet it carries, or -1 without a pallet. */
-    private static final EntityDataAccessor<Integer> DATA_DRUMS = SynchedEntityData.defineId(ForkliftEntity.class, EntityDataSerializers.INT);
+    /** Whether it carries a pallet, and what is on it (the items: every player draws them, liquid and colour). */
+    private static final EntityDataAccessor<Boolean> DATA_PALLET = SynchedEntityData.defineId(ForkliftEntity.class, EntityDataSerializers.BOOLEAN);
     @SuppressWarnings("unchecked")
-    private static final EntityDataAccessor<Integer>[] DATA_COLOURS = new EntityDataAccessor[PalletBlockEntity.MAX_DRUMS];
+    private static final EntityDataAccessor<ItemStack>[] DATA_LOAD = new EntityDataAccessor[PalletBlockEntity.MAX_DRUMS];
     static {
-        for (int i = 0; i < DATA_COLOURS.length; i++) DATA_COLOURS[i] = SynchedEntityData.defineId(ForkliftEntity.class, EntityDataSerializers.INT);
+        for (int i = 0; i < DATA_LOAD.length; i++) DATA_LOAD[i] = SynchedEntityData.defineId(ForkliftEntity.class, EntityDataSerializers.ITEM_STACK);
     }
+    /** The driver holds H. */
+    private static final EntityDataAccessor<Boolean> DATA_HORN = SynchedEntityData.defineId(ForkliftEntity.class, EntityDataSerializers.BOOLEAN);
 
     private final List<ItemStack> drums = new ArrayList<>();
     private boolean hasPallet;
@@ -98,8 +98,9 @@ public class ForkliftEntity extends VehicleEntity {
     protected void defineSynchedData(SynchedEntityData.Builder entityData) {
         super.defineSynchedData(entityData);
         entityData.define(DATA_LIFT, 0f);
-        entityData.define(DATA_DRUMS, -1);
-        for (EntityDataAccessor<Integer> colour : DATA_COLOURS) entityData.define(colour, PortableTankBlockEntity.DRUM_BLUE);
+        entityData.define(DATA_PALLET, false);
+        for (EntityDataAccessor<ItemStack> item : DATA_LOAD) entityData.define(item, ItemStack.EMPTY);
+        entityData.define(DATA_HORN, false);
     }
 
     @Override
@@ -115,10 +116,15 @@ public class ForkliftEntity extends VehicleEntity {
 
     private void setLift(float lift) { entityData.set(DATA_LIFT, Mth.clamp(lift, 0, MAX_LIFT)); }
 
-    /** Drums on the pallet it carries, or -1 without a pallet. */
-    public int carriedDrums() { return entityData.get(DATA_DRUMS); }
+    /** How many drums (or IBCs) are on the pallet it carries, or -1 without a pallet. */
+    public int carriedDrums() { return entityData.get(DATA_PALLET) ? load().size() : -1; }
 
-    public int drumColour(int index) { return entityData.get(DATA_COLOURS[index]); }
+    /** What is on the pallet it carries, as every player sees it. */
+    public List<ItemStack> load() {
+        List<ItemStack> load = new ArrayList<>();
+        for (EntityDataAccessor<ItemStack> item : DATA_LOAD) if (!entityData.get(item).isEmpty()) load.add(entityData.get(item));
+        return load;
+    }
 
     public boolean hasPallet() { return hasPallet; }
 
@@ -157,7 +163,7 @@ public class ForkliftEntity extends VehicleEntity {
         if (player.isSecondaryUseActive() || isVehicle()) return InteractionResult.PASS;
         if (level().isClientSide()) return InteractionResult.SUCCESS;
         if (!player.startRiding(this)) return InteractionResult.PASS;
-        say(player, "W/S: drive. A/D: steer. Arrow keys: forks up and down. H: horn. Sneak: get out.");
+        say(player, "W/S: drive. A/D: steer. Arrow keys: forks up and down. Hold H: horn. Sneak: get out.");
         return InteractionResult.SUCCESS_SERVER;
     }
 
@@ -248,7 +254,10 @@ public class ForkliftEntity extends VehicleEntity {
 
     /** The forks go up or down; raised under a pallet they take it, lowered onto a floor they leave it there. */
     private void forks(ServerLevel level) {
-        if (driver() == null) liftInput = 0;
+        if (driver() == null) {
+            liftInput = 0;
+            if (hornOn()) setHorn(false);
+        }
         if (liftInput > 0) {
             if (!hasPallet) pickUp(level);
             setLift(lift() + LIFT_SPEED);
@@ -352,17 +361,19 @@ public class ForkliftEntity extends VehicleEntity {
 
     /** Tells the players what is on the forks, to draw it. */
     private void synced() {
-        entityData.set(DATA_DRUMS, hasPallet ? drums.size() : -1);
-        for (int i = 0; i < DATA_COLOURS.length; i++) {
-            DyedItemColor dyed = i < drums.size() ? drums.get(i).get(DataComponents.DYED_COLOR) : null;
-            entityData.set(DATA_COLOURS[i], dyed == null ? PortableTankBlockEntity.DRUM_BLUE : 0xFF000000 | dyed.rgb());
-        }
+        entityData.set(DATA_PALLET, hasPallet);
+        for (int i = 0; i < DATA_LOAD.length; i++) entityData.set(DATA_LOAD[i], i < drums.size() ? drums.get(i).copy() : ItemStack.EMPTY);
     }
 
-    /** The horn: lower than the pallet truck's. */
-    public void horn() {
-        level().playSound(null, getX(), getY() + 1.5, getZ(), SetpointContent.FORKLIFT_HORN.get(), SoundSource.NEUTRAL, 1.0f, 1.0f);
-    }
+    @Override
+    public boolean hornOn() { return entityData.get(DATA_HORN); }
+
+    @Override
+    public void setHorn(boolean on) { entityData.set(DATA_HORN, on); }
+
+    /** The horn: one steady note while the driver holds H, lower than the pallet truck's. */
+    @Override
+    public SoundEvent hornSound() { return SetpointContent.FORKLIFT_HORN.get(); }
 
     private static void say(Player player, String text) {
         if (player instanceof ServerPlayer serverPlayer) serverPlayer.sendSystemMessage(Component.literal(text).withStyle(ChatFormatting.GRAY), true);

@@ -1,5 +1,9 @@
 package io.hookdev.setpoint.gametest;
 
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.SimpleFluidContent;
+import io.hookdev.setpoint.block.TankBlock;
+import io.hookdev.setpoint.block.entity.PalletBlockEntity;
 import io.hookdev.setpoint.entity.ForkliftEntity;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -124,6 +128,7 @@ public final class SetpointGameTests {
         test("a_pallet_takes_up_to_four_drums", SetpointGameTests::aPalletTakesUpToFourDrums, 20);
         test("pallet_truck_picks_up_and_sets_down", SetpointGameTests::palletTruckPicksUpAndSetsDown, 40);
         test("forklift_puts_a_pallet_on_a_shelf", SetpointGameTests::forkliftPutsAPalletOnAShelf, 40);
+        test("an_ibc_rides_a_pallet", SetpointGameTests::anIbcRidesAPallet, 40);
         test("high_pressure_trips_the_burner", SetpointGameTests::highPressureTripsTheBurner, 400);
         test("safety_valve_saves_the_boiler", SetpointGameTests::safetyValveSavesTheBoiler, 300);
         test("overpressure_bursts_an_unprotected_boiler", SetpointGameTests::overpressureBurstsAnUnprotectedBoiler, 100);
@@ -1194,6 +1199,31 @@ public final class SetpointGameTests {
         helper.assertBlockProperty(base, PalletBlock.DRUMS, 3);
         helper.assertTrue(forklift.lift() < 0.15f, "the forks should be down, in the pallet on the ground; at " + forklift.lift());
         forklift.discard();
+        helper.succeed();
+    }
+
+    /** An IBC with water on a pallet: the pallet truck takes it up and sets it down, water and all. */
+    private static void anIbcRidesAPallet(GameTestHelper helper) {
+        BlockPos base = new BlockPos(3, 1, 2);
+        BlockPos abs = helper.absolutePos(base);
+        ItemStack ibc = new ItemStack(SetpointContent.IBC_ITEM.get());
+        ibc.set(SetpointContent.FLUID_CONTENTS.get(), SimpleFluidContent.copyOf(new FluidStack(Fluids.WATER, 10_000)));
+        PalletBlock.place(helper.getLevel(), abs, Direction.NORTH, List.of(ibc));
+        helper.assertBlockProperty(base, PalletBlock.IBC, 1 + TankBlock.levelFor(10_000, IbcBlock.CAPACITY));
+        helper.assertBlockProperty(base, PalletBlock.DRUMS, 0);
+        var truck = SetpointContent.PALLET_TRUCK_ENTITY.get().create(helper.getLevel(), net.minecraft.world.entity.EntitySpawnReason.TRIGGERED);
+        truck.snapTo(new Vec3(abs.getX() + 1.0, abs.getY(), abs.getZ() - 0.1), 180, 0);
+        helper.getLevel().addFreshEntity(truck);
+        truck.coupleNow();
+        helper.assertTrue(truck.carriedDrums() == 1 && PalletBlock.hasIbc(truck.load()), "the truck should carry the pallet with the IBC");
+        truck.putDown(helper.makeMockPlayer(GameType.SURVIVAL));
+        var pallets = BlockPos.betweenClosedStream(abs.offset(-2, 0, -2), abs.offset(2, 0, 2)).map(BlockPos::immutable).filter(p -> helper.getLevel().getBlockState(p).is(SetpointContent.PALLET.get())).toList();
+        helper.assertTrue(pallets.size() == 1, "one pallet should stand there again");
+        PalletBlockEntity pallet = (PalletBlockEntity) helper.getLevel().getBlockEntity(pallets.get(0));
+        SimpleFluidContent water = pallet.drums().get(0).get(SetpointContent.FLUID_CONTENTS.get());
+        helper.assertTrue(PalletBlock.hasIbc(pallet.drums()) && water != null && water.getAmount() == 10_000, "the IBC should still hold its 10 B of water");
+        helper.assertTrue(helper.getLevel().getBlockState(pallets.get(0).above()).is(SetpointContent.PALLET_PART.get()), "the IBC should take the block above the pallet");
+        truck.discard();
         helper.succeed();
     }
 

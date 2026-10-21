@@ -762,11 +762,11 @@ json(join(ASSETS, 'sounds.json'), {
   },
   'entity.pallet_truck.horn': {
     subtitle: 'subtitles.setpoint.entity.pallet_truck.horn',
-    sounds: [{ name: 'setpoint:vehicle/horn', volume: 1.0 }], // made by tools/make-horn.mjs
+    sounds: [{ name: 'setpoint:vehicle/horn', volume: 1.0 }], // a one-second note that loops while H is held (tools/make-horn.mjs)
   },
   'entity.forklift.horn': {
     subtitle: 'subtitles.setpoint.entity.forklift.horn',
-    sounds: [{ name: 'setpoint:vehicle/horn_low', volume: 1.0 }], // made by tools/make-horn.mjs, pitch 0.8
+    sounds: [{ name: 'setpoint:vehicle/horn_low', volume: 1.0 }], // the same, lower (tools/make-horn.mjs low)
   },
   'block.safety_valve.lift': {
     subtitle: 'subtitles.setpoint.block.safety_valve.lift',
@@ -1000,6 +1000,7 @@ texture('ibc_liquid', (p) => {
   for (let y = 1; y < 16; y++) for (let x = 0; x < 16; x++) if ((x + y) % 2 === 0) p.set(x, y, '#d0d0d0');
   p.rect(0, 0, 16, 1, '#ffffff');                                            // the surface
 });
+let IBC_ON_PALLET; // an IBC's elements above its own base, for one standing on a wooden pallet
 {
   const all = (t) => () => t;
   const ibc = (level) => {
@@ -1033,6 +1034,7 @@ texture('ibc_liquid', (p) => {
   };
   const textures = { pallet: tex('ibc_pallet'), tote: tex('ibc_tote'), cage: tex('ibc_cage'), cap: tex('ibc_cap'), valve: tex('ibc_valve'),
     liquid: tex('ibc_liquid'), particle: tex('ibc_tote') };
+  IBC_ON_PALLET = { textures, elements: (level) => ibc(level).filter((e) => !(e.from[1] === 0 && e.to[1] === 3)) }; // without its own base
   for (let level = 0; level <= 8; level++) M('ibc_' + level, { parent: 'minecraft:block/block', ambientocclusion: false, textures, elements: ibc(level) });
   M('ibc_item', { parent: 'minecraft:block/block', textures, elements: shrunk(ibc(5), [16, 16, 16], 0.5) });
   BS('ibc', { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => Array.from({ length: 9 }, (_, l) =>
@@ -1129,9 +1131,14 @@ function strapAround(centres, y, h = 1.5, r = 7.35, t = 0.5) {
     elements.push(...strapAround(centres, 3 + 5), ...strapAround(centres, 3 + 18));
     M('pallet_' + count, { parent: 'minecraft:block/block', ambientocclusion: false, textures, elements });
   }
+  // an IBC on the pallet: it stands on the wood instead of its own base (tint 0 its liquid, tint 1 its tote)
+  for (let level = 0; level <= 8; level++) {
+    M('pallet_ibc_' + level, { parent: 'minecraft:block/block', ambientocclusion: false, textures: { ...IBC_ON_PALLET.textures, ...textures },
+      elements: [...deck(), ...IBC_ON_PALLET.elements(level)] });
+  }
   M('pallet_item', { parent: 'minecraft:block/block', textures, elements: shrunk(deck(), [16, 8, 16], 0.5) });
-  BS('pallet', { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => [0, 1, 2, 3, 4].map((n) =>
-    [`drums=${n},facing=${f}`, { model: 'setpoint:block/pallet_' + n, ...(y ? { y } : {}) }]))) });
+  BS('pallet', { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => [0, 1, 2, 3, 4].flatMap((n) => Array.from({ length: 10 }, (_, k) =>
+    [`drums=${n},facing=${f},ibc=${k}`, { model: 'setpoint:block/' + (k ? 'pallet_ibc_' + (k - 1) : 'pallet_' + n), ...(y ? { y } : {}) }])))) });
   item('pallet', 'setpoint:block/pallet_item');
   M('pallet_part', { textures: { particle: tex('pallet_board') } });
   BS('pallet_part', { variants: Object.fromEntries([0, 1, 2].map((k) => [`kind=${k}`, { model: 'setpoint:block/pallet_part' }])) });

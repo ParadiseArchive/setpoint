@@ -1,5 +1,6 @@
 package io.hookdev.setpoint.block.entity;
 
+import io.hookdev.setpoint.block.PalletBlock;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,7 +11,6 @@ import io.hookdev.setpoint.SetpointContent;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.chat.Component;
@@ -21,7 +21,6 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.Containers;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -30,7 +29,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.SimpleFluidContent;
 
-/** The drums on a pallet, as their items: each keeps its liquid and its colour. Players get them, to draw them. */
+/** The drums (or the IBC) on a pallet, as their items: each keeps its liquid and its colour. Players get them, to draw them. */
 public class PalletBlockEntity extends BlockEntity {
     public static final int MAX_DRUMS = 4;
 
@@ -68,22 +67,16 @@ public class PalletBlockEntity extends BlockEntity {
         if (level != null && !level.isClientSide()) level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
     }
 
-    /** The colour of drum number {@code index}: its dye, or the drum's own blue. */
-    public int colour(int index) {
-        if (index >= drums.size()) return PortableTankBlockEntity.DRUM_BLUE;
-        DyedItemColor dyed = drums.get(index).get(DataComponents.DYED_COLOR);
-        return dyed == null ? PortableTankBlockEntity.DRUM_BLUE : 0xFF000000 | dyed.rgb();
-    }
-
     /** An empty hand: what is on the pallet. */
     public void describe(Player player) {
         MutableComponent line = Component.literal("Pallet  ").withStyle(ChatFormatting.AQUA);
-        if (drums.isEmpty()) line.append(Component.literal("empty: right-click it with a drum").withStyle(ChatFormatting.GRAY));
+        if (drums.isEmpty()) line.append(Component.literal("empty: right-click it with a drum or an IBC").withStyle(ChatFormatting.GRAY));
         for (int i = 0; i < drums.size(); i++) {
             SimpleFluidContent contents = drums.get(i).get(SetpointContent.FLUID_CONTENTS.get());
             FluidStack fluid = contents == null ? FluidStack.EMPTY : contents.copy();
-            line.append(Component.literal((i > 0 ? ",  " : "") + (fluid.isEmpty() ? "empty drum"
-                    : String.format("%s %.1f B", fluid.getHoverName().getString(), fluid.getAmount() / 1000.0))).withStyle(ChatFormatting.WHITE));
+            String what = PalletBlock.isIbc(drums.get(i)) ? "IBC" : "drum";
+            line.append(Component.literal((i > 0 ? ",  " : "") + (fluid.isEmpty() ? "empty " + what
+                    : what + " " + String.format("%s %.1f B", fluid.getHoverName().getString(), fluid.getAmount() / 1000.0))).withStyle(ChatFormatting.WHITE));
         }
         player.sendSystemMessage(line);
     }

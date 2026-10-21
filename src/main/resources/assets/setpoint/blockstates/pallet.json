@@ -1,78 +1,753 @@
 {
   "variants": {
-    "drums=0,facing=north": {
+    "drums=0,facing=north,ibc=0": {
       "model": "setpoint:block/pallet_0"
     },
-    "drums=1,facing=north": {
+    "drums=0,facing=north,ibc=1": {
+      "model": "setpoint:block/pallet_ibc_0"
+    },
+    "drums=0,facing=north,ibc=2": {
+      "model": "setpoint:block/pallet_ibc_1"
+    },
+    "drums=0,facing=north,ibc=3": {
+      "model": "setpoint:block/pallet_ibc_2"
+    },
+    "drums=0,facing=north,ibc=4": {
+      "model": "setpoint:block/pallet_ibc_3"
+    },
+    "drums=0,facing=north,ibc=5": {
+      "model": "setpoint:block/pallet_ibc_4"
+    },
+    "drums=0,facing=north,ibc=6": {
+      "model": "setpoint:block/pallet_ibc_5"
+    },
+    "drums=0,facing=north,ibc=7": {
+      "model": "setpoint:block/pallet_ibc_6"
+    },
+    "drums=0,facing=north,ibc=8": {
+      "model": "setpoint:block/pallet_ibc_7"
+    },
+    "drums=0,facing=north,ibc=9": {
+      "model": "setpoint:block/pallet_ibc_8"
+    },
+    "drums=1,facing=north,ibc=0": {
       "model": "setpoint:block/pallet_1"
     },
-    "drums=2,facing=north": {
+    "drums=1,facing=north,ibc=1": {
+      "model": "setpoint:block/pallet_ibc_0"
+    },
+    "drums=1,facing=north,ibc=2": {
+      "model": "setpoint:block/pallet_ibc_1"
+    },
+    "drums=1,facing=north,ibc=3": {
+      "model": "setpoint:block/pallet_ibc_2"
+    },
+    "drums=1,facing=north,ibc=4": {
+      "model": "setpoint:block/pallet_ibc_3"
+    },
+    "drums=1,facing=north,ibc=5": {
+      "model": "setpoint:block/pallet_ibc_4"
+    },
+    "drums=1,facing=north,ibc=6": {
+      "model": "setpoint:block/pallet_ibc_5"
+    },
+    "drums=1,facing=north,ibc=7": {
+      "model": "setpoint:block/pallet_ibc_6"
+    },
+    "drums=1,facing=north,ibc=8": {
+      "model": "setpoint:block/pallet_ibc_7"
+    },
+    "drums=1,facing=north,ibc=9": {
+      "model": "setpoint:block/pallet_ibc_8"
+    },
+    "drums=2,facing=north,ibc=0": {
       "model": "setpoint:block/pallet_2"
     },
-    "drums=3,facing=north": {
+    "drums=2,facing=north,ibc=1": {
+      "model": "setpoint:block/pallet_ibc_0"
+    },
+    "drums=2,facing=north,ibc=2": {
+      "model": "setpoint:block/pallet_ibc_1"
+    },
+    "drums=2,facing=north,ibc=3": {
+      "model": "setpoint:block/pallet_ibc_2"
+    },
+    "drums=2,facing=north,ibc=4": {
+      "model": "setpoint:block/pallet_ibc_3"
+    },
+    "drums=2,facing=north,ibc=5": {
+      "model": "setpoint:block/pallet_ibc_4"
+    },
+    "drums=2,facing=north,ibc=6": {
+      "model": "setpoint:block/pallet_ibc_5"
+    },
+    "drums=2,facing=north,ibc=7": {
+      "model": "setpoint:block/pallet_ibc_6"
+    },
+    "drums=2,facing=north,ibc=8": {
+      "model": "setpoint:block/pallet_ibc_7"
+    },
+    "drums=2,facing=north,ibc=9": {
+      "model": "setpoint:block/pallet_ibc_8"
+    },
+    "drums=3,facing=north,ibc=0": {
       "model": "setpoint:block/pallet_3"
     },
-    "drums=4,facing=north": {
+    "drums=3,facing=north,ibc=1": {
+      "model": "setpoint:block/pallet_ibc_0"
+    },
+    "drums=3,facing=north,ibc=2": {
+      "model": "setpoint:block/pallet_ibc_1"
+    },
+    "drums=3,facing=north,ibc=3": {
+      "model": "setpoint:block/pallet_ibc_2"
+    },
+    "drums=3,facing=north,ibc=4": {
+      "model": "setpoint:block/pallet_ibc_3"
+    },
+    "drums=3,facing=north,ibc=5": {
+      "model": "setpoint:block/pallet_ibc_4"
+    },
+    "drums=3,facing=north,ibc=6": {
+      "model": "setpoint:block/pallet_ibc_5"
+    },
+    "drums=3,facing=north,ibc=7": {
+      "model": "setpoint:block/pallet_ibc_6"
+    },
+    "drums=3,facing=north,ibc=8": {
+      "model": "setpoint:block/pallet_ibc_7"
+    },
+    "drums=3,facing=north,ibc=9": {
+      "model": "setpoint:block/pallet_ibc_8"
+    },
+    "drums=4,facing=north,ibc=0": {
       "model": "setpoint:block/pallet_4"
     },
-    "drums=0,facing=east": {
+    "drums=4,facing=north,ibc=1": {
+      "model": "setpoint:block/pallet_ibc_0"
+    },
+    "drums=4,facing=north,ibc=2": {
+      "model": "setpoint:block/pallet_ibc_1"
+    },
+    "drums=4,facing=north,ibc=3": {
+      "model": "setpoint:block/pallet_ibc_2"
+    },
+    "drums=4,facing=north,ibc=4": {
+      "model": "setpoint:block/pallet_ibc_3"
+    },
+    "drums=4,facing=north,ibc=5": {
+      "model": "setpoint:block/pallet_ibc_4"
+    },
+    "drums=4,facing=north,ibc=6": {
+      "model": "setpoint:block/pallet_ibc_5"
+    },
+    "drums=4,facing=north,ibc=7": {
+      "model": "setpoint:block/pallet_ibc_6"
+    },
+    "drums=4,facing=north,ibc=8": {
+      "model": "setpoint:block/pallet_ibc_7"
+    },
+    "drums=4,facing=north,ibc=9": {
+      "model": "setpoint:block/pallet_ibc_8"
+    },
+    "drums=0,facing=east,ibc=0": {
       "model": "setpoint:block/pallet_0",
       "y": 90
     },
-    "drums=1,facing=east": {
+    "drums=0,facing=east,ibc=1": {
+      "model": "setpoint:block/pallet_ibc_0",
+      "y": 90
+    },
+    "drums=0,facing=east,ibc=2": {
+      "model": "setpoint:block/pallet_ibc_1",
+      "y": 90
+    },
+    "drums=0,facing=east,ibc=3": {
+      "model": "setpoint:block/pallet_ibc_2",
+      "y": 90
+    },
+    "drums=0,facing=east,ibc=4": {
+      "model": "setpoint:block/pallet_ibc_3",
+      "y": 90
+    },
+    "drums=0,facing=east,ibc=5": {
+      "model": "setpoint:block/pallet_ibc_4",
+      "y": 90
+    },
+    "drums=0,facing=east,ibc=6": {
+      "model": "setpoint:block/pallet_ibc_5",
+      "y": 90
+    },
+    "drums=0,facing=east,ibc=7": {
+      "model": "setpoint:block/pallet_ibc_6",
+      "y": 90
+    },
+    "drums=0,facing=east,ibc=8": {
+      "model": "setpoint:block/pallet_ibc_7",
+      "y": 90
+    },
+    "drums=0,facing=east,ibc=9": {
+      "model": "setpoint:block/pallet_ibc_8",
+      "y": 90
+    },
+    "drums=1,facing=east,ibc=0": {
       "model": "setpoint:block/pallet_1",
       "y": 90
     },
-    "drums=2,facing=east": {
+    "drums=1,facing=east,ibc=1": {
+      "model": "setpoint:block/pallet_ibc_0",
+      "y": 90
+    },
+    "drums=1,facing=east,ibc=2": {
+      "model": "setpoint:block/pallet_ibc_1",
+      "y": 90
+    },
+    "drums=1,facing=east,ibc=3": {
+      "model": "setpoint:block/pallet_ibc_2",
+      "y": 90
+    },
+    "drums=1,facing=east,ibc=4": {
+      "model": "setpoint:block/pallet_ibc_3",
+      "y": 90
+    },
+    "drums=1,facing=east,ibc=5": {
+      "model": "setpoint:block/pallet_ibc_4",
+      "y": 90
+    },
+    "drums=1,facing=east,ibc=6": {
+      "model": "setpoint:block/pallet_ibc_5",
+      "y": 90
+    },
+    "drums=1,facing=east,ibc=7": {
+      "model": "setpoint:block/pallet_ibc_6",
+      "y": 90
+    },
+    "drums=1,facing=east,ibc=8": {
+      "model": "setpoint:block/pallet_ibc_7",
+      "y": 90
+    },
+    "drums=1,facing=east,ibc=9": {
+      "model": "setpoint:block/pallet_ibc_8",
+      "y": 90
+    },
+    "drums=2,facing=east,ibc=0": {
       "model": "setpoint:block/pallet_2",
       "y": 90
     },
-    "drums=3,facing=east": {
+    "drums=2,facing=east,ibc=1": {
+      "model": "setpoint:block/pallet_ibc_0",
+      "y": 90
+    },
+    "drums=2,facing=east,ibc=2": {
+      "model": "setpoint:block/pallet_ibc_1",
+      "y": 90
+    },
+    "drums=2,facing=east,ibc=3": {
+      "model": "setpoint:block/pallet_ibc_2",
+      "y": 90
+    },
+    "drums=2,facing=east,ibc=4": {
+      "model": "setpoint:block/pallet_ibc_3",
+      "y": 90
+    },
+    "drums=2,facing=east,ibc=5": {
+      "model": "setpoint:block/pallet_ibc_4",
+      "y": 90
+    },
+    "drums=2,facing=east,ibc=6": {
+      "model": "setpoint:block/pallet_ibc_5",
+      "y": 90
+    },
+    "drums=2,facing=east,ibc=7": {
+      "model": "setpoint:block/pallet_ibc_6",
+      "y": 90
+    },
+    "drums=2,facing=east,ibc=8": {
+      "model": "setpoint:block/pallet_ibc_7",
+      "y": 90
+    },
+    "drums=2,facing=east,ibc=9": {
+      "model": "setpoint:block/pallet_ibc_8",
+      "y": 90
+    },
+    "drums=3,facing=east,ibc=0": {
       "model": "setpoint:block/pallet_3",
       "y": 90
     },
-    "drums=4,facing=east": {
+    "drums=3,facing=east,ibc=1": {
+      "model": "setpoint:block/pallet_ibc_0",
+      "y": 90
+    },
+    "drums=3,facing=east,ibc=2": {
+      "model": "setpoint:block/pallet_ibc_1",
+      "y": 90
+    },
+    "drums=3,facing=east,ibc=3": {
+      "model": "setpoint:block/pallet_ibc_2",
+      "y": 90
+    },
+    "drums=3,facing=east,ibc=4": {
+      "model": "setpoint:block/pallet_ibc_3",
+      "y": 90
+    },
+    "drums=3,facing=east,ibc=5": {
+      "model": "setpoint:block/pallet_ibc_4",
+      "y": 90
+    },
+    "drums=3,facing=east,ibc=6": {
+      "model": "setpoint:block/pallet_ibc_5",
+      "y": 90
+    },
+    "drums=3,facing=east,ibc=7": {
+      "model": "setpoint:block/pallet_ibc_6",
+      "y": 90
+    },
+    "drums=3,facing=east,ibc=8": {
+      "model": "setpoint:block/pallet_ibc_7",
+      "y": 90
+    },
+    "drums=3,facing=east,ibc=9": {
+      "model": "setpoint:block/pallet_ibc_8",
+      "y": 90
+    },
+    "drums=4,facing=east,ibc=0": {
       "model": "setpoint:block/pallet_4",
       "y": 90
     },
-    "drums=0,facing=south": {
+    "drums=4,facing=east,ibc=1": {
+      "model": "setpoint:block/pallet_ibc_0",
+      "y": 90
+    },
+    "drums=4,facing=east,ibc=2": {
+      "model": "setpoint:block/pallet_ibc_1",
+      "y": 90
+    },
+    "drums=4,facing=east,ibc=3": {
+      "model": "setpoint:block/pallet_ibc_2",
+      "y": 90
+    },
+    "drums=4,facing=east,ibc=4": {
+      "model": "setpoint:block/pallet_ibc_3",
+      "y": 90
+    },
+    "drums=4,facing=east,ibc=5": {
+      "model": "setpoint:block/pallet_ibc_4",
+      "y": 90
+    },
+    "drums=4,facing=east,ibc=6": {
+      "model": "setpoint:block/pallet_ibc_5",
+      "y": 90
+    },
+    "drums=4,facing=east,ibc=7": {
+      "model": "setpoint:block/pallet_ibc_6",
+      "y": 90
+    },
+    "drums=4,facing=east,ibc=8": {
+      "model": "setpoint:block/pallet_ibc_7",
+      "y": 90
+    },
+    "drums=4,facing=east,ibc=9": {
+      "model": "setpoint:block/pallet_ibc_8",
+      "y": 90
+    },
+    "drums=0,facing=south,ibc=0": {
       "model": "setpoint:block/pallet_0",
       "y": 180
     },
-    "drums=1,facing=south": {
+    "drums=0,facing=south,ibc=1": {
+      "model": "setpoint:block/pallet_ibc_0",
+      "y": 180
+    },
+    "drums=0,facing=south,ibc=2": {
+      "model": "setpoint:block/pallet_ibc_1",
+      "y": 180
+    },
+    "drums=0,facing=south,ibc=3": {
+      "model": "setpoint:block/pallet_ibc_2",
+      "y": 180
+    },
+    "drums=0,facing=south,ibc=4": {
+      "model": "setpoint:block/pallet_ibc_3",
+      "y": 180
+    },
+    "drums=0,facing=south,ibc=5": {
+      "model": "setpoint:block/pallet_ibc_4",
+      "y": 180
+    },
+    "drums=0,facing=south,ibc=6": {
+      "model": "setpoint:block/pallet_ibc_5",
+      "y": 180
+    },
+    "drums=0,facing=south,ibc=7": {
+      "model": "setpoint:block/pallet_ibc_6",
+      "y": 180
+    },
+    "drums=0,facing=south,ibc=8": {
+      "model": "setpoint:block/pallet_ibc_7",
+      "y": 180
+    },
+    "drums=0,facing=south,ibc=9": {
+      "model": "setpoint:block/pallet_ibc_8",
+      "y": 180
+    },
+    "drums=1,facing=south,ibc=0": {
       "model": "setpoint:block/pallet_1",
       "y": 180
     },
-    "drums=2,facing=south": {
+    "drums=1,facing=south,ibc=1": {
+      "model": "setpoint:block/pallet_ibc_0",
+      "y": 180
+    },
+    "drums=1,facing=south,ibc=2": {
+      "model": "setpoint:block/pallet_ibc_1",
+      "y": 180
+    },
+    "drums=1,facing=south,ibc=3": {
+      "model": "setpoint:block/pallet_ibc_2",
+      "y": 180
+    },
+    "drums=1,facing=south,ibc=4": {
+      "model": "setpoint:block/pallet_ibc_3",
+      "y": 180
+    },
+    "drums=1,facing=south,ibc=5": {
+      "model": "setpoint:block/pallet_ibc_4",
+      "y": 180
+    },
+    "drums=1,facing=south,ibc=6": {
+      "model": "setpoint:block/pallet_ibc_5",
+      "y": 180
+    },
+    "drums=1,facing=south,ibc=7": {
+      "model": "setpoint:block/pallet_ibc_6",
+      "y": 180
+    },
+    "drums=1,facing=south,ibc=8": {
+      "model": "setpoint:block/pallet_ibc_7",
+      "y": 180
+    },
+    "drums=1,facing=south,ibc=9": {
+      "model": "setpoint:block/pallet_ibc_8",
+      "y": 180
+    },
+    "drums=2,facing=south,ibc=0": {
       "model": "setpoint:block/pallet_2",
       "y": 180
     },
-    "drums=3,facing=south": {
+    "drums=2,facing=south,ibc=1": {
+      "model": "setpoint:block/pallet_ibc_0",
+      "y": 180
+    },
+    "drums=2,facing=south,ibc=2": {
+      "model": "setpoint:block/pallet_ibc_1",
+      "y": 180
+    },
+    "drums=2,facing=south,ibc=3": {
+      "model": "setpoint:block/pallet_ibc_2",
+      "y": 180
+    },
+    "drums=2,facing=south,ibc=4": {
+      "model": "setpoint:block/pallet_ibc_3",
+      "y": 180
+    },
+    "drums=2,facing=south,ibc=5": {
+      "model": "setpoint:block/pallet_ibc_4",
+      "y": 180
+    },
+    "drums=2,facing=south,ibc=6": {
+      "model": "setpoint:block/pallet_ibc_5",
+      "y": 180
+    },
+    "drums=2,facing=south,ibc=7": {
+      "model": "setpoint:block/pallet_ibc_6",
+      "y": 180
+    },
+    "drums=2,facing=south,ibc=8": {
+      "model": "setpoint:block/pallet_ibc_7",
+      "y": 180
+    },
+    "drums=2,facing=south,ibc=9": {
+      "model": "setpoint:block/pallet_ibc_8",
+      "y": 180
+    },
+    "drums=3,facing=south,ibc=0": {
       "model": "setpoint:block/pallet_3",
       "y": 180
     },
-    "drums=4,facing=south": {
+    "drums=3,facing=south,ibc=1": {
+      "model": "setpoint:block/pallet_ibc_0",
+      "y": 180
+    },
+    "drums=3,facing=south,ibc=2": {
+      "model": "setpoint:block/pallet_ibc_1",
+      "y": 180
+    },
+    "drums=3,facing=south,ibc=3": {
+      "model": "setpoint:block/pallet_ibc_2",
+      "y": 180
+    },
+    "drums=3,facing=south,ibc=4": {
+      "model": "setpoint:block/pallet_ibc_3",
+      "y": 180
+    },
+    "drums=3,facing=south,ibc=5": {
+      "model": "setpoint:block/pallet_ibc_4",
+      "y": 180
+    },
+    "drums=3,facing=south,ibc=6": {
+      "model": "setpoint:block/pallet_ibc_5",
+      "y": 180
+    },
+    "drums=3,facing=south,ibc=7": {
+      "model": "setpoint:block/pallet_ibc_6",
+      "y": 180
+    },
+    "drums=3,facing=south,ibc=8": {
+      "model": "setpoint:block/pallet_ibc_7",
+      "y": 180
+    },
+    "drums=3,facing=south,ibc=9": {
+      "model": "setpoint:block/pallet_ibc_8",
+      "y": 180
+    },
+    "drums=4,facing=south,ibc=0": {
       "model": "setpoint:block/pallet_4",
       "y": 180
     },
-    "drums=0,facing=west": {
+    "drums=4,facing=south,ibc=1": {
+      "model": "setpoint:block/pallet_ibc_0",
+      "y": 180
+    },
+    "drums=4,facing=south,ibc=2": {
+      "model": "setpoint:block/pallet_ibc_1",
+      "y": 180
+    },
+    "drums=4,facing=south,ibc=3": {
+      "model": "setpoint:block/pallet_ibc_2",
+      "y": 180
+    },
+    "drums=4,facing=south,ibc=4": {
+      "model": "setpoint:block/pallet_ibc_3",
+      "y": 180
+    },
+    "drums=4,facing=south,ibc=5": {
+      "model": "setpoint:block/pallet_ibc_4",
+      "y": 180
+    },
+    "drums=4,facing=south,ibc=6": {
+      "model": "setpoint:block/pallet_ibc_5",
+      "y": 180
+    },
+    "drums=4,facing=south,ibc=7": {
+      "model": "setpoint:block/pallet_ibc_6",
+      "y": 180
+    },
+    "drums=4,facing=south,ibc=8": {
+      "model": "setpoint:block/pallet_ibc_7",
+      "y": 180
+    },
+    "drums=4,facing=south,ibc=9": {
+      "model": "setpoint:block/pallet_ibc_8",
+      "y": 180
+    },
+    "drums=0,facing=west,ibc=0": {
       "model": "setpoint:block/pallet_0",
       "y": 270
     },
-    "drums=1,facing=west": {
+    "drums=0,facing=west,ibc=1": {
+      "model": "setpoint:block/pallet_ibc_0",
+      "y": 270
+    },
+    "drums=0,facing=west,ibc=2": {
+      "model": "setpoint:block/pallet_ibc_1",
+      "y": 270
+    },
+    "drums=0,facing=west,ibc=3": {
+      "model": "setpoint:block/pallet_ibc_2",
+      "y": 270
+    },
+    "drums=0,facing=west,ibc=4": {
+      "model": "setpoint:block/pallet_ibc_3",
+      "y": 270
+    },
+    "drums=0,facing=west,ibc=5": {
+      "model": "setpoint:block/pallet_ibc_4",
+      "y": 270
+    },
+    "drums=0,facing=west,ibc=6": {
+      "model": "setpoint:block/pallet_ibc_5",
+      "y": 270
+    },
+    "drums=0,facing=west,ibc=7": {
+      "model": "setpoint:block/pallet_ibc_6",
+      "y": 270
+    },
+    "drums=0,facing=west,ibc=8": {
+      "model": "setpoint:block/pallet_ibc_7",
+      "y": 270
+    },
+    "drums=0,facing=west,ibc=9": {
+      "model": "setpoint:block/pallet_ibc_8",
+      "y": 270
+    },
+    "drums=1,facing=west,ibc=0": {
       "model": "setpoint:block/pallet_1",
       "y": 270
     },
-    "drums=2,facing=west": {
+    "drums=1,facing=west,ibc=1": {
+      "model": "setpoint:block/pallet_ibc_0",
+      "y": 270
+    },
+    "drums=1,facing=west,ibc=2": {
+      "model": "setpoint:block/pallet_ibc_1",
+      "y": 270
+    },
+    "drums=1,facing=west,ibc=3": {
+      "model": "setpoint:block/pallet_ibc_2",
+      "y": 270
+    },
+    "drums=1,facing=west,ibc=4": {
+      "model": "setpoint:block/pallet_ibc_3",
+      "y": 270
+    },
+    "drums=1,facing=west,ibc=5": {
+      "model": "setpoint:block/pallet_ibc_4",
+      "y": 270
+    },
+    "drums=1,facing=west,ibc=6": {
+      "model": "setpoint:block/pallet_ibc_5",
+      "y": 270
+    },
+    "drums=1,facing=west,ibc=7": {
+      "model": "setpoint:block/pallet_ibc_6",
+      "y": 270
+    },
+    "drums=1,facing=west,ibc=8": {
+      "model": "setpoint:block/pallet_ibc_7",
+      "y": 270
+    },
+    "drums=1,facing=west,ibc=9": {
+      "model": "setpoint:block/pallet_ibc_8",
+      "y": 270
+    },
+    "drums=2,facing=west,ibc=0": {
       "model": "setpoint:block/pallet_2",
       "y": 270
     },
-    "drums=3,facing=west": {
+    "drums=2,facing=west,ibc=1": {
+      "model": "setpoint:block/pallet_ibc_0",
+      "y": 270
+    },
+    "drums=2,facing=west,ibc=2": {
+      "model": "setpoint:block/pallet_ibc_1",
+      "y": 270
+    },
+    "drums=2,facing=west,ibc=3": {
+      "model": "setpoint:block/pallet_ibc_2",
+      "y": 270
+    },
+    "drums=2,facing=west,ibc=4": {
+      "model": "setpoint:block/pallet_ibc_3",
+      "y": 270
+    },
+    "drums=2,facing=west,ibc=5": {
+      "model": "setpoint:block/pallet_ibc_4",
+      "y": 270
+    },
+    "drums=2,facing=west,ibc=6": {
+      "model": "setpoint:block/pallet_ibc_5",
+      "y": 270
+    },
+    "drums=2,facing=west,ibc=7": {
+      "model": "setpoint:block/pallet_ibc_6",
+      "y": 270
+    },
+    "drums=2,facing=west,ibc=8": {
+      "model": "setpoint:block/pallet_ibc_7",
+      "y": 270
+    },
+    "drums=2,facing=west,ibc=9": {
+      "model": "setpoint:block/pallet_ibc_8",
+      "y": 270
+    },
+    "drums=3,facing=west,ibc=0": {
       "model": "setpoint:block/pallet_3",
       "y": 270
     },
-    "drums=4,facing=west": {
+    "drums=3,facing=west,ibc=1": {
+      "model": "setpoint:block/pallet_ibc_0",
+      "y": 270
+    },
+    "drums=3,facing=west,ibc=2": {
+      "model": "setpoint:block/pallet_ibc_1",
+      "y": 270
+    },
+    "drums=3,facing=west,ibc=3": {
+      "model": "setpoint:block/pallet_ibc_2",
+      "y": 270
+    },
+    "drums=3,facing=west,ibc=4": {
+      "model": "setpoint:block/pallet_ibc_3",
+      "y": 270
+    },
+    "drums=3,facing=west,ibc=5": {
+      "model": "setpoint:block/pallet_ibc_4",
+      "y": 270
+    },
+    "drums=3,facing=west,ibc=6": {
+      "model": "setpoint:block/pallet_ibc_5",
+      "y": 270
+    },
+    "drums=3,facing=west,ibc=7": {
+      "model": "setpoint:block/pallet_ibc_6",
+      "y": 270
+    },
+    "drums=3,facing=west,ibc=8": {
+      "model": "setpoint:block/pallet_ibc_7",
+      "y": 270
+    },
+    "drums=3,facing=west,ibc=9": {
+      "model": "setpoint:block/pallet_ibc_8",
+      "y": 270
+    },
+    "drums=4,facing=west,ibc=0": {
       "model": "setpoint:block/pallet_4",
+      "y": 270
+    },
+    "drums=4,facing=west,ibc=1": {
+      "model": "setpoint:block/pallet_ibc_0",
+      "y": 270
+    },
+    "drums=4,facing=west,ibc=2": {
+      "model": "setpoint:block/pallet_ibc_1",
+      "y": 270
+    },
+    "drums=4,facing=west,ibc=3": {
+      "model": "setpoint:block/pallet_ibc_2",
+      "y": 270
+    },
+    "drums=4,facing=west,ibc=4": {
+      "model": "setpoint:block/pallet_ibc_3",
+      "y": 270
+    },
+    "drums=4,facing=west,ibc=5": {
+      "model": "setpoint:block/pallet_ibc_4",
+      "y": 270
+    },
+    "drums=4,facing=west,ibc=6": {
+      "model": "setpoint:block/pallet_ibc_5",
+      "y": 270
+    },
+    "drums=4,facing=west,ibc=7": {
+      "model": "setpoint:block/pallet_ibc_6",
+      "y": 270
+    },
+    "drums=4,facing=west,ibc=8": {
+      "model": "setpoint:block/pallet_ibc_7",
+      "y": 270
+    },
+    "drums=4,facing=west,ibc=9": {
+      "model": "setpoint:block/pallet_ibc_8",
       "y": 270
     }
   }

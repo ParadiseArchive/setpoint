@@ -1,5 +1,9 @@
 package io.hookdev.setpoint.client;
 
+import io.hookdev.setpoint.entity.HornVehicle;
+import net.minecraft.world.entity.Entity;
+import java.util.HashMap;
+import java.util.Map;
 import io.hookdev.setpoint.network.ForkliftLift;
 import io.hookdev.setpoint.entity.ForkliftEntity;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -57,15 +61,18 @@ import net.neoforged.neoforge.fluids.SimpleFluidContent;
 @Mod(value = Setpoint.MODID, dist = Dist.CLIENT)
 public class SetpointClient {
     private static final KeyMapping.Category CATEGORY = new KeyMapping.Category(Setpoint.id("setpoint"));
-    /** H: the horn of the pallet truck you are driving. */
+    /** H: the horn of the pallet truck or forklift you are driving, for as long as you hold it. */
     public static final KeyMapping HORN = new KeyMapping("key.setpoint.horn", InputConstants.KEY_H, CATEGORY);
     /** Left CTRL: set the pallet down from the pallet truck you are driving. */
     public static final KeyMapping LOWER = new KeyMapping("key.setpoint.lower", InputConstants.KEY_LCONTROL, CATEGORY);
     /** The arrow keys: the forks of the forklift you drive, up and down. */
     public static final KeyMapping FORKS_UP = new KeyMapping("key.setpoint.forks_up", InputConstants.KEY_UP, CATEGORY);
     public static final KeyMapping FORKS_DOWN = new KeyMapping("key.setpoint.forks_down", InputConstants.KEY_DOWN, CATEGORY);
-    /** What the arrow keys last told the server. */
+    /** What the arrow keys and the horn key last told the server. */
     private static int forksSent;
+    private static boolean hornSent;
+    /** The horns sounding now, by vehicle. */
+    private static final Map<Integer, HornSound> HORNS = new HashMap<>();
 
     public SetpointClient(IEventBus modEventBus) {
         modEventBus.addListener(SetpointClient::registerScreens);
@@ -79,7 +86,7 @@ public class SetpointClient {
             event.register(FORKS_DOWN);
         });
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> {
-            while (HORN.consumeClick()) sendIfDriving(new TruckHorn());
+            horn();
             while (LOWER.consumeClick()) sendIfDriving(new TruckLower());
             forks();
         });
@@ -141,6 +148,39 @@ public class SetpointClient {
         });
     }
 
+    /** Holding H sounds the horn: the server hears when that changes. Every vehicle whose horn is on gets its sound. */
+    private static void horn() {
+        while (HORN.consumeClick()) { } // only whether it is held counts
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.level == null) {
+            hornSent = false;
+            HORNS.clear();
+            return;
+        }
+        boolean held = HORN.isDown() && driving(mc);
+        if (held != hornSent) {
+            hornSent = held;
+            ClientPacketDistributor.sendToServer(new TruckHorn(held));
+        }
+        HORNS.values().removeIf(HornSound::isStopped);
+        for (Entity entity : mc.level.entitiesForRendering()) {
+            if (entity instanceof HornVehicle vehicle && vehicle.hornOn() && !HORNS.containsKey(entity.getId())) {
+                HornSound sound = entity instanceof PalletTruckEntity truck ? new HornSound(truck) : new HornSound((ForkliftEntity) entity);
+                HORNS.put(entity.getId(), sound);
+                mc.getSoundManager().play(sound);
+            }
+        }
+    }
+
+    /** You drive a forklift, or hold a pallet truck's tiller. */
+    private static boolean driving(Minecraft mc) {
+        if (mc.player.getVehicle() instanceof ForkliftEntity) return true;
+        for (PalletTruckEntity truck : mc.level.getEntitiesOfClass(PalletTruckEntity.class, mc.player.getBoundingBox().inflate(PalletTruckEntity.REACH))) {
+            if (truck.driver() == mc.player) return true;
+        }
+        return false;
+    }
+
     /** Holding an arrow key moves the forks: the server hears when that changes. */
     private static void forks() {
         Minecraft mc = Minecraft.getInstance();
@@ -155,14 +195,11 @@ public class SetpointClient {
         }
     }
 
-    /** The vehicle keys only do something while you drive a pallet truck or a forklift. */
+    /** The pallet truck's CTRL key only does something while you hold its tiller. */
     private static void sendIfDriving(CustomPacketPayload message) {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) return;
-        if (mc.player.getVehicle() instanceof ForkliftEntity) {
-            if (message instanceof TruckHorn) ClientPacketDistributor.sendToServer(message);
-            return;
-        }
+        if (mc.player.getVehicle() instanceof ForkliftEntity) return;
         for (PalletTruckEntity truck : mc.level.getEntitiesOfClass(PalletTruckEntity.class, mc.player.getBoundingBox().inflate(PalletTruckEntity.REACH))) {
             if (truck.driver() == mc.player) {
                 ClientPacketDistributor.sendToServer(message);
@@ -215,7 +252,7 @@ public class SetpointClient {
             }
         };
         event.register(List.of(body), SetpointContent.DRUM.get());
-        // the drums on a pallet: each one in its own colour (tint 0 to 3 is drum 1 to 4)
+        // what is on a pallet: each drum in its own colour (tint 0 to 3 is drum 1 to 4), or an IBC (its liquid, its tote)
         List<BlockTintSource> drums = new ArrayList<>();
         for (int i = 0; i < PalletBlockEntity.MAX_DRUMS; i++) {
             int index = i;
@@ -227,7 +264,7 @@ public class SetpointClient {
 
                 @Override
                 public int colorInWorld(BlockState state, BlockAndTintGetter level, BlockPos pos) {
-                    return level.getBlockEntity(pos) instanceof PalletBlockEntity pallet ? pallet.colour(index) : PortableTankBlockEntity.DRUM_BLUE;
+                    return level.getBlockEntity(pos) instanceof PalletBlockEntity pallet ? PalletLook.colour(pallet.drums(), index) : PortableTankBlockEntity.DRUM_BLUE;
                 }
             });
         }

@@ -1,5 +1,6 @@
 package io.hookdev.setpoint.entity;
 
+import net.minecraft.sounds.SoundEvent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,12 +11,10 @@ import io.hookdev.setpoint.block.PalletBlock;
 import io.hookdev.setpoint.block.PalletPartBlock;
 import io.hookdev.setpoint.block.entity.MultiblockPartBlockEntity;
 import io.hookdev.setpoint.block.entity.PalletBlockEntity;
-import io.hookdev.setpoint.block.entity.PortableTankBlockEntity;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -34,7 +33,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.VehicleEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.DyedItemColor;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
@@ -44,9 +42,9 @@ import net.minecraft.world.phys.Vec3;
 /**
  * An electric pallet truck. Right-click to take the tiller: it follows behind you like a trailer, up steps and slabs.
  * Back it into a pallet and its forks pick the pallet up, empty or with drums on it; press CTRL to set the pallet
- * down (sneak-right-click works too). Press H for the horn. Right-click again, or walk away, to let go.
+ * down (sneak-right-click works too). Hold H for the horn. Right-click again, or walk away, to let go.
  */
-public class PalletTruckEntity extends VehicleEntity {
+public class PalletTruckEntity extends VehicleEntity implements HornVehicle {
     /** From the middle of the truck to its handle, and to the middle of its forks, in blocks. */
     public static final double HANDLE = 1.5, FORKS = 0.4;
     /** Walk further away than this and you let go. */
@@ -54,13 +52,15 @@ public class PalletTruckEntity extends VehicleEntity {
     /** After setting a pallet down, this long before the forks take one up again (and only once they are out of it). */
     public static final int COUPLE_COOLDOWN = 120;
     private static final EntityDataAccessor<Integer> DATA_DRIVER = SynchedEntityData.defineId(PalletTruckEntity.class, EntityDataSerializers.INT);
-    /** Drums on the pallet it carries, or -1 without a pallet. */
-    private static final EntityDataAccessor<Integer> DATA_DRUMS = SynchedEntityData.defineId(PalletTruckEntity.class, EntityDataSerializers.INT);
+    /** Whether it carries a pallet, and what is on it (the items: every player draws them, liquid and colour). */
+    private static final EntityDataAccessor<Boolean> DATA_PALLET = SynchedEntityData.defineId(PalletTruckEntity.class, EntityDataSerializers.BOOLEAN);
     @SuppressWarnings("unchecked")
-    private static final EntityDataAccessor<Integer>[] DATA_COLOURS = new EntityDataAccessor[PalletBlockEntity.MAX_DRUMS];
+    private static final EntityDataAccessor<ItemStack>[] DATA_LOAD = new EntityDataAccessor[PalletBlockEntity.MAX_DRUMS];
     static {
-        for (int i = 0; i < DATA_COLOURS.length; i++) DATA_COLOURS[i] = SynchedEntityData.defineId(PalletTruckEntity.class, EntityDataSerializers.INT);
+        for (int i = 0; i < DATA_LOAD.length; i++) DATA_LOAD[i] = SynchedEntityData.defineId(PalletTruckEntity.class, EntityDataSerializers.ITEM_STACK);
     }
+    /** The driver holds H. */
+    private static final EntityDataAccessor<Boolean> DATA_HORN = SynchedEntityData.defineId(PalletTruckEntity.class, EntityDataSerializers.BOOLEAN);
 
     private final List<ItemStack> drums = new ArrayList<>();
     private boolean hasPallet;
@@ -75,8 +75,9 @@ public class PalletTruckEntity extends VehicleEntity {
     protected void defineSynchedData(SynchedEntityData.Builder entityData) {
         super.defineSynchedData(entityData);
         entityData.define(DATA_DRIVER, -1);
-        entityData.define(DATA_DRUMS, -1);
-        for (EntityDataAccessor<Integer> colour : DATA_COLOURS) entityData.define(colour, PortableTankBlockEntity.DRUM_BLUE);
+        entityData.define(DATA_PALLET, false);
+        for (EntityDataAccessor<ItemStack> item : DATA_LOAD) entityData.define(item, ItemStack.EMPTY);
+        entityData.define(DATA_HORN, false);
     }
 
     @Override
@@ -93,10 +94,15 @@ public class PalletTruckEntity extends VehicleEntity {
         entityData.set(DATA_DRIVER, player == null ? -1 : player.getId());
     }
 
-    /** Drums on the pallet it carries, or -1 without a pallet. */
-    public int carriedDrums() { return entityData.get(DATA_DRUMS); }
+    /** How many drums (or IBCs) are on the pallet it carries, or -1 without a pallet. */
+    public int carriedDrums() { return entityData.get(DATA_PALLET) ? load().size() : -1; }
 
-    public int drumColour(int index) { return entityData.get(DATA_COLOURS[index]); }
+    /** What is on the pallet it carries, as every player sees it. */
+    public List<ItemStack> load() {
+        List<ItemStack> load = new ArrayList<>();
+        for (EntityDataAccessor<ItemStack> item : DATA_LOAD) if (!entityData.get(item).isEmpty()) load.add(entityData.get(item));
+        return load;
+    }
 
     public boolean hasPallet() { return hasPallet; }
 
@@ -119,7 +125,7 @@ public class PalletTruckEntity extends VehicleEntity {
             say(player, "You let go of the pallet truck.");
         } else if (driver == null) {
             setDriver(player);
-            say(player, "You hold the tiller: walk and it follows. Back it into a pallet to pick it up. H: horn.");
+            say(player, "You hold the tiller: walk and it follows. Back it into a pallet to pick it up. Hold H: horn.");
         } else {
             say(player, driver.getName().getString() + " is driving this one.");
         }
@@ -139,6 +145,7 @@ public class PalletTruckEntity extends VehicleEntity {
             setDriver(null);
             driver = null;
         }
+        if (driver == null && hornOn()) setHorn(false);
         Vec3 step = Vec3.ZERO;
         if (driver != null) {
             // a trailer: the tiller points at you, and the handle stays a step behind you
@@ -217,17 +224,19 @@ public class PalletTruckEntity extends VehicleEntity {
 
     /** Tells the players what is on the forks, to draw it. */
     private void synced() {
-        entityData.set(DATA_DRUMS, hasPallet ? drums.size() : -1);
-        for (int i = 0; i < DATA_COLOURS.length; i++) {
-            DyedItemColor dyed = i < drums.size() ? drums.get(i).get(DataComponents.DYED_COLOR) : null;
-            entityData.set(DATA_COLOURS[i], dyed == null ? PortableTankBlockEntity.DRUM_BLUE : 0xFF000000 | dyed.rgb());
-        }
+        entityData.set(DATA_PALLET, hasPallet);
+        for (int i = 0; i < DATA_LOAD.length; i++) entityData.set(DATA_LOAD[i], i < drums.size() ? drums.get(i).copy() : ItemStack.EMPTY);
     }
 
-    /** The horn: two honks of an electric horn. */
-    public void horn() {
-        level().playSound(null, getX(), getY() + 1, getZ(), SetpointContent.PALLET_TRUCK_HORN.get(), SoundSource.NEUTRAL, 1.0f, 1.0f);
-    }
+    @Override
+    public boolean hornOn() { return entityData.get(DATA_HORN); }
+
+    @Override
+    public void setHorn(boolean on) { entityData.set(DATA_HORN, on); }
+
+    /** The horn: one steady note while the driver holds H. */
+    @Override
+    public SoundEvent hornSound() { return SetpointContent.PALLET_TRUCK_HORN.get(); }
 
     private static void say(Player player, String text) {
         if (player instanceof ServerPlayer serverPlayer) serverPlayer.sendSystemMessage(Component.literal(text).withStyle(ChatFormatting.GRAY), true);

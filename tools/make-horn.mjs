@@ -1,33 +1,25 @@
-// Makes the vehicle horn sounds (assets/setpoint/sounds/vehicle/horn.ogg and horn_low.ogg).
+// Makes the vehicle horn sounds (assets/setpoint/sounds/vehicle/horn.ogg and horn_low.ogg): one steady two-tone
+// note, exactly one second long, that loops without a seam (every tone fits a whole number of times in the second),
+// so the horn holds the same note for as long as you hold H.
 // Needs the npm package wasm-media-encoders@0.7.0: install it in a scratch folder, put this file there and run
-//   node make-horn.mjs <out.ogg> [pitch]      (pitch 1 for the pallet truck, 0.8 for the forklift)
+//   node make-horn.mjs <out.ogg> [low]      (no second argument for the pallet truck, "low" for the forklift)
 import { createOggEncoder } from 'wasm-media-encoders';
 import { writeFileSync } from 'node:fs';
 
-const out = process.argv[2], pitch = +(process.argv[3] || 1);
-const rate = 44100;
-const honks = [[0, 0.24], [0.33, 0.62]]; // start and end of each honk, in seconds
-const total = 0.75, n = Math.round(total * rate);
-const tones = [370 * pitch, 466 * pitch]; // a major third, like a car's two horns
+const out = process.argv[2], low = process.argv[3] === 'low';
+const rate = 44100, n = rate; // one second
+const tones = low ? [296, 373] : [370, 466]; // a major third, like a car's two horns; whole hertz, so the loop is seamless
+const raw = (i) => {
+  const t = (i % n) / rate;
+  let s = 0;
+  for (const f of tones) s += (2 * ((t * f) % 1) - 1) * 0.6 + Math.sin(2 * Math.PI * f * t) * 0.4; // part saw, part sine
+  return Math.tanh(2.2 * s) * 0.8; // driven hard: brassy
+};
 const pcm = new Float32Array(n);
 let lp = 0;
-for (let i = 0; i < n; i++) {
-  const t = i / rate;
-  let env = 0;
-  for (const [a, b] of honks) {
-    if (t < a || t > b) continue;
-    env = Math.min(1, (t - a) / 0.012, (b - t) / 0.04); // quick attack, short release
-  }
-  if (env <= 0) { pcm[i] = lp *= 0.9; continue; }
-  const wobble = 1 + 0.004 * Math.sin(2 * Math.PI * 7 * t); // the diaphragm is not quite steady
-  let s = 0;
-  for (const f of tones) {
-    const ph = (t * f * wobble) % 1;
-    s += (2 * ph - 1) * 0.6 + Math.sin(2 * Math.PI * f * wobble * t) * 0.4; // part saw, part sine
-  }
-  s = Math.tanh(2.2 * s) * 0.8;     // driven hard: brassy
-  lp += (s - lp) * 0.35;            // and a little softened
-  pcm[i] = lp * env;
+for (let i = 0; i < 2 * n; i++) { // a little softened; the first second only warms the filter up, so the end meets the start
+  lp += (raw(i) - lp) * 0.35;
+  if (i >= n) pcm[i - n] = lp;
 }
 let peak = 0;
 for (const v of pcm) peak = Math.max(peak, Math.abs(v));

@@ -1,5 +1,6 @@
 package io.hookdev.setpoint.block;
 
+import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,24 +46,50 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
  * A wooden pallet, two by two blocks. Right-click it with a drum to load it: up to four, strapped together with a
- * green band (three stand in a triangle). Sneak-right-click with an empty hand to take the last one off. The drums
- * keep their liquid and colour; break the pallet and everything drops.
+ * green band (three stand in a triangle). Or put one IBC on it: the IBC stands on the wooden pallet instead of its own
+ * base. Sneak-right-click with an empty hand to take the last one off. What is on it keeps its liquid and colour;
+ * break the pallet and everything drops.
  */
 public class PalletBlock extends BaseEntityBlock implements MultiblockBase {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     /** Drums on it. */
     public static final IntegerProperty DRUMS = IntegerProperty.create("drums", 0, PalletBlockEntity.MAX_DRUMS);
+    /** An IBC on it: 0 for none, else 1 + how full it looks (0 to 8, like a standing IBC). */
+    public static final IntegerProperty IBC = IntegerProperty.create("ibc", 0, 9);
     private static final VoxelShape EMPTY = Block.box(0, 0, 0, 16, 3, 16);
 
     public PalletBlock(BlockBehaviour.Properties properties) {
         super(properties);
-        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(DRUMS, 0));
+        this.registerDefaultState(this.stateDefinition.any().setValue(FACING, Direction.NORTH).setValue(DRUMS, 0).setValue(IBC, 0));
     }
 
-    /** The pallet reaches one block clockwise from the front and one block back; with drums on it, one block up too. */
+    /** The pallet reaches one block clockwise from the front and one block back; loaded, one block up too. */
     @Override
     public List<BlockPos> parts(BlockPos base, BlockState state) {
-        return parts(base, state.getValue(FACING), state.getValue(DRUMS) > 0);
+        return parts(base, state.getValue(FACING), loaded(state));
+    }
+
+    /** Drums or an IBC on it. */
+    public static boolean loaded(BlockState state) {
+        return state.getValue(DRUMS) > 0 || state.getValue(IBC) > 0;
+    }
+
+    public static boolean isIbc(ItemStack stack) {
+        return stack.is(SetpointContent.IBC_ITEM.get());
+    }
+
+    /** An IBC is the load (it goes on a pallet alone). */
+    public static boolean hasIbc(List<ItemStack> load) {
+        return !load.isEmpty() && isIbc(load.get(0));
+    }
+
+    /** The pallet with this load on it, facing this way: how many drums, or the IBC and how full it is. */
+    public static BlockState stateFor(Direction facing, List<ItemStack> load) {
+        BlockState state = SetpointContent.PALLET.get().defaultBlockState().setValue(FACING, facing);
+        if (!hasIbc(load)) return state.setValue(DRUMS, Math.min(PalletBlockEntity.MAX_DRUMS, load.size()));
+        SimpleFluidContent contents = load.get(0).get(SetpointContent.FLUID_CONTENTS.get());
+        int amount = contents == null ? 0 : contents.getAmount();
+        return state.setValue(IBC, 1 + TankBlock.levelFor(amount, IbcBlock.CAPACITY));
     }
 
     /** The other blocks of a pallet whose base is here, facing this way, with or without drums. */
@@ -70,12 +97,11 @@ public class PalletBlock extends BaseEntityBlock implements MultiblockBase {
         return parts(base, front, loaded);
     }
 
-    /** Sets a pallet down here, with these drums on it (a pallet truck does this). */
-    public static void place(Level level, BlockPos base, Direction facing, List<ItemStack> drums) {
-        int count = Math.min(PalletBlockEntity.MAX_DRUMS, drums.size());
-        BlockState state = SetpointContent.PALLET.get().defaultBlockState().setValue(FACING, facing).setValue(DRUMS, count);
+    /** Sets a pallet down here, with this load on it: drums or an IBC (a pallet truck or forklift does this). */
+    public static void place(Level level, BlockPos base, Direction facing, List<ItemStack> load) {
+        BlockState state = stateFor(facing, load);
         level.setBlock(base, state, Block.UPDATE_ALL);
-        if (level.getBlockEntity(base) instanceof PalletBlockEntity pallet) for (int i = 0; i < count; i++) pallet.add(drums.get(i));
+        if (level.getBlockEntity(base) instanceof PalletBlockEntity pallet) for (ItemStack item : load) pallet.add(item);
         placeParts(level, base, state);
     }
 
@@ -108,9 +134,9 @@ public class PalletBlock extends BaseEntityBlock implements MultiblockBase {
         if (!level.isClientSide()) placeParts(level, pos, state);
     }
 
-    /** Puts the parts where they belong for this many drums, and the right shape on each. */
+    /** Puts the parts where they belong for this load, and the right shape on each. */
     private static void placeParts(Level level, BlockPos base, BlockState state) {
-        boolean loaded = state.getValue(DRUMS) > 0;
+        boolean loaded = loaded(state);
         for (BlockPos part : parts(base, state.getValue(FACING), loaded)) {
             int kind = part.getY() > base.getY() ? PalletPartBlock.TOP : loaded ? PalletPartBlock.LOADED : PalletPartBlock.LOW;
             BlockState want = SetpointContent.PALLET_PART.get().defaultBlockState().setValue(PalletPartBlock.KIND, kind);
@@ -132,35 +158,43 @@ public class PalletBlock extends BaseEntityBlock implements MultiblockBase {
         }
     }
 
-    /** Right-click with a drum: put it on. */
+    /** Right-click with a drum or an IBC: put it on. */
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player,
                                           InteractionHand hand, BlockHitResult hitResult) {
-        if (!stack.is(SetpointContent.DRUM_ITEM.get())) return InteractionResult.TRY_WITH_EMPTY_HAND;
+        boolean ibc = isIbc(stack);
+        if (!ibc && !stack.is(SetpointContent.DRUM_ITEM.get())) return InteractionResult.TRY_WITH_EMPTY_HAND;
         if (level.isClientSide() || !(level.getBlockEntity(pos) instanceof PalletBlockEntity pallet)) return InteractionResult.SUCCESS;
-        int drums = state.getValue(DRUMS);
-        if (drums >= PalletBlockEntity.MAX_DRUMS) {
+        if (hasIbc(pallet.drums())) {
+            say(player, "There is an IBC on this pallet already.");
+            return InteractionResult.SUCCESS;
+        }
+        if (ibc && !pallet.drums().isEmpty()) {
+            say(player, "An IBC needs an empty pallet: take the drums off first.");
+            return InteractionResult.SUCCESS;
+        }
+        if (pallet.drums().size() >= PalletBlockEntity.MAX_DRUMS) {
             say(player, "The pallet is full: four drums.");
             return InteractionResult.SUCCESS;
         }
-        if (drums == 0) {
+        if (!loaded(state)) {
             for (BlockPos up : above(pos, state.getValue(FACING))) {
                 if (!level.getBlockState(up).canBeReplaced()) {
-                    say(player, "The drums need room above the pallet.");
+                    say(player, ibc ? "The IBC needs room above the pallet." : "The drums need room above the pallet.");
                     return InteractionResult.SUCCESS;
                 }
             }
         }
         pallet.add(stack.copyWithCount(1));
         stack.consume(1, player);
-        BlockState next = state.setValue(DRUMS, drums + 1);
+        BlockState next = stateFor(state.getValue(FACING), pallet.drums());
         level.setBlock(pos, next, Block.UPDATE_ALL);
         placeParts(level, pos, next);
         level.playSound(null, pos, SoundEvents.NETHERITE_BLOCK_PLACE, SoundSource.BLOCKS, 0.6f, 1.2f);
         return InteractionResult.SUCCESS;
     }
 
-    /** Sneak-right-click with an empty hand: take the last drum off. An empty hand otherwise reads what is on it. */
+    /** Sneak-right-click with an empty hand: take the last drum (or the IBC) off. An empty hand otherwise reads what is on it. */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (level.isClientSide() || !(level.getBlockEntity(pos) instanceof PalletBlockEntity pallet)) return InteractionResult.SUCCESS;
@@ -171,9 +205,8 @@ public class PalletBlock extends BaseEntityBlock implements MultiblockBase {
         ItemStack drum = pallet.takeLast();
         if (drum.isEmpty()) return InteractionResult.SUCCESS;
         if (!player.getInventory().add(drum)) player.drop(drum, false, Prediction.SERVER_ONLY);
-        int drums = state.getValue(DRUMS) - 1;
-        BlockState next = state.setValue(DRUMS, drums);
-        if (drums == 0) for (BlockPos up : above(pos, state.getValue(FACING))) removePart(level, up, pos);
+        BlockState next = stateFor(state.getValue(FACING), pallet.drums());
+        if (!loaded(next)) for (BlockPos up : above(pos, state.getValue(FACING))) removePart(level, up, pos);
         level.setBlock(pos, next, Block.UPDATE_ALL);
         placeParts(level, pos, next);
         level.playSound(null, pos, SoundEvents.NETHERITE_BLOCK_BREAK, SoundSource.BLOCKS, 0.5f, 1.2f);
@@ -191,7 +224,7 @@ public class PalletBlock extends BaseEntityBlock implements MultiblockBase {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
-        return state.getValue(DRUMS) > 0 ? Shapes.block() : EMPTY;
+        return loaded(state) ? Shapes.block() : EMPTY;
     }
 
     @Override
@@ -206,6 +239,6 @@ public class PalletBlock extends BaseEntityBlock implements MultiblockBase {
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(FACING, DRUMS);
+        builder.add(FACING, DRUMS, IBC);
     }
 }

@@ -337,6 +337,10 @@
         },
         {
           "type": "p",
+          "text": "An **IBC** fits on an empty pallet too: right-click the pallet with it. It stands on the wood instead of its own base, liquid and colour and all, so the pallet truck and the forklift can take it."
+        },
+        {
+          "type": "p",
           "text": "Sneak-right-click with an empty hand to take the last drum off. Break the pallet and everything drops."
         },
         {
@@ -365,7 +369,7 @@
         },
         {
           "type": "p",
-          "text": "Walk backwards to push its forks into a pallet: it picks the pallet up by itself. Press **CTRL** to set the pallet down; it waits a few seconds before it takes one up again. Press **H** for the horn. Right-click again to let go."
+          "text": "Walk backwards to push its forks into a pallet: it picks the pallet up by itself. Press **CTRL** to set the pallet down; it waits a few seconds before it takes one up again. Hold **H** for the horn. Right-click again to let go."
         },
         {
           "type": "craft",
@@ -397,7 +401,7 @@
         },
         {
           "type": "p",
-          "text": "Press **H** for the horn; sneak to get out."
+          "text": "Hold **H** for the horn; sneak to get out."
         },
         {
           "type": "craft",

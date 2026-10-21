@@ -1,5 +1,7 @@
 package io.hookdev.setpoint.client;
 
+import net.minecraft.world.item.ItemStack;
+import java.util.List;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 
@@ -7,7 +9,6 @@ import io.hookdev.setpoint.SetpointContent;
 import io.hookdev.setpoint.block.PalletBlock;
 import io.hookdev.setpoint.entity.PalletTruckEntity;
 
-import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.block.BlockModelRenderState;
 import net.minecraft.client.renderer.block.BlockModelResolver;
@@ -22,7 +23,7 @@ import net.minecraft.util.Mth;
 
 /**
  * Draws the pallet truck from its block model, turned the way it faces, and the pallet it carries on its forks with
- * each drum in its own colour.
+ * each drum in its own colour (or an IBC with its liquid).
  */
 public class PalletTruckRenderer extends EntityRenderer<PalletTruckEntity, PalletTruckRenderer.State> {
     private static final BlockDisplayContext DISPLAY = BlockDisplayContext.create();
@@ -58,11 +59,9 @@ public class PalletTruckRenderer extends EntityRenderer<PalletTruckEntity, Palle
         models.update(state.truck, SetpointContent.PALLET_TRUCK_MODEL.get().defaultBlockState(), DISPLAY);
         state.drums = truck.carriedDrums();
         if (state.drums >= 0) {
-            models.update(state.pallet, SetpointContent.PALLET.get().defaultBlockState()
-                    .setValue(PalletBlock.FACING, Direction.NORTH).setValue(PalletBlock.DRUMS, state.drums), DISPLAY);
-            IntList tints = state.pallet.tintLayers(); // each drum in its colour
-            tints.clear();
-            for (int i = 0; i < 4; i++) tints.add(truck.drumColour(i));
+            List<ItemStack> load = truck.load();
+            models.update(state.pallet, PalletBlock.stateFor(Direction.NORTH, load), DISPLAY);
+            PalletLook.tints(state.pallet.tintLayers(), load); // each drum in its colour, or the IBC with its liquid
         }
     }
 
