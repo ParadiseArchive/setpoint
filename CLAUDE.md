@@ -21,7 +21,7 @@ Easy by default, depth for those who want it. A normal Minecraft player must be 
 - Minecraft **26.3**, **NeoForge** (ModDevGradle), **Java 25** (Temurin 25 installed locally).
 - License **MIT** (open source).
 - Textures: Claude makes first versions (16×16 pixel art), the owner may redraw later.
-- Shipping: Modrinth + CurseForge under the name "Hook Development", automated upload from GitHub Actions; links on the site.
+- Shipping: CurseForge under the name "Hook Development" (Modrinth dropped 22 Oct 2026, see the backlog), automated upload from GitHub Actions; links on the site.
 
 ## Style in game
 - 16×16 textures that sit well next to vanilla. Industrial greys with the Hook signature: cyan status lights, magenta/amber for alarms.
@@ -85,8 +85,8 @@ Early Stirling engine / biogas, mid steam, late diesel from your own distillatio
 - Endgame · Hookonium machines: the floating roof tank is the first (22 Oct 2026). Ideas still open: a stronger pump, a wireless transmitter or controller, a reactor with its own control loop. A floating roof tank could later draw big on a P&ID (now one symbol at its base).
 - WTHIT support once WTHIT has a build for 26.3.
 - GitHub repo https://github.com/ParadiseArchive/setpoint (public) is live; Actions builds and runs all tests on every push.
-- Modrinth organisation + CurseForge account named "Hook Development": the owner creates them before the first release. The owner made a Modrinth account and project (22 Oct 2026).
-- Release (on hold, owner 22 Oct 2026): the plan was an early 0.1.0-alpha for feedback, but Modrinth's content rules (section 6, since Aug 2026) forbid public projects that are "entirely or primarily" AI output ("prompting or testing" alone does not count as human input; unlisted is allowed) and any AI-made image on the project page (icon, gallery, description: our logo and renders count). Setpoint's code, textures, logo and texts are AI-made, so it would likely be refused. Options when picked up again: ask Modrinth moderation first with an honest description (offer to draft it); raise the human share (the owner redraws textures and the icon, writes the description); Modrinth unlisted for testers; CurseForge (no general AI ban found, only a disclosure for misleading AI showcase images; read its author agreement); GitHub Releases plus a download button on hookdev.io. Always fill in AI disclosures honestly.
+- CurseForge author account named "Hook Development": the owner creates it before the first release.
+- Release on CurseForge (owner's decision 22 Oct 2026; not Modrinth): Modrinth's content rules (section 6) refuse public projects that are primarily AI output and any AI-made image on the page, so the owner dropped Modrinth. CurseForge's moderation policies have no general AI ban, only a visible disclaimer on AI-made showcase images that could misrepresent the mod. Be honest about AI anyway (the site says so too, and the repo shows it); never hide it. CurseForge needs: a description saying what the mod adds (functional, no vague terms), a one-sentence summary that does not repeat the description, a 400 x 400 avatar that is not a solid colour (no WebP), and a changelog with every file. Plan: the owner draws the avatar and takes in-game screenshots (F2) himself; first file 0.1.0-alpha (gradle mod_version is 0.1.0); later a GitHub Action uploads releases with a CurseForge API token; a download button on /projects/minecraft-mods/.
 - Jade/WTHIT tooltips (flow, pressure), JEI/EMI recipes, spark profiling for big pipe networks.
 
 ## Assets
