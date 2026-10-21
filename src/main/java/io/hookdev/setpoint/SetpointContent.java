@@ -29,10 +29,15 @@ import io.hookdev.setpoint.menu.TankMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Rarity;
 import net.minecraft.world.inventory.MenuType;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.DropExperienceBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.material.MapColor;
@@ -84,6 +89,18 @@ public final class SetpointContent {
     public static final DeferredBlock<SteamTurbineBlock> STEAM_TURBINE = BLOCKS.registerBlock("steam_turbine", SteamTurbineBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(3.5f, 6.0f).sound(SoundType.METAL));
 
+    // Hookonium: endgame ore, as rare as diamond, mined with a diamond pickaxe
+    public static final DeferredBlock<DropExperienceBlock> HOOKONIUM_ORE = BLOCKS.registerBlock("hookonium_ore",
+            p -> new DropExperienceBlock(UniformInt.of(3, 7), p),
+            p -> p.mapColor(MapColor.STONE).requiresCorrectToolForDrops().strength(3.0f, 3.0f));
+    public static final DeferredBlock<DropExperienceBlock> DEEPSLATE_HOOKONIUM_ORE = BLOCKS.registerBlock("deepslate_hookonium_ore",
+            p -> new DropExperienceBlock(UniformInt.of(3, 7), p),
+            p -> p.mapColor(MapColor.DEEPSLATE).requiresCorrectToolForDrops().strength(4.5f, 3.0f).sound(SoundType.DEEPSLATE));
+    public static final DeferredBlock<Block> HOOKONIUM_BLOCK = BLOCKS.registerSimpleBlock("hookonium_block",
+            p -> p.mapColor(MapColor.COLOR_PURPLE).requiresCorrectToolForDrops().strength(5.0f, 6.0f).sound(SoundType.METAL));
+    public static final DeferredBlock<Block> RAW_HOOKONIUM_BLOCK = BLOCKS.registerSimpleBlock("raw_hookonium_block",
+            p -> p.mapColor(MapColor.COLOR_PURPLE).requiresCorrectToolForDrops().strength(5.0f, 6.0f));
+
     public static final DeferredItem<BlockItem> PIPE_ITEM = ITEMS.registerSimpleBlockItem(PIPE);
     public static final DeferredItem<BlockItem> TANK_ITEM = ITEMS.registerSimpleBlockItem(TANK);
     public static final DeferredItem<BlockItem> PUMP_ITEM = ITEMS.registerSimpleBlockItem(PUMP);
@@ -95,6 +112,12 @@ public final class SetpointContent {
     public static final DeferredItem<BlockItem> LEVEL_TRANSMITTER_ITEM = ITEMS.registerSimpleBlockItem(LEVEL_TRANSMITTER);
     public static final DeferredItem<BlockItem> CONTROL_VALVE_ITEM = ITEMS.registerSimpleBlockItem(CONTROL_VALVE);
     public static final DeferredItem<BlockItem> CONTROLLER_ITEM = ITEMS.registerSimpleBlockItem(CONTROLLER);
+    public static final DeferredItem<BlockItem> HOOKONIUM_ORE_ITEM = ITEMS.registerSimpleBlockItem(HOOKONIUM_ORE);
+    public static final DeferredItem<BlockItem> DEEPSLATE_HOOKONIUM_ORE_ITEM = ITEMS.registerSimpleBlockItem(DEEPSLATE_HOOKONIUM_ORE);
+    public static final DeferredItem<BlockItem> HOOKONIUM_BLOCK_ITEM = ITEMS.registerSimpleBlockItem(HOOKONIUM_BLOCK, p -> p.rarity(Rarity.RARE));
+    public static final DeferredItem<BlockItem> RAW_HOOKONIUM_BLOCK_ITEM = ITEMS.registerSimpleBlockItem(RAW_HOOKONIUM_BLOCK);
+    public static final DeferredItem<Item> RAW_HOOKONIUM = ITEMS.registerSimpleItem("raw_hookonium");
+    public static final DeferredItem<Item> HOOKONIUM_INGOT = ITEMS.registerSimpleItem("hookonium_ingot", p -> p.rarity(Rarity.RARE));
     public static final DeferredItem<FieldCommunicatorItem> FIELD_COMMUNICATOR = ITEMS.registerItem("field_communicator", FieldCommunicatorItem::new,
             p -> p.stacksTo(1));
 
@@ -147,6 +170,12 @@ public final class SetpointContent {
                 output.accept(CONTROLLER_ITEM.get());
                 output.accept(FIELD_COMMUNICATOR.get());
                 output.accept(CREATIVE_GENERATOR_ITEM.get());
+                output.accept(HOOKONIUM_ORE_ITEM.get());
+                output.accept(DEEPSLATE_HOOKONIUM_ORE_ITEM.get());
+                output.accept(RAW_HOOKONIUM.get());
+                output.accept(HOOKONIUM_INGOT.get());
+                output.accept(RAW_HOOKONIUM_BLOCK_ITEM.get());
+                output.accept(HOOKONIUM_BLOCK_ITEM.get());
             })
             .build());
 

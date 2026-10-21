@@ -503,6 +503,188 @@ item('steam_turbine', 'setpoint:block/steam_turbine_on');
 recipe('boiler', ['CCC', 'I I', 'IFI'], { C: 'minecraft:copper_ingot', I: 'minecraft:iron_ingot', F: 'minecraft:furnace' }, 'setpoint:boiler');
 recipe('steam_turbine', ['III', 'CPC', 'IRI'], { I: 'minecraft:iron_ingot', C: 'minecraft:copper_ingot', P: 'minecraft:piston', R: 'minecraft:redstone' }, 'setpoint:steam_turbine');
 
+// =====================================================================================
+// Ores. Hookonium: endgame ore, as rare as diamond, needs a diamond pickaxe
+// =====================================================================================
+
+const HK = { o: '#1e0b33', k: '#3d1663', m: '#6a2bb0', l: '#9b54ec', h: '#c895ff', w: '#f1e2ff' };
+/** Draw a pixel map: one string per row, each character a palette key ('.' = leave as is). */
+function pixels(p, rows, palette) {
+  rows.forEach((row, y) => [...row].forEach((c, x) => { if (palette[c]) p.set(x, y, palette[c]); }));
+}
+
+// ore: purple crystals on a transparent overlay; the model lays it over vanilla stone or deepslate
+texture('hookonium_ore_overlay', (p) => {
+  const big = ['.hl', 'lwm', 'mmk', '.o.'], small = ['hl', 'mk'];
+  for (const [x, y] of [[2, 2], [10, 4], [4, 10], [11, 11]]) big.forEach((r, j) => [...r].forEach((c, i) => HK[c] && p.set(x + i, y + j, HK[c])));
+  for (const [x, y] of [[7, 1], [1, 7], [13, 1], [7, 7], [14, 8]]) small.forEach((r, j) => [...r].forEach((c, i) => HK[c] && p.set(x + i, y + j, HK[c])));
+});
+texture('raw_hookonium', (p) => pixels(p, [
+  '................',
+  '................',
+  '................',
+  '.......ooo......',
+  '.....oohlloo....',
+  '....ohllmmmlo...',
+  '...ohlmmmkmmo...',
+  '..ohlmmkmmmmko..',
+  '..olmmmmmmlmko..',
+  '..ommkmmmmmmko..',
+  '...ommmmmkmko...',
+  '...okmmmmmkko...',
+  '....okkmmkko....',
+  '.....oookoo.....',
+  '................',
+  '................',
+], HK), 'item');
+texture('hookonium_ingot', (p) => pixels(p, [
+  '................',
+  '................',
+  '................',
+  '................',
+  '......oooooo....',
+  '....oowhhhhlo...',
+  '...ohwhllllllo..',
+  '..ohllllllllmko.',
+  '..olmmmmmmmmmko.',
+  '..okmmmmmmmmkko.',
+  '...okkkkkkkkko..',
+  '....ooooooooo...',
+  '................',
+  '................',
+  '................',
+  '................',
+], HK), 'item');
+// block of hookonium: a polished plate with the hook engraved in it
+texture('hookonium_block', (p) => {
+  p.rect(0, 0, 16, 16, HK.m);
+  p.rect(0, 0, 16, 1, HK.h); p.rect(0, 0, 1, 16, HK.h);
+  p.rect(1, 1, 14, 1, HK.l); p.rect(1, 1, 1, 14, HK.l);
+  p.rect(0, 15, 16, 1, HK.o); p.rect(15, 0, 1, 16, HK.o);
+  p.rect(1, 14, 14, 1, HK.k); p.rect(14, 1, 1, 14, HK.k);
+  const hook = [[7, 3], [8, 3], [9, 3], [6, 4], [10, 4], [7, 5], [8, 5], [9, 5], [9, 6], [9, 7], [9, 8], [9, 9], [9, 10], [9, 11],
+    [8, 12], [7, 12], [6, 12], [5, 12], [4, 11], [4, 10], [5, 10]];
+  for (const [x, y] of hook) p.set(x + 1, y + 1, HK.l);
+  for (const [x, y] of hook) p.set(x, y, HK.k);
+  p.set(3, 3, HK.w);
+});
+texture('raw_hookonium_block', (p) => {
+  p.rect(0, 0, 16, 16, HK.m);
+  const spots = { k: [[2, 3], [9, 1], [13, 6], [5, 9], [11, 12], [1, 13], [7, 14]], l: [[4, 1], [12, 2], [1, 6], [8, 6], [14, 10], [3, 11], [10, 9]],
+    h: [[5, 1], [12, 3], [8, 7], [3, 12]], o: [[3, 4], [14, 7], [6, 10], [12, 13]] };
+  for (const [c, list] of Object.entries(spots)) for (const [x, y] of list) { p.set(x, y, HK[c]); if (c !== 'h') p.set(x + 1, y, HK[c]); }
+});
+
+const oreModel = (name, side, top) => M(name, {
+  parent: 'minecraft:block/block',
+  textures: { base: side, base_top: top, overlay: tex('hookonium_ore_overlay'), particle: side },
+  elements: [
+    box([0, 0, 0], [16, 16, 16], Object.fromEntries(['north', 'south', 'east', 'west', 'up', 'down'].map((f) =>
+      [f, { texture: f === 'up' || f === 'down' ? '#base_top' : '#base', cullface: f }]))),
+    box([0, 0, 0], [16, 16, 16], Object.fromEntries(['north', 'south', 'east', 'west', 'up', 'down'].map((f) =>
+      [f, { texture: '#overlay', cullface: f }]))),
+  ],
+});
+oreModel('hookonium_ore', 'minecraft:block/stone', 'minecraft:block/stone');
+oreModel('deepslate_hookonium_ore', 'minecraft:block/deepslate', 'minecraft:block/deepslate_top');
+M('hookonium_block', { parent: 'minecraft:block/cube_all', textures: { all: tex('hookonium_block') } });
+M('raw_hookonium_block', { parent: 'minecraft:block/cube_all', textures: { all: tex('raw_hookonium_block') } });
+for (const name of ['hookonium_ore', 'deepslate_hookonium_ore', 'hookonium_block', 'raw_hookonium_block']) {
+  BS(name, { variants: { '': { model: 'setpoint:block/' + name } } });
+  item(name, 'setpoint:block/' + name);
+}
+for (const name of ['raw_hookonium', 'hookonium_ingot']) {
+  json(join(ASSETS, 'models/item', name + '.json'), { parent: 'minecraft:item/generated', textures: { layer0: 'setpoint:item/' + name } });
+  item(name, 'setpoint:item/' + name);
+}
+
+// recipes: smelt or blast raw hookonium (or the ore itself) into an ingot; compact into blocks and back
+const cook = (name, type, ingredient, result, experience, time) => json(join(DATA, 'recipe', name + '.json'),
+  { type: 'minecraft:' + type, cookingtime: time, experience, group: 'hookonium_ingot', ingredient, result: { id: result } });
+for (const [from, what] of [['raw_hookonium', 'setpoint:raw_hookonium'], ['hookonium_ore', 'setpoint:hookonium_ore'], ['deepslate_hookonium_ore', 'setpoint:deepslate_hookonium_ore']]) {
+  cook('hookonium_ingot_from_smelting_' + from, 'smelting', what, 'setpoint:hookonium_ingot', 1.0, 200);
+  cook('hookonium_ingot_from_blasting_' + from, 'blasting', what, 'setpoint:hookonium_ingot', 1.0, 100);
+}
+recipe('hookonium_block', ['###', '###', '###'], { '#': 'setpoint:hookonium_ingot' }, 'setpoint:hookonium_block');
+recipe('raw_hookonium_block', ['###', '###', '###'], { '#': 'setpoint:raw_hookonium' }, 'setpoint:raw_hookonium_block');
+const shapeless = (name, ingredients, id, count) => json(join(DATA, 'recipe', name + '.json'),
+  { type: 'minecraft:crafting_shapeless', category: 'misc', ingredients, result: { count, id } });
+shapeless('hookonium_ingot_from_hookonium_block', ['setpoint:hookonium_block'], 'setpoint:hookonium_ingot', 9);
+shapeless('raw_hookonium_from_raw_hookonium_block', ['setpoint:raw_hookonium_block'], 'setpoint:raw_hookonium', 9);
+
+// worldgen: the same four vein types as diamond (small, medium, large, buried), with hookonium in place of diamond
+const oreTargets = [
+  { state: 'setpoint:hookonium_ore', target: { predicate_type: 'minecraft:any_of', rules: [
+    { predicate_type: 'minecraft:all_of', rules: [{ predicate_type: 'minecraft:tag_match', tag: 'minecraft:height_specific_ore_replaceables' },
+      { predicate_type: 'minecraft:height_match', min_inclusive: 0, max_inclusive: 2031 }] },
+    { predicate_type: 'minecraft:all_of', rules: [{ predicate_type: 'minecraft:not', rule: { predicate_type: 'minecraft:tag_match', tag: 'minecraft:height_specific_ore_replaceables' } },
+      { predicate_type: 'minecraft:tag_match', tag: 'minecraft:stone_ore_replaceables' }] }] } },
+  { state: 'setpoint:deepslate_hookonium_ore', target: { predicate_type: 'minecraft:any_of', rules: [
+    { predicate_type: 'minecraft:all_of', rules: [{ predicate_type: 'minecraft:tag_match', tag: 'minecraft:height_specific_ore_replaceables' },
+      { predicate_type: 'minecraft:height_match', min_inclusive: -2032, max_inclusive: 8 }] },
+    { predicate_type: 'minecraft:all_of', rules: [{ predicate_type: 'minecraft:not', rule: { predicate_type: 'minecraft:tag_match', tag: 'minecraft:height_specific_ore_replaceables' } },
+      { predicate_type: 'minecraft:tag_match', tag: 'minecraft:deepslate_ore_replaceables' }] }] } },
+];
+const deep = { type: 'minecraft:trapezoid', min_inclusive: { above_bottom: -80 }, max_inclusive: { above_bottom: 80 } };
+const VEINS = {
+  small: { size: 4, discard: 0.5, frequency: { type: 'minecraft:count', count: 7 }, height: deep },
+  medium: { size: 8, discard: 0.5, frequency: { type: 'minecraft:count', count: 2 },
+    height: { type: 'minecraft:uniform', min_inclusive: { absolute: -64 }, max_inclusive: { absolute: -4 } } },
+  large: { size: 12, discard: 0.7, frequency: { type: 'minecraft:rarity_filter', chance: 9 }, height: deep },
+  buried: { size: 8, discard: 1.0, frequency: { type: 'minecraft:count', count: 4 }, height: deep },
+};
+for (const [vein, v] of Object.entries(VEINS)) {
+  json(join(DATA, 'worldgen/feature', 'ore_hookonium_' + vein + '.json'),
+    { type: 'minecraft:ore', discard_chance_on_air_exposure: v.discard, size: v.size, targets: oreTargets });
+  json(join(DATA, 'worldgen/placed_feature', 'ore_hookonium_' + vein + '.json'), {
+    feature: 'setpoint:ore_hookonium_' + vein,
+    placement: [v.frequency, { type: 'minecraft:in_square' }, { type: 'minecraft:height_range', height: v.height }, { type: 'minecraft:biome' }],
+  });
+}
+json(join(DATA, 'neoforge/biome_modifier', 'hookonium_ore.json'), {
+  type: 'neoforge:add_features', biomes: '#minecraft:is_overworld',
+  features: Object.keys(VEINS).map((vein) => 'setpoint:ore_hookonium_' + vein), step: 'underground_ores',
+});
+
+// =====================================================================================
+// Loot tables and tool tags for every block
+// =====================================================================================
+const lootSelf = (name) => json(join(DATA, 'loot_table/blocks', name + '.json'), {
+  type: 'minecraft:block', random_sequence: 'setpoint:blocks/' + name,
+  pools: [{ rolls: 1, conditions: [{ condition: 'minecraft:survives_explosion' }], entries: [{ type: 'minecraft:item', name: 'setpoint:' + name }] }],
+});
+const lootOre = (name, drop) => json(join(DATA, 'loot_table/blocks', name + '.json'), {
+  type: 'minecraft:block', random_sequence: 'setpoint:blocks/' + name,
+  pools: [{ rolls: 1, entries: [{ type: 'minecraft:alternatives', children: [
+    { type: 'minecraft:item', condition: 'minecraft:tool/can_silk_touch', name: 'setpoint:' + name },
+    { type: 'minecraft:item', name: drop, modifier: [
+      { type: 'minecraft:apply_bonus', enchantment: 'minecraft:fortune', formula: 'minecraft:ore_drops' }, { type: 'minecraft:explosion_decay' }] },
+  ] }] }],
+});
+const MACHINES = ['pipe', 'tank', 'centrifugal_pump', 'creative_generator', 'level_transmitter', 'control_valve', 'controller',
+  'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine'];
+for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) lootSelf(name);
+lootOre('hookonium_ore', 'setpoint:raw_hookonium');
+lootOre('deepslate_hookonium_ore', 'setpoint:raw_hookonium');
+const HOOKONIUM_BLOCKS = ['hookonium_ore', 'deepslate_hookonium_ore', 'hookonium_block', 'raw_hookonium_block'].map((n) => 'setpoint:' + n);
+const tag = (path, values) => json(join(ROOT, 'data', path + '.json'), { values });
+tag('minecraft/tags/block/mineable/pickaxe', [...MACHINES.map((n) => 'setpoint:' + n), ...HOOKONIUM_BLOCKS]);
+tag('minecraft/tags/block/needs_diamond_tool', HOOKONIUM_BLOCKS);
+// common tags, so other mods recognise the ore and its products
+for (const kind of ['block', 'item']) {
+  tag(`c/tags/${kind}/ores/hookonium`, ['setpoint:hookonium_ore', 'setpoint:deepslate_hookonium_ore']);
+  tag(`c/tags/${kind}/ores`, ['#c:ores/hookonium']);
+  tag(`c/tags/${kind}/ores_in_ground/stone`, ['setpoint:hookonium_ore']);
+  tag(`c/tags/${kind}/ores_in_ground/deepslate`, ['setpoint:deepslate_hookonium_ore']);
+  tag(`c/tags/${kind}/storage_blocks/hookonium`, ['setpoint:hookonium_block']);
+  tag(`c/tags/${kind}/storage_blocks/raw_hookonium`, ['setpoint:raw_hookonium_block']);
+  tag(`c/tags/${kind}/storage_blocks`, ['#c:storage_blocks/hookonium', '#c:storage_blocks/raw_hookonium']);
+}
+tag('c/tags/item/ingots/hookonium', ['setpoint:hookonium_ingot']);
+tag('c/tags/item/ingots', ['#c:ingots/hookonium']);
+tag('c/tags/item/raw_materials/hookonium', ['setpoint:raw_hookonium']);
+tag('c/tags/item/raw_materials', ['#c:raw_materials/hookonium']);
+
 // ---------- empty game test structure (NBT) ----------
 function nbt() {
   const parts = [];

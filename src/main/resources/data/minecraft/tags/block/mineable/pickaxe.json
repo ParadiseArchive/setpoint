@@ -1,0 +1,19 @@
+{
+  "values": [
+    "setpoint:pipe",
+    "setpoint:tank",
+    "setpoint:centrifugal_pump",
+    "setpoint:creative_generator",
+    "setpoint:level_transmitter",
+    "setpoint:control_valve",
+    "setpoint:controller",
+    "setpoint:stirling_engine",
+    "setpoint:biogas_generator",
+    "setpoint:boiler",
+    "setpoint:steam_turbine",
+    "setpoint:hookonium_ore",
+    "setpoint:deepslate_hookonium_ore",
+    "setpoint:hookonium_block",
+    "setpoint:raw_hookonium_block"
+  ]
+}

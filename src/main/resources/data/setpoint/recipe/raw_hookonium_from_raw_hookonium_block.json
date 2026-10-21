@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "setpoint:raw_hookonium_block"
+  ],
+  "result": {
+    "count": 9,
+    "id": "setpoint:raw_hookonium"
+  }
+}

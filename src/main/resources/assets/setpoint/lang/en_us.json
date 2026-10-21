@@ -12,5 +12,11 @@
   "block.setpoint.stirling_engine": "Stirling Engine",
   "block.setpoint.biogas_generator": "Biogas Generator",
   "block.setpoint.boiler": "Boiler",
-  "block.setpoint.steam_turbine": "Steam Turbine"
+  "block.setpoint.steam_turbine": "Steam Turbine",
+  "block.setpoint.hookonium_ore": "Hookonium Ore",
+  "block.setpoint.deepslate_hookonium_ore": "Deepslate Hookonium Ore",
+  "block.setpoint.hookonium_block": "Block of Hookonium",
+  "block.setpoint.raw_hookonium_block": "Block of Raw Hookonium",
+  "item.setpoint.raw_hookonium": "Raw Hookonium",
+  "item.setpoint.hookonium_ingot": "Hookonium Ingot"
 }

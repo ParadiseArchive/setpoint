@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:block",
+  "random_sequence": "setpoint:blocks/steam_turbine",
+  "pools": [
+    {
+      "rolls": 1,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "setpoint:steam_turbine"
+        }
+      ]
+    }
+  ]
+}

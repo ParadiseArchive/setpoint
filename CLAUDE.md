@@ -36,6 +36,8 @@ Easy by default, depth for those who want it. A normal Minecraft player must be 
 - [x] M2 · Control: control valve (FC/FO, trip), level transmitter, DCS controller with faceplate (PV/SP/OP, MAN/AUTO/CAS, HI/LO, tuning presets), field communicator. Playtested 20 Oct 2026; then made self-linking
 - [x] Power 1 · Stirling engine (any furnace fuel, coal is the sensible one, 20 FE/t) and biogas generator (anything compostable + rotten flesh, 30 FE/t). Both have a hopper-fed fuel slot, a 20k FE buffer, push FE to neighbours and only burn when the buffer has room.
 - [x] Power 2 · Steam (built 21 Oct 2026, playtest pending): coal-fired boiler (water drum 8 B, steam 4 B, heats to 100 °C in 10 s, 20 mB/t steam) and steam turbine (place against a boiler, spins up to 3000 rpm, 60 FE/t: three times the FE per coal of a Stirling engine). The drum is a Vessel, so pumps feed it and a controller against it holds the drum level by itself. Low-low level trip on by default (config `boiler.lowLevelTrip`); with it off a dry drum overheats and bursts, and water on a red-hot drum flashes.
+- [x] Ore · Hookonium (built 21 Oct 2026, playtest pending): endgame ore, purple. Stone and deepslate variants, needs a diamond pickaxe, drops Raw Hookonium (Fortune works, Silk Touch gives the ore, 3 to 7 XP), smelts or blasts into a Hookonium Ingot (1 XP). Storage blocks for ingots and raw. Worldgen copies diamond's four vein types exactly (small/medium/large/buried, y 16 to bedrock) through a NeoForge biome modifier on #minecraft:is_overworld. The ore model lays a transparent overlay over vanilla stone/deepslate textures (no Mojang textures copied into the mod).
+- [ ] Endgame · Hookonium machines: to be designed with the owner.
 - [ ] Power 3 · Diesel generator, running on diesel from the M5 distillation column (late game).
 - [ ] M3 · Control room: DCS screen with overview, trends, alarms
 - [ ] M4 · Pressure: closed vessels, relief valve, overpressure consequences (configurable)
@@ -48,6 +50,10 @@ Easy by default, depth for those who want it. A normal Minecraft player must be 
 
 ## Power progression (decided 20 Oct 2026)
 Early Stirling engine / biogas, mid steam, late diesel from your own distillation. Gradual but no grind: every tier is built from normal vanilla materials, the next tier is better but never mandatory, the challenge is designing the plant, not gathering.
+
+## Content notes
+- Every block has a loot table (gen-assets writes them) and is in `mineable/pickaxe`; a game test checks that every block drops itself.
+- Ores are listed from least to most rare on the docs page; give each new ore a rank there.
 
 ## Backlog
 - GitHub repo https://github.com/ParadiseArchive/setpoint (public) is live; Actions builds and runs all tests on every push.

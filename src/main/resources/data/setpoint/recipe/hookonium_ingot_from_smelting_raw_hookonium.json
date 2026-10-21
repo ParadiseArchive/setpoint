@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:smelting",
+  "cookingtime": 200,
+  "experience": 1,
+  "group": "hookonium_ingot",
+  "ingredient": "setpoint:raw_hookonium",
+  "result": {
+    "id": "setpoint:hookonium_ingot"
+  }
+}

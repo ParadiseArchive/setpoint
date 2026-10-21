@@ -33,7 +33,12 @@ import net.minecraft.gametest.framework.TestData;
 import net.minecraft.gametest.framework.TestEnvironmentDefinition;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.biome.Biomes;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.entity.FurnaceBlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
@@ -70,6 +75,10 @@ public final class SetpointGameTests {
         test("dry_boiler_bursts_without_protection", SetpointGameTests::dryBoilerBurstsWithoutProtection, 100);
         test("water_on_a_red_hot_drum_flashes", SetpointGameTests::waterOnARedHotDrumFlashes, 100);
         test("controller_holds_the_drum_level", SetpointGameTests::controllerHoldsTheDrumLevel, 2400);
+        test("hookonium_needs_a_diamond_pickaxe", SetpointGameTests::hookoniumNeedsADiamondPickaxe, 20);
+        test("raw_hookonium_smelts_into_an_ingot", SetpointGameTests::rawHookoniumSmeltsIntoAnIngot, 400);
+        test("hookonium_generates_in_the_overworld", SetpointGameTests::hookoniumGeneratesInTheOverworld, 20);
+        test("machines_drop_themselves", SetpointGameTests::machinesDropThemselves, 20);
     }
 
     private static void test(String name, Consumer<GameTestHelper> function, int maxTicks) {
@@ -409,5 +418,62 @@ public final class SetpointGameTests {
             helper.assertFalse(boiler.tripped(), "boiler should not trip");
             helper.succeed();
         });
+    }
+
+    // ---------- ores ----------
+
+    private static void hookoniumNeedsADiamondPickaxe(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        for (Block ore : new Block[]{SetpointContent.HOOKONIUM_ORE.get(), SetpointContent.DEEPSLATE_HOOKONIUM_ORE.get()}) {
+            BlockState state = ore.defaultBlockState();
+            helper.assertTrue(state.requiresCorrectToolForDrops(), "hookonium ore should need the right tool");
+            helper.assertFalse(new ItemStack(Items.IRON_PICKAXE).isCorrectToolForDrops(state), "an iron pickaxe must not be enough");
+            helper.assertTrue(new ItemStack(Items.DIAMOND_PICKAXE).isCorrectToolForDrops(state), "a diamond pickaxe should mine it");
+            var drops = Block.getDrops(state, helper.getLevel(), helper.absolutePos(pos), null, null, new ItemStack(Items.DIAMOND_PICKAXE));
+            helper.assertTrue(drops.size() == 1 && drops.get(0).is(SetpointContent.RAW_HOOKONIUM.get()), "the ore should drop raw hookonium, got " + drops);
+        }
+        helper.succeed();
+    }
+
+    private static void rawHookoniumSmeltsIntoAnIngot(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(1, 1, 1);
+        helper.setBlock(pos, Blocks.FURNACE);
+        FurnaceBlockEntity furnace = helper.getBlockEntity(pos, FurnaceBlockEntity.class);
+        furnace.setItem(0, new ItemStack(SetpointContent.RAW_HOOKONIUM.get()));
+        furnace.setItem(1, new ItemStack(Items.COAL));
+        helper.succeedWhen(() -> helper.assertTrue(furnace.getItem(2).is(SetpointContent.HOOKONIUM_INGOT.get()), "the furnace should make a hookonium ingot"));
+    }
+
+    /** The biome modifier adds the veins to the overworld, and a vein really turns deepslate into hookonium ore. */
+    private static void hookoniumGeneratesInTheOverworld(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var plains = level.registryAccess().lookupOrThrow(Registries.BIOME).getOrThrow(Biomes.PLAINS).value();
+        boolean added = plains.getGenerationSettings().features().stream()
+                .anyMatch(set -> set.stream().anyMatch(feature -> feature.is(Setpoint.id("ore_hookonium_small"))));
+        helper.assertTrue(added, "hookonium veins should be part of overworld generation");
+
+        for (int x = 0; x < 7; x++) for (int y = 1; y < 10; y++) for (int z = 0; z < 3; z++) helper.setBlock(x, y, z, Blocks.DEEPSLATE);
+        Feature vein = level.registryAccess().lookupOrThrow(Registries.FEATURE).getValue(Setpoint.id("ore_hookonium_small"));
+        helper.assertTrue(vein != null, "the vein feature should be registered");
+        for (int i = 0; i < 40; i++) {
+            vein.place(level, level.getChunkSource().getGenerator(), level.getRandom(), helper.absolutePos(new BlockPos(3, 5, 1)));
+        }
+        int ore = 0;
+        for (int x = 0; x < 7; x++) for (int y = 1; y < 10; y++) for (int z = 0; z < 3; z++) {
+            if (helper.getBlockState(new BlockPos(x, y, z)).is(SetpointContent.DEEPSLATE_HOOKONIUM_ORE.get())) ore++;
+        }
+        helper.assertTrue(ore > 0, "veins in deepslate should place deepslate hookonium ore");
+        helper.succeed();
+    }
+
+    /** Every block comes back when you break it with a pickaxe. */
+    private static void machinesDropThemselves(GameTestHelper helper) {
+        BlockPos pos = helper.absolutePos(new BlockPos(1, 1, 1));
+        for (var block : SetpointContent.BLOCKS.getEntries()) {
+            if (block.get() == SetpointContent.HOOKONIUM_ORE.get() || block.get() == SetpointContent.DEEPSLATE_HOOKONIUM_ORE.get()) continue;
+            var drops = Block.getDrops(block.get().defaultBlockState(), helper.getLevel(), pos, null, null, new ItemStack(Items.DIAMOND_PICKAXE));
+            helper.assertTrue(drops.size() == 1 && drops.get(0).is(block.get().asItem()), block.getId() + " should drop itself, got " + drops);
+        }
+        helper.succeed();
     }
 }
