@@ -1460,6 +1460,10 @@ const segment = (r) => +(r * Math.tan(Math.PI / 24)).toFixed(4);
 // =====================================================================================
 // Gas colours are the shoulder colours of real gas cylinders (EN 1089-3): hydrogen red, oxygen white, nitrogen black.
 const GAS = { hydrogen: '#c7322f', oxygen: '#f2f4f7', nitrogen: '#2c2e33', yellow: '#e2b13c', yellowDark: '#a87f22' };
+texture('gas', (p) => { // a gas, as recipe viewers show it: a soft light cloud, tinted with the gas colour
+  p.rect(0, 0, 16, 16, '#d8d8d8');
+  for (const [x, y, w] of [[2, 3, 5], [9, 2, 4], [4, 8, 6], [11, 9, 3], [1, 12, 4], [8, 13, 5]]) { p.rect(x, y, w, 2, '#f4f4f4'); p.rect(x + 1, y + 2, w - 2, 1, '#e6e6e6'); }
+});
 texture('gas_pipe', (p) => { // galvanised steel with a yellow band near each end: the colour code of a gas line
   const shade = ['#6f7682', '#8b929e', '#a7aeb9', '#c3c9d2', '#a7aeb9', '#a7aeb9', '#8b929e', '#8b929e', '#8b929e', '#8b929e', '#6f7682', '#6f7682', '#6f7682', '#575d68', '#575d68', '#575d68'];
   for (let y = 0; y < 16; y++) p.rect(0, y, 16, 1, shade[y]);

@@ -78,6 +78,14 @@ public class SetpointClient {
         modEventBus.addListener(SetpointClient::registerScreens);
         modEventBus.addListener(SetpointClient::registerBlockTints);
         modEventBus.addListener(SetpointClient::registerRenderers);
+        // gases look like a soft cloud in their own colour (in JEI and the like)
+        modEventBus.addListener((net.neoforged.neoforge.client.event.RegisterFluidModelsEvent event) -> {
+            var cloud = new net.minecraft.client.resources.model.sprite.Material(Setpoint.id("block/gas"));
+            for (var gas : io.hookdev.setpoint.gas.Gases.ALL) {
+                event.register(new net.minecraft.client.renderer.block.FluidModel.Unbaked(cloud, cloud, null,
+                        net.neoforged.neoforge.client.fluid.FluidTintSources.constant(gas.colour())), gas.fluid());
+            }
+        });
         modEventBus.addListener((RegisterKeyMappingsEvent event) -> {
             event.registerCategory(CATEGORY);
             event.register(HORN);
