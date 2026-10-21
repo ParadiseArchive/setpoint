@@ -234,6 +234,9 @@ public class BoilerBlockEntity extends BlockEntity implements MenuProvider, Vess
 
     private void effects(ServerLevel level, BlockPos pos) {
         long time = level.getGameTime();
+        if (firing && (time + pos.hashCode()) % 30 == 0 && level.getRandom().nextFloat() < 0.6f) {
+            level.playSound(null, pos, SetpointContent.FIRE_CRACKLE.get(), SoundSource.BLOCKS, 0.3f, 0.9f);
+        }
         if (firing && time % 10 == 0) {
             level.sendParticles(ParticleTypes.SMOKE, pos.getX() + 0.5, pos.getY() + 1.05, pos.getZ() + 0.5, 1, 0.1, 0.02, 0.1, 0.01);
         }

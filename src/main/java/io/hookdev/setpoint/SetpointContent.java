@@ -8,10 +8,12 @@ import io.hookdev.setpoint.block.ControllerBlock;
 import io.hookdev.setpoint.block.CreativeGeneratorBlock;
 import io.hookdev.setpoint.block.FluidPipeBlock;
 import io.hookdev.setpoint.block.GeneratorBlock;
+import io.hookdev.setpoint.block.HandValveBlock;
 import io.hookdev.setpoint.block.LevelTransmitterBlock;
 import io.hookdev.setpoint.block.PumpBlock;
 import io.hookdev.setpoint.block.SteamTurbineBlock;
 import io.hookdev.setpoint.block.TankBlock;
+import io.hookdev.setpoint.block.WaterIntakeBlock;
 import io.hookdev.setpoint.block.entity.BiogasGeneratorBlockEntity;
 import io.hookdev.setpoint.block.entity.BoilerBlockEntity;
 import io.hookdev.setpoint.block.entity.ConsoleBlockEntity;
@@ -23,8 +25,10 @@ import io.hookdev.setpoint.block.entity.PumpBlockEntity;
 import io.hookdev.setpoint.block.entity.SteamTurbineBlockEntity;
 import io.hookdev.setpoint.block.entity.StirlingEngineBlockEntity;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
+import io.hookdev.setpoint.block.entity.WaterIntakeBlockEntity;
 import io.hookdev.setpoint.item.FieldCommunicatorItem;
 import io.hookdev.setpoint.item.HandbookItem;
+import io.hookdev.setpoint.item.PipeWrenchItem;
 import io.hookdev.setpoint.menu.BoilerMenu;
 import io.hookdev.setpoint.menu.ConsoleMenu;
 import io.hookdev.setpoint.menu.FaceplateMenu;
@@ -76,6 +80,10 @@ public final class SetpointContent {
     /** Crackling vapour bubbles collapsing in the impeller (sound files listed in sounds.json). */
     public static final DeferredHolder<SoundEvent, SoundEvent> PUMP_CAVITATE = SOUNDS.register("block.centrifugal_pump.cavitate",
             SoundEvent::createVariableRangeEvent);
+    /** Quiet running sounds: a motor hum, a turbine whine that rises with speed, a crackling fire. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> PUMP_RUN = SOUNDS.register("block.centrifugal_pump.run", SoundEvent::createVariableRangeEvent);
+    public static final DeferredHolder<SoundEvent, SoundEvent> TURBINE_RUN = SOUNDS.register("block.steam_turbine.run", SoundEvent::createVariableRangeEvent);
+    public static final DeferredHolder<SoundEvent, SoundEvent> FIRE_CRACKLE = SOUNDS.register("block.firebox.crackle", SoundEvent::createVariableRangeEvent);
     /** A soft two-tone chime for new alarms in the control room. */
     public static final DeferredHolder<SoundEvent, SoundEvent> CONSOLE_ALARM = SOUNDS.register("block.dcs_console.alarm",
             SoundEvent::createVariableRangeEvent);
@@ -108,6 +116,10 @@ public final class SetpointContent {
     public static final DeferredBlock<SteamTurbineBlock> STEAM_TURBINE = BLOCKS.registerBlock("steam_turbine", SteamTurbineBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(3.5f, 6.0f).sound(SoundType.METAL));
 
+    public static final DeferredBlock<HandValveBlock> HAND_VALVE = BLOCKS.registerBlock("hand_valve", HandValveBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<WaterIntakeBlock> WATER_INTAKE = BLOCKS.registerBlock("water_intake", WaterIntakeBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
     public static final DeferredBlock<ConsoleBlock> CONSOLE = BLOCKS.registerBlock("dcs_console", ConsoleBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL).lightLevel(state -> 4));
 
@@ -134,6 +146,9 @@ public final class SetpointContent {
     public static final DeferredItem<BlockItem> LEVEL_TRANSMITTER_ITEM = ITEMS.registerSimpleBlockItem(LEVEL_TRANSMITTER);
     public static final DeferredItem<BlockItem> CONTROL_VALVE_ITEM = ITEMS.registerSimpleBlockItem(CONTROL_VALVE);
     public static final DeferredItem<BlockItem> CONTROLLER_ITEM = ITEMS.registerSimpleBlockItem(CONTROLLER);
+    public static final DeferredItem<BlockItem> HAND_VALVE_ITEM = ITEMS.registerSimpleBlockItem(HAND_VALVE);
+    public static final DeferredItem<BlockItem> WATER_INTAKE_ITEM = ITEMS.registerSimpleBlockItem(WATER_INTAKE);
+    public static final DeferredItem<PipeWrenchItem> PIPE_WRENCH = ITEMS.registerItem("pipe_wrench", PipeWrenchItem::new, p -> p.stacksTo(1));
     public static final DeferredItem<BlockItem> CONSOLE_ITEM = ITEMS.registerSimpleBlockItem(CONSOLE);
     public static final DeferredItem<BlockItem> HOOKONIUM_ORE_ITEM = ITEMS.registerSimpleBlockItem(HOOKONIUM_ORE);
     public static final DeferredItem<BlockItem> DEEPSLATE_HOOKONIUM_ORE_ITEM = ITEMS.registerSimpleBlockItem(DEEPSLATE_HOOKONIUM_ORE);
@@ -165,6 +180,8 @@ public final class SetpointContent {
             () -> new BlockEntityType<>(BiogasGeneratorBlockEntity::new, BIOGAS_GENERATOR.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BoilerBlockEntity>> BOILER_ENTITY = BLOCK_ENTITIES.register("boiler",
             () -> new BlockEntityType<>(BoilerBlockEntity::new, BOILER.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WaterIntakeBlockEntity>> WATER_INTAKE_ENTITY = BLOCK_ENTITIES.register("water_intake",
+            () -> new BlockEntityType<>(WaterIntakeBlockEntity::new, WATER_INTAKE.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ConsoleBlockEntity>> CONSOLE_ENTITY = BLOCK_ENTITIES.register("dcs_console",
             () -> new BlockEntityType<>(ConsoleBlockEntity::new, CONSOLE.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SteamTurbineBlockEntity>> STEAM_TURBINE_ENTITY = BLOCK_ENTITIES.register("steam_turbine",
@@ -187,7 +204,10 @@ public final class SetpointContent {
             .icon(() -> PUMP_ITEM.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
                 output.accept(HANDBOOK.get());
+                output.accept(PIPE_WRENCH.get());
                 output.accept(PIPE_ITEM.get());
+                output.accept(HAND_VALVE_ITEM.get());
+                output.accept(WATER_INTAKE_ITEM.get());
                 output.accept(TANK_ITEM.get());
                 output.accept(PUMP_ITEM.get());
                 output.accept(STIRLING_ENGINE_ITEM.get());

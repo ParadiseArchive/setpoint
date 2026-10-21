@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "L": "minecraft:lever",
+    "C": "minecraft:copper_ingot",
+    "I": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    " L ",
+    "CIC"
+  ],
+  "result": {
+    "id": "setpoint:hand_valve"
+  }
+}

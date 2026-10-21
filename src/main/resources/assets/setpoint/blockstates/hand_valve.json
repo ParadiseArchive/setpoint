@@ -1,0 +1,48 @@
+{
+  "variants": {
+    "axis=z,open=false,powered=false": {
+      "model": "setpoint:block/hand_valve_shut"
+    },
+    "axis=z,open=false,powered=true": {
+      "model": "setpoint:block/hand_valve_shut"
+    },
+    "axis=z,open=true,powered=false": {
+      "model": "setpoint:block/hand_valve_open"
+    },
+    "axis=z,open=true,powered=true": {
+      "model": "setpoint:block/hand_valve_shut"
+    },
+    "axis=x,open=false,powered=false": {
+      "model": "setpoint:block/hand_valve_shut",
+      "y": 90
+    },
+    "axis=x,open=false,powered=true": {
+      "model": "setpoint:block/hand_valve_shut",
+      "y": 90
+    },
+    "axis=x,open=true,powered=false": {
+      "model": "setpoint:block/hand_valve_open",
+      "y": 90
+    },
+    "axis=x,open=true,powered=true": {
+      "model": "setpoint:block/hand_valve_shut",
+      "y": 90
+    },
+    "axis=y,open=false,powered=false": {
+      "model": "setpoint:block/hand_valve_shut",
+      "x": 90
+    },
+    "axis=y,open=false,powered=true": {
+      "model": "setpoint:block/hand_valve_shut",
+      "x": 90
+    },
+    "axis=y,open=true,powered=false": {
+      "model": "setpoint:block/hand_valve_open",
+      "x": 90
+    },
+    "axis=y,open=true,powered=true": {
+      "model": "setpoint:block/hand_valve_shut",
+      "x": 90
+    }
+  }
+}

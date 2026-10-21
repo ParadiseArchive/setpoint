@@ -28,7 +28,7 @@ export const HANDBOOK = {
       content: [
         ['h', 'A tank that holds its own level'],
         ['p', '**1.** Craft two tanks, some pipes, a centrifugal pump, a control valve, a DCS controller and a Stirling engine.'],
-        ['p', '**2.** Fill the first tank with water buckets.'],
+        ['p', '**2.** Fill the first tank with water buckets, or pipe in endless water from a water intake in a river.'],
         ['p', '**3.** Stand on the side of the full tank and place the pump: its suction faces you. Connect both sides with pipes.'],
         ['p', '**4.** Put the Stirling engine against the pump and give it coal. The pump starts by itself.'],
         ['p', '**5.** Put a control valve in the line to the second tank, and a DCS controller against that tank.'],
@@ -37,7 +37,7 @@ export const HANDBOOK = {
       ],
     },
     {
-      id: 'pipes_tanks', title: 'Pipes and tanks', icon: 'setpoint:tank',
+      id: 'pipes_tanks', title: 'Piping and tanks', icon: 'setpoint:tank',
       content: [
         ['h', 'Pipe'],
         ['p', 'Copper pipe connects itself to tanks, pumps, valves and boilers. Longer runs mean more friction and less flow. A run can be 512 pipes long.'],
@@ -46,6 +46,15 @@ export const HANDBOOK = {
         ['p', 'Holds 16 buckets of one fluid. The sight glass shows the level. Click it with a bucket, or open it and use the bucket slots: full bucket in at the top, empty bucket out below.'],
         ['p', 'A comparator next to a tank gives a redstone signal from 0 (empty) to 15 (full).'],
         ['craft', 'setpoint:tank'],
+        ['h', 'Water intake'],
+        ['p', 'Endless water. Put it in a river, lake or the sea with at least two water source blocks next to it, and pipe it to a pump. Pumps can draw from it but not push into it.'],
+        ['craft', 'setpoint:water_intake'],
+        ['h', 'Hand valve'],
+        ['p', 'Shuts a line by hand: right-click to open or shut. A redstone signal holds it shut. Like a real gate valve, the stem sticks out when it is open.'],
+        ['craft', 'setpoint:hand_valve'],
+        ['h', 'Pipe wrench'],
+        ['p', 'Click a pipe arm to cut or join that side, so two lines can run side by side. Click a machine to turn it a quarter. Sneak-click to pick a machine up.'],
+        ['craft', 'setpoint:pipe_wrench'],
       ],
     },
     {

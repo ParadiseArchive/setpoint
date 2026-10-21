@@ -71,6 +71,8 @@ public class Setpoint {
         event.registerBlockEntity(Capabilities.Item.BLOCK, SetpointContent.BIOGAS_GENERATOR_ENTITY.get(), (generator, side) -> generator.input());
         // Boilers: pipes and buckets fill the water drum, hoppers feed the firebox. Turbines give FE to cables.
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, SetpointContent.BOILER_ENTITY.get(), (boiler, side) -> boiler.fluid());
+        // The water intake gives river water to other mods' pipes too.
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, SetpointContent.WATER_INTAKE_ENTITY.get(), (intake, side) -> intake.fluid());
         event.registerBlockEntity(Capabilities.Item.BLOCK, SetpointContent.BOILER_ENTITY.get(), (boiler, side) -> boiler.fuel());
         event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.STEAM_TURBINE_ENTITY.get(), (turbine, side) -> turbine.energy());
     }

@@ -38,6 +38,50 @@
       }
     ]
   },
+  "block.centrifugal_pump.run": {
+    "subtitle": "subtitles.setpoint.block.centrifugal_pump.run",
+    "sounds": [
+      {
+        "name": "minecraft:block/beacon/ambient",
+        "pitch": 1.5,
+        "volume": 0.6
+      }
+    ]
+  },
+  "block.steam_turbine.run": {
+    "subtitle": "subtitles.setpoint.block.steam_turbine.run",
+    "sounds": [
+      {
+        "name": "minecraft:block/beacon/ambient",
+        "volume": 0.7
+      }
+    ]
+  },
+  "block.firebox.crackle": {
+    "subtitle": "subtitles.setpoint.block.firebox.crackle",
+    "sounds": [
+      {
+        "name": "minecraft:block/furnace/fire_crackle1",
+        "volume": 0.8
+      },
+      {
+        "name": "minecraft:block/furnace/fire_crackle2",
+        "volume": 0.8
+      },
+      {
+        "name": "minecraft:block/furnace/fire_crackle3",
+        "volume": 0.8
+      },
+      {
+        "name": "minecraft:block/furnace/fire_crackle4",
+        "volume": 0.8
+      },
+      {
+        "name": "minecraft:block/furnace/fire_crackle5",
+        "volume": 0.8
+      }
+    ]
+  },
   "block.dcs_console.alarm": {
     "subtitle": "subtitles.setpoint.block.dcs_console.alarm",
     "sounds": [

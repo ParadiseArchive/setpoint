@@ -10,6 +10,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.Block;
@@ -23,11 +24,15 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
- * A pipe segment. Connects to other pipes, tanks, and pumps on their suction/discharge side.
- * Pipes carry no fluid themselves: a pump traces the pipe run to find the tanks at both ends.
+ * A pipe segment. Connects to other pipes, vessels, valves along their axis, and pumps on their suction/discharge side.
+ * Pipes carry no fluid themselves: a pump traces the pipe run to find the vessels at both ends.
+ * The pipe wrench can cut a side, so two lines can run next to each other without joining.
  */
 public class FluidPipeBlock extends Block {
     public static final Map<Direction, BooleanProperty> CONNECTIONS = PipeBlock.PROPERTY_BY_DIRECTION;
+    /** Sides cut with the wrench: they never connect. */
+    public static final Map<Direction, BooleanProperty> CUT = java.util.Arrays.stream(Direction.values())
+            .collect(java.util.stream.Collectors.toUnmodifiableMap(d -> d, d -> BooleanProperty.create(d.getSerializedName() + "_cut")));
 
     private static final VoxelShape CORE = Block.box(5, 5, 5, 11, 11, 11);
     private static final Map<Direction, VoxelShape> ARMS = Map.of(
@@ -43,8 +48,8 @@ public class FluidPipeBlock extends Block {
     public FluidPipeBlock(BlockBehaviour.Properties properties) {
         super(properties);
         BlockState state = this.stateDefinition.any();
-        for (BooleanProperty connection : CONNECTIONS.values()) {
-            state = state.setValue(connection, false);
+        for (Direction direction : Direction.values()) {
+            state = state.setValue(CONNECTIONS.get(direction), false).setValue(CUT.get(direction), false);
         }
         this.registerDefaultState(state);
         this.shapes = this.getShapeForEachState(FluidPipeBlock::makeShape);
@@ -60,10 +65,14 @@ public class FluidPipeBlock extends Block {
         return shape;
     }
 
-    /** Whether a pipe at {@code pos} should connect towards {@code direction}. */
-    public static boolean connectsTo(BlockGetter level, BlockPos pos, Direction direction) {
+    /** Whether a pipe in {@code state} at {@code pos} should connect towards {@code direction}. */
+    public static boolean connectsTo(BlockGetter level, BlockPos pos, BlockState state, Direction direction) {
+        if (state.getBlock() instanceof FluidPipeBlock && state.getValue(CUT.get(direction))) return false;
         BlockState neighbour = level.getBlockState(pos.relative(direction));
-        if (neighbour.getBlock() instanceof FluidPipeBlock || neighbour.getBlock() instanceof VesselBlock) {
+        if (neighbour.getBlock() instanceof FluidPipeBlock) {
+            return !neighbour.getValue(CUT.get(direction.getOpposite()));
+        }
+        if (neighbour.getBlock() instanceof VesselBlock) {
             return true;
         }
         if (neighbour.getBlock() instanceof PumpBlock) {
@@ -72,6 +81,9 @@ public class FluidPipeBlock extends Block {
         if (neighbour.getBlock() instanceof ControlValveBlock) {
             return neighbour.getValue(ControlValveBlock.AXIS) == direction.getAxis();
         }
+        if (neighbour.getBlock() instanceof HandValveBlock) {
+            return neighbour.getValue(HandValveBlock.AXIS) == direction.getAxis();
+        }
         return false;
     }
 
@@ -79,7 +91,7 @@ public class FluidPipeBlock extends Block {
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         BlockState state = this.defaultBlockState();
         for (Direction direction : Direction.values()) {
-            state = state.setValue(CONNECTIONS.get(direction), connectsTo(context.getLevel(), context.getClickedPos(), direction));
+            state = state.setValue(CONNECTIONS.get(direction), connectsTo(context.getLevel(), context.getClickedPos(), state, direction));
         }
         return state;
     }
@@ -87,7 +99,23 @@ public class FluidPipeBlock extends Block {
     @Override
     protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos,
                                      Direction directionToNeighbour, BlockPos neighbourPos, BlockState neighbourState, RandomSource random) {
-        return state.setValue(CONNECTIONS.get(directionToNeighbour), connectsTo(level, pos, directionToNeighbour));
+        return state.setValue(CONNECTIONS.get(directionToNeighbour), connectsTo(level, pos, state, directionToNeighbour));
+    }
+
+    /** All six connections worked out again, for when a side is cut or a neighbour turned. */
+    public static BlockState refresh(BlockState state, BlockGetter level, BlockPos pos) {
+        for (Direction direction : Direction.values()) {
+            state = state.setValue(CONNECTIONS.get(direction), connectsTo(level, pos, state, direction));
+        }
+        return state;
+    }
+
+    /** Pipes placed by commands or structures work out their connections too. */
+    @Override
+    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
+        super.onPlace(state, level, pos, oldState, movedByPiston);
+        BlockState connected = refresh(state, level, pos);
+        if (connected != state) level.setBlock(pos, connected, Block.UPDATE_CLIENTS);
     }
 
     @Override
@@ -98,5 +126,6 @@ public class FluidPipeBlock extends Block {
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         CONNECTIONS.values().forEach(builder::add);
+        CUT.values().forEach(builder::add);
     }
 }

@@ -13,6 +13,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -74,6 +75,11 @@ public class SteamTurbineBlockEntity extends BlockEntity {
         if (speed > TurbineModel.RATED_SPEED * 0.97 && level.getGameTime() % 100 == 0) PlantEventTrigger.near(level, pos, PlantEventTrigger.TURBINE_RATED);
         if (state.getValue(SteamTurbineBlock.RUNNING) != running) {
             level.setBlock(pos, state.setValue(SteamTurbineBlock.RUNNING, running), Block.UPDATE_CLIENTS);
+        }
+        if (running && (level.getGameTime() + pos.hashCode()) % 60 == 0) {
+            // the whine rises with the rotor speed
+            level.playSound(null, pos, SetpointContent.TURBINE_RUN.get(), SoundSource.BLOCKS, 0.18f,
+                    (float) (0.6 + 1.0 * speed / TurbineModel.RATED_SPEED));
         }
         if (steamUsed > 0 && level.getGameTime() % 8 == 0) {
             // exhaust steam

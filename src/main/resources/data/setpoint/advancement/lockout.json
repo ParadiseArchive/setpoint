@@ -1,0 +1,28 @@
+{
+  "parent": "setpoint:moving_water",
+  "criteria": {
+    "valve_shut": {
+      "trigger": "setpoint:plant_event",
+      "conditions": {
+        "event": "valve_shut"
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "setpoint:hand_valve"
+    },
+    "frame": "task",
+    "title": {
+      "translate": "advancements.setpoint.lockout.title"
+    },
+    "description": {
+      "translate": "advancements.setpoint.lockout.description"
+    }
+  },
+  "requirements": [
+    [
+      "valve_shut"
+    ]
+  ]
+}

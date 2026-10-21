@@ -1,0 +1,28 @@
+{
+  "parent": "setpoint:moving_water",
+  "criteria": {
+    "intake_running": {
+      "trigger": "setpoint:plant_event",
+      "conditions": {
+        "event": "intake_running"
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "setpoint:water_intake"
+    },
+    "frame": "task",
+    "title": {
+      "translate": "advancements.setpoint.bottomless.title"
+    },
+    "description": {
+      "translate": "advancements.setpoint.bottomless.description"
+    }
+  },
+  "requirements": [
+    [
+      "intake_running"
+    ]
+  ]
+}

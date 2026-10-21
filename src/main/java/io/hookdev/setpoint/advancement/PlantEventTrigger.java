@@ -20,7 +20,7 @@ import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
  */
 public class PlantEventTrigger extends SimpleCriterionTrigger<PlantEventTrigger.TriggerInstance> {
     public static final String CAVITATION = "cavitation", LOOP_HOLDING = "loop_holding", TURBINE_RATED = "turbine_rated",
-            ALARM_ACKNOWLEDGED = "alarm_acknowledged";
+            ALARM_ACKNOWLEDGED = "alarm_acknowledged", VALVE_SHUT = "valve_shut", INTAKE_RUNNING = "intake_running";
     /** Players this close to the equipment count as having seen it happen. */
     public static final double NEARBY = 16;
 

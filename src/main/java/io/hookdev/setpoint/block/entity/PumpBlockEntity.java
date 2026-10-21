@@ -157,6 +157,10 @@ public class PumpBlockEntity extends BlockEntity {
 
     private static void effects(ServerLevel level, BlockPos pos, PumpModel.Result result) {
         long time = level.getGameTime();
+        // a soft motor hum; every pump starts its hum at its own moment
+        if ((time + pos.hashCode()) % 80 == 0) {
+            level.playSound(null, pos, SetpointContent.PUMP_RUN.get(), SoundSource.BLOCKS, 0.15f, 0.95f + level.getRandom().nextFloat() * 0.1f);
+        }
         // Cavitation crackles; the worse it gets, the more often it pops.
         if (result.cavitation() > 0 && time % 4 == 0 && level.getRandom().nextFloat() < 0.35f + 0.65f * result.cavitation()) {
             float volume = 0.35f + 0.45f * (float) result.cavitation();

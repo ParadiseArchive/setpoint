@@ -7,7 +7,6 @@ import java.util.Map;
 import org.jspecify.annotations.Nullable;
 
 import io.hookdev.setpoint.block.ControlValveBlock;
-import io.hookdev.setpoint.block.FluidPipeBlock;
 import io.hookdev.setpoint.block.PumpBlock;
 
 import net.minecraft.core.BlockPos;
@@ -32,12 +31,6 @@ public final class LoopFinder {
 
     private LoopFinder() {}
 
-    private static boolean passes(BlockState state, Direction direction) {
-        if (state.getBlock() instanceof FluidPipeBlock) return true;
-        if (state.getBlock() instanceof ControlValveBlock) return state.getValue(ControlValveBlock.AXIS) == direction.getAxis();
-        return false;
-    }
-
     public static @Nullable ValveLink findValve(Level level, BlockPos tankPos) {
         Map<BlockPos, BlockPos> parent = new HashMap<>();
         parent.put(tankPos, tankPos);
@@ -48,7 +41,7 @@ public final class LoopFinder {
             BlockState currentState = level.getBlockState(current);
             boolean atTank = current.equals(tankPos);
             for (Direction direction : Direction.values()) {
-                if (!atTank && !passes(currentState, direction)) continue;
+                if (!atTank && !Piping.leaves(currentState, direction)) continue;
                 BlockPos next = current.relative(direction);
                 if (parent.containsKey(next) || !level.isLoaded(next)) continue;
                 BlockState state = level.getBlockState(next);
@@ -59,7 +52,7 @@ public final class LoopFinder {
                     if (valve != null) return new ValveLink(valve, feeds);
                     continue;
                 }
-                if (passes(state, direction)) {
+                if (Piping.enters(state, direction)) {
                     parent.put(next, current);
                     queue.add(next);
                 }

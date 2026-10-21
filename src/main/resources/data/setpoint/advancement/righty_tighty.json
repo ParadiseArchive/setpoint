@@ -1,0 +1,32 @@
+{
+  "parent": "setpoint:root",
+  "criteria": {
+    "pipe_wrench": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "setpoint:pipe_wrench"
+          }
+        ]
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "setpoint:pipe_wrench"
+    },
+    "frame": "task",
+    "title": {
+      "translate": "advancements.setpoint.righty_tighty.title"
+    },
+    "description": {
+      "translate": "advancements.setpoint.righty_tighty.description"
+    }
+  },
+  "requirements": [
+    [
+      "pipe_wrench"
+    ]
+  ]
+}

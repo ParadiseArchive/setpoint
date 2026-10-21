@@ -715,11 +715,105 @@ json(join(ASSETS, 'sounds.json'), {
     sounds: [1, 2, 3, 4, 5, 6].map((n, i) => ({ name: 'minecraft:block/campfire/crackle' + n, pitch: [0.7, 0.75, 0.7, 0.8, 0.75, 0.7][i] }))
       .concat([1, 2].map((n) => ({ name: 'minecraft:block/bubble_column/bubble' + n, pitch: 0.6, volume: 0.6 }))),
   },
+  'block.centrifugal_pump.run': { subtitle: 'subtitles.setpoint.block.centrifugal_pump.run', sounds: [{ name: 'minecraft:block/beacon/ambient', pitch: 1.5, volume: 0.6 }] },
+  'block.steam_turbine.run': { subtitle: 'subtitles.setpoint.block.steam_turbine.run', sounds: [{ name: 'minecraft:block/beacon/ambient', volume: 0.7 }] },
+  'block.firebox.crackle': { subtitle: 'subtitles.setpoint.block.firebox.crackle', sounds: [1, 2, 3, 4, 5].map((n) => ({ name: 'minecraft:block/furnace/fire_crackle' + n, volume: 0.8 })) },
   'block.dcs_console.alarm': {
     subtitle: 'subtitles.setpoint.block.dcs_console.alarm',
     sounds: [{ name: 'minecraft:note/bell', pitch: 1.0, volume: 0.5 }],
   },
 });
+
+// =====================================================================================
+// Foundations 2: hand valve, water intake, pipe wrench
+// =====================================================================================
+
+// hand valve: a gate valve body on a pipe, a red handwheel, and a rising stem that shows it is open
+texture('hand_valve_body', (p) => {
+  plate(p, C.steel1);
+  p.rect(3, 3, 10, 10, C.steel0); p.rect(4, 4, 8, 8, C.steel2);
+  rivets(p, [[1, 1], [13, 1], [1, 13], [13, 13]]);
+});
+texture('hand_valve_wheel', (p) => {
+  const rim = '#b8312f', dark = '#7a1f1d', hub = C.steel3;
+  for (let i = 1; i < 15; i++) { p.set(i, 1, rim); p.set(i, 14, dark); p.set(1, i, rim); p.set(14, i, dark); }
+  p.rect(2, 2, 12, 1, '#d24a45');
+  for (let i = 2; i < 14; i++) { p.set(i, i, rim); p.set(15 - i, i, rim); } // spokes
+  p.rect(6, 6, 4, 4, hub); p.rect(7, 7, 2, 2, C.steel0);
+});
+texture('hand_valve_stem', (p) => { p.rect(0, 0, 16, 16, C.steel3); for (let y = 0; y < 16; y += 2) p.rect(0, y, 16, 1, C.steel4); });
+
+for (const open of [false, true]) {
+  M('hand_valve' + (open ? '_open' : '_shut'), { // flow along Z, wheel on top
+    parent: 'minecraft:block/block',
+    textures: { pipe: tex('pipe'), body: tex('hand_valve_body'), wheel: tex('hand_valve_wheel'), stem: tex('hand_valve_stem'), particle: tex('hand_valve_body') },
+    elements: [
+      box([5, 5, 0], [11, 11, 16], {
+        north: { uv: [5, 5, 11, 11], texture: '#pipe', cullface: 'north' }, south: { uv: [5, 5, 11, 11], texture: '#pipe', cullface: 'south' },
+        east: { uv: [0, 5, 16, 11], texture: '#pipe' }, west: { uv: [0, 5, 16, 11], texture: '#pipe' }, down: { uv: [5, 0, 11, 16], texture: '#pipe' },
+      }),
+      box([4, 4, 5], [12, 11, 11], allFaces([4, 4, 12, 11], '#body')),
+      box([6, 11, 6], [10, 13, 10], allFaces([6, 6, 10, 10], '#body', ['down'])),
+      box([7, 13, 7], [9, open ? 18 : 14, 9], allFaces([7, 0, 9, 5], '#stem', ['down'])),
+      box([3, 14, 3], [13, 15, 13], {
+        up: { uv: [0, 0, 16, 16], texture: '#wheel' }, down: { uv: [0, 0, 16, 16], texture: '#wheel' },
+        north: { uv: [3, 0, 13, 1], texture: '#wheel' }, south: { uv: [3, 0, 13, 1], texture: '#wheel' },
+        east: { uv: [3, 0, 13, 1], texture: '#wheel' }, west: { uv: [3, 0, 13, 1], texture: '#wheel' },
+      }),
+    ],
+  });
+}
+{
+  const axisRot = { z: {}, x: { y: 90 }, y: { x: 90 } };
+  const variants = {};
+  for (const [axis, rot] of Object.entries(axisRot)) for (const open of [false, true]) for (const powered of [false, true]) {
+    variants[`axis=${axis},open=${open},powered=${powered}`] = { model: 'setpoint:block/hand_valve' + (open && !powered ? '_open' : '_shut'), ...rot };
+  }
+  BS('hand_valve', { variants });
+  item('hand_valve', 'setpoint:block/hand_valve_open');
+}
+recipe('hand_valve', [' L ', 'CIC'], { L: 'minecraft:lever', C: 'minecraft:copper_ingot', I: 'minecraft:iron_ingot' }, 'setpoint:hand_valve');
+
+// water intake: a steel strainer box, bars on every side
+texture('water_intake_side', (p) => {
+  plate(p, C.steel1);
+  p.rect(2, 2, 12, 12, '#1c3f6e');
+  for (let x = 3; x < 14; x += 3) p.rect(x, 2, 1, 12, C.steel3);
+  p.rect(2, 7, 12, 1, C.steel2);
+  p.set(4, 4, '#3a6fd8'); p.set(10, 10, '#3a6fd8');
+});
+texture('water_intake_top', (p) => {
+  plate(p, C.steel2);
+  p.rect(4, 4, 8, 8, C.steel0); p.rect(5, 5, 6, 6, C.cu2); p.rect(6, 6, 4, 4, C.cu1); // pipe flange
+  rivets(p, [[1, 1], [13, 1], [1, 13], [13, 13]]);
+});
+M('water_intake', { parent: 'minecraft:block/cube_bottom_top', textures: { side: tex('water_intake_side'), top: tex('water_intake_top'), bottom: tex('water_intake_side') } });
+BS('water_intake', { variants: { '': { model: 'setpoint:block/water_intake' } } });
+item('water_intake', 'setpoint:block/water_intake');
+recipe('water_intake', ['IBI', 'BPB', 'IBI'], { I: 'minecraft:iron_ingot', B: 'minecraft:iron_bars', P: 'setpoint:pipe' }, 'setpoint:water_intake');
+
+// pipe wrench
+texture('pipe_wrench', (p) => pixels(p, [
+  '................',
+  '..........kkk...',
+  '.........k...k..',
+  '.........k.......',
+  '.........k...k..',
+  '..........kkk...',
+  '.........kk.....',
+  '........kk......',
+  '.......kk.......',
+  '......kk........',
+  '.....rr.........',
+  '....rrr.........',
+  '...rrr..........',
+  '..rrr...........',
+  '..rr............',
+  '................',
+], { k: C.steel4, r: '#b8312f' }), 'item');
+json(join(ASSETS, 'models/item/pipe_wrench.json'), { parent: 'minecraft:item/handheld', textures: { layer0: 'setpoint:item/pipe_wrench' } });
+item('pipe_wrench', 'setpoint:item/pipe_wrench');
+recipe('pipe_wrench', ['I I', ' I ', ' C '], { I: 'minecraft:iron_ingot', C: 'minecraft:copper_ingot' }, 'setpoint:pipe_wrench');
 
 // =====================================================================================
 // Loot tables and tool tags for every block
@@ -737,7 +831,7 @@ const lootOre = (name, drop) => json(join(DATA, 'loot_table/blocks', name + '.js
   ] }] }],
 });
 const MACHINES = ['pipe', 'tank', 'centrifugal_pump', 'creative_generator', 'level_transmitter', 'control_valve', 'controller',
-  'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine', 'dcs_console'];
+  'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine', 'dcs_console', 'hand_valve', 'water_intake'];
 for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) lootSelf(name);
 lootOre('hookonium_ore', 'setpoint:raw_hookonium');
 lootOre('deepslate_hookonium_ore', 'setpoint:raw_hookonium');
@@ -745,6 +839,8 @@ const HOOKONIUM_BLOCKS = ['hookonium_ore', 'deepslate_hookonium_ore', 'hookonium
 const tag = (path, values) => json(join(ROOT, 'data', path + '.json'), { values });
 tag('minecraft/tags/block/mineable/pickaxe', [...MACHINES.map((n) => 'setpoint:' + n), ...HOOKONIUM_BLOCKS]);
 tag('minecraft/tags/block/needs_diamond_tool', HOOKONIUM_BLOCKS);
+// the pipe wrench turns, cuts and picks up these
+tag('setpoint/tags/block/wrenchable', MACHINES.map((n) => 'setpoint:' + n));
 // common tags, so other mods recognise the ore and its products
 for (const kind of ['block', 'item']) {
   tag(`c/tags/${kind}/ores/hookonium`, ['setpoint:hookonium_ore', 'setpoint:deepslate_hookonium_ore']);
@@ -863,6 +959,9 @@ shapeless('handbook', ['minecraft:book', 'minecraft:copper_ingot'], 'setpoint:ha
     ['mission_control', 'hands_off', 'setpoint:dcs_console', 'task', has('setpoint:dcs_console')],
     ['acknowledged', 'mission_control', 'setpoint:dcs_console', 'goal', happened('alarm_acknowledged')],
     ['deep_purple', 'root', 'setpoint:raw_hookonium', 'challenge', has('setpoint:raw_hookonium')],
+    ['bottomless', 'moving_water', 'setpoint:water_intake', 'task', happened('intake_running')],
+    ['lockout', 'moving_water', 'setpoint:hand_valve', 'task', happened('valve_shut')],
+    ['righty_tighty', 'root', 'setpoint:pipe_wrench', 'task', has('setpoint:pipe_wrench')],
   ];
   for (const [name, parent, icon, frame, criteria, extra = {}] of ADV) {
     json(join(DATA, 'advancement', name + '.json'), {

@@ -11,6 +11,8 @@ import io.hookdev.setpoint.block.PumpBlock;
 import io.hookdev.setpoint.block.PumpStatus;
 import io.hookdev.setpoint.block.entity.BiogasGeneratorBlockEntity;
 import io.hookdev.setpoint.block.ConsoleBlock;
+import io.hookdev.setpoint.block.FluidPipeBlock;
+import io.hookdev.setpoint.block.HandValveBlock;
 import io.hookdev.setpoint.block.entity.BoilerBlockEntity;
 import io.hookdev.setpoint.block.entity.ConsoleBlockEntity;
 import io.hookdev.setpoint.control.AlarmList;
@@ -34,7 +36,12 @@ import net.minecraft.gametest.framework.FunctionGameTestInstance;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.gametest.framework.TestData;
 import net.minecraft.gametest.framework.TestEnvironmentDefinition;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.GameType;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.block.Block;
@@ -84,6 +91,9 @@ public final class SetpointGameTests {
         test("machines_drop_themselves", SetpointGameTests::machinesDropThemselves, 20);
         test("console_raises_and_acknowledges_alarms", SetpointGameTests::consoleRaisesAndAcknowledgesAlarms, 200);
         test("comparator_reads_levels", SetpointGameTests::comparatorReadsLevels, 20);
+        test("water_intake_feeds_a_pump", SetpointGameTests::waterIntakeFeedsAPump, 300);
+        test("shut_hand_valve_blocks_flow", SetpointGameTests::shutHandValveBlocksFlow, 300);
+        test("wrench_cuts_joins_and_turns", SetpointGameTests::wrenchCutsJoinsAndTurns, 20);
     }
 
     private static void test(String name, Consumer<GameTestHelper> function, int maxTicks) {
@@ -517,6 +527,62 @@ public final class SetpointGameTests {
         helper.assertTrue(level.getBlockState(helper.absolutePos(tankPos)).getAnalogOutputSignal(level, helper.absolutePos(tankPos), Direction.NORTH) == 15, "a full tank gives 15");
         int drum = level.getBlockState(helper.absolutePos(boilerPos)).getAnalogOutputSignal(level, helper.absolutePos(boilerPos), Direction.NORTH);
         helper.assertTrue(drum == 8, "a half-full drum gives 8, got " + drum);
+        helper.succeed();
+    }
+
+    // ---------- foundations: intake, hand valve, wrench ----------
+
+    /** An intake sitting in water feeds a pump, with no tank on the suction side. */
+    private static void waterIntakeFeedsAPump(GameTestHelper helper) {
+        buildLine(helper, false);
+        helper.setBlock(SOURCE, SetpointContent.WATER_INTAKE.get());
+        helper.setBlock(1, 1, 0, Blocks.WATER);
+        helper.setBlock(1, 1, 2, Blocks.WATER);
+        helper.setBlock(1, 0, 1, Blocks.WATER);
+        helper.succeedWhen(() -> helper.assertTrue(helper.getBlockEntity(DESTINATION, TankBlockEntity.class).amount() >= 1_000,
+                "the pump should fill the tank from the intake"));
+    }
+
+    /** A shut hand valve in the discharge line stops the flow; opening it lets water through. */
+    private static void shutHandValveBlocksFlow(GameTestHelper helper) {
+        buildLine(helper, false);
+        BlockPos valve = new BlockPos(4, 1, 1);
+        helper.setBlock(valve, SetpointContent.HAND_VALVE.get().defaultBlockState().setValue(HandValveBlock.AXIS, Direction.Axis.X).setValue(HandValveBlock.OPEN, false));
+        fill(helper, SOURCE, 8_000);
+        helper.runAfterDelay(100, () -> {
+            helper.assertTrue(helper.getBlockEntity(DESTINATION, TankBlockEntity.class).amount() == 0, "water got past a shut hand valve");
+            helper.setBlock(valve, helper.getBlockState(valve).setValue(HandValveBlock.OPEN, true));
+            helper.succeedWhen(() -> helper.assertTrue(helper.getBlockEntity(DESTINATION, TankBlockEntity.class).amount() >= 1_000,
+                    "water should flow once the valve is open"));
+        });
+    }
+
+    private static void wrench(GameTestHelper helper, BlockPos pos, Vec3 offset) {
+        var player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack wrench = new ItemStack(SetpointContent.PIPE_WRENCH.get());
+        player.setItemInHand(InteractionHand.MAIN_HAND, wrench);
+        BlockPos abs = helper.absolutePos(pos);
+        Vec3 click = Vec3.atCenterOf(abs).add(offset);
+        wrench.getItem().onItemUseFirst(wrench, new UseOnContext(helper.getLevel(), player, InteractionHand.MAIN_HAND, wrench,
+                new BlockHitResult(click, Direction.UP, abs, false)));
+    }
+
+    /** Clicking a pipe arm cuts both sides of the joint and clicking it again joins them; clicking a pump turns it. */
+    private static void wrenchCutsJoinsAndTurns(GameTestHelper helper) {
+        BlockPos a = new BlockPos(1, 1, 1), b = new BlockPos(2, 1, 1);
+        helper.setBlock(a, SetpointContent.PIPE.get());
+        helper.setBlock(b, SetpointContent.PIPE.get());
+        helper.assertTrue(helper.getBlockState(a).getValue(FluidPipeBlock.CONNECTIONS.get(Direction.EAST)), "pipes should join");
+        wrench(helper, a, new Vec3(0.4, 0, 0)); // the east arm of pipe a
+        helper.assertFalse(helper.getBlockState(a).getValue(FluidPipeBlock.CONNECTIONS.get(Direction.EAST)), "pipe a should be cut on the east side");
+        helper.assertFalse(helper.getBlockState(b).getValue(FluidPipeBlock.CONNECTIONS.get(Direction.WEST)), "pipe b should let go too");
+        wrench(helper, a, new Vec3(0.4, 0, 0));
+        helper.assertTrue(helper.getBlockState(b).getValue(FluidPipeBlock.CONNECTIONS.get(Direction.WEST)), "the joint should be back");
+
+        BlockPos pump = new BlockPos(4, 1, 1);
+        helper.setBlock(pump, SetpointContent.PUMP.get().defaultBlockState().setValue(PumpBlock.FACING, Direction.NORTH));
+        wrench(helper, pump, Vec3.ZERO);
+        helper.assertTrue(helper.getBlockState(pump).getValue(PumpBlock.FACING) == Direction.EAST, "the pump should have turned to the east");
         helper.succeed();
     }
 }

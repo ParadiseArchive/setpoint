@@ -258,6 +258,8 @@ render('creative_generator', [{ model: 'creative_generator' }]);
 render('boiler', [{ model: 'boiler_on', y: S }]);
 render('steam_turbine', [{ model: 'steam_turbine_on', y: S }]);
 render('dcs_console', [{ model: 'dcs_console', y: S }]);
+render('hand_valve', [{ model: 'hand_valve_open', y: 90 }], 6);
+render('water_intake', [{ model: 'water_intake' }]);
 render('hookonium_ore', [{ model: 'hookonium_ore' }]);
 render('deepslate_hookonium_ore', [{ model: 'deepslate_hookonium_ore' }]);
 render('hookonium_block', [{ model: 'hookonium_block' }]);

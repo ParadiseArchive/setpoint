@@ -71,7 +71,7 @@
         },
         {
           "type": "p",
-          "text": "**2.** Fill the first tank with water buckets."
+          "text": "**2.** Fill the first tank with water buckets, or pipe in endless water from a water intake in a river."
         },
         {
           "type": "p",
@@ -97,7 +97,7 @@
     },
     {
       "id": "pipes_tanks",
-      "title": "Pipes and tanks",
+      "title": "Piping and tanks",
       "icon": "setpoint:tank",
       "content": [
         {
@@ -149,6 +149,78 @@
             "minecraft:iron_ingot",
             "minecraft:glass",
             "minecraft:iron_ingot"
+          ],
+          "count": 1
+        },
+        {
+          "type": "h",
+          "text": "Water intake"
+        },
+        {
+          "type": "p",
+          "text": "Endless water. Put it in a river, lake or the sea with at least two water source blocks next to it, and pipe it to a pump. Pumps can draw from it but not push into it."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:water_intake",
+          "grid": [
+            "minecraft:iron_ingot",
+            "minecraft:iron_bars",
+            "minecraft:iron_ingot",
+            "minecraft:iron_bars",
+            "setpoint:pipe",
+            "minecraft:iron_bars",
+            "minecraft:iron_ingot",
+            "minecraft:iron_bars",
+            "minecraft:iron_ingot"
+          ],
+          "count": 1
+        },
+        {
+          "type": "h",
+          "text": "Hand valve"
+        },
+        {
+          "type": "p",
+          "text": "Shuts a line by hand: right-click to open or shut. A redstone signal holds it shut. Like a real gate valve, the stem sticks out when it is open."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:hand_valve",
+          "grid": [
+            "",
+            "minecraft:lever",
+            "",
+            "minecraft:copper_ingot",
+            "minecraft:iron_ingot",
+            "minecraft:copper_ingot",
+            "",
+            "",
+            ""
+          ],
+          "count": 1
+        },
+        {
+          "type": "h",
+          "text": "Pipe wrench"
+        },
+        {
+          "type": "p",
+          "text": "Click a pipe arm to cut or join that side, so two lines can run side by side. Click a machine to turn it a quarter. Sneak-click to pick a machine up."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:pipe_wrench",
+          "grid": [
+            "minecraft:iron_ingot",
+            "",
+            "minecraft:iron_ingot",
+            "",
+            "minecraft:iron_ingot",
+            "",
+            "",
+            "minecraft:copper_ingot",
+            ""
           ],
           "count": 1
         }

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "setpoint:block/water_intake"
+    }
+  }
+}

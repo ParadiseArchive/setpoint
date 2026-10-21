@@ -9,7 +9,6 @@ import java.util.Map;
 import org.jspecify.annotations.Nullable;
 
 import io.hookdev.setpoint.block.ControlValveBlock;
-import io.hookdev.setpoint.block.FluidPipeBlock;
 import io.hookdev.setpoint.block.entity.ControlValveBlockEntity;
 
 import net.minecraft.core.BlockPos;
@@ -40,20 +39,13 @@ public final class PipeRun {
 
     private PipeRun() {}
 
-    /** Can liquid leave or enter this block in this direction? Pipes: any way. Valves: only along their axis. */
-    private static boolean passes(BlockState state, Direction direction) {
-        if (state.getBlock() instanceof FluidPipeBlock) return true;
-        if (state.getBlock() instanceof ControlValveBlock) return state.getValue(ControlValveBlock.AXIS) == direction.getAxis();
-        return false;
-    }
-
     /** Nearest tank reached from {@code pumpPos} going out through {@code side}, or null if there is none. */
     public static @Nullable End trace(Level level, BlockPos pumpPos, Direction side) {
         BlockPos first = pumpPos.relative(side);
         if (!level.isLoaded(first)) return null;
         BlockState firstState = level.getBlockState(first);
         if (firstState.getBlock() instanceof VesselBlock) return new End(first, 0, List.of());
-        if (!passes(firstState, side)) return null;
+        if (!Piping.enters(firstState, side)) return null;
 
         // Breadth first, so the first tank found is the closest one. Parents rebuild the path for the valves.
         Map<BlockPos, BlockPos> parent = new HashMap<>();
@@ -65,14 +57,14 @@ public final class PipeRun {
             BlockPos current = queue.poll();
             BlockState currentState = level.getBlockState(current);
             for (Direction direction : Direction.values()) {
-                if (!passes(currentState, direction)) continue;
+                if (!Piping.leaves(currentState, direction)) continue;
                 BlockPos next = current.relative(direction);
                 if (parent.containsKey(next) || !level.isLoaded(next)) continue;
                 BlockState state = level.getBlockState(next);
                 if (state.getBlock() instanceof VesselBlock) {
                     return finish(level, next, current, parent);
                 }
-                if (passes(state, direction)) {
+                if (Piping.enters(state, direction)) {
                     parent.put(next, current);
                     queue.add(next);
                 }
