@@ -1032,6 +1032,101 @@ texture('ibc_liquid', (p) => {
   json(join(ASSETS, 'items', 'ibc.json'), { model: { type: 'minecraft:model', model: 'setpoint:block/ibc_item',
     tints: [{ type: 'minecraft:constant', value: -12618012 }, { type: 'minecraft:dye', default: -1 }] } }); // water blue; a white or black tote
 }
+// =====================================================================================
+// Pallet: two by two blocks of wood. Up to four drums on it, each in its own colour, held by a green strap
+// =====================================================================================
+texture('pallet_board', (p) => {
+  p.rect(0, 0, 16, 16, '#b8915a');
+  for (const y of [3, 9, 13]) p.rect(0, y, 16, 1, '#a37d49');               // grain
+  p.set(4, 6, '#7a5a30'); p.set(12, 11, '#7a5a30');                          // nails
+});
+texture('pallet_block', (p) => {
+  p.rect(0, 0, 16, 16, '#9c7642');
+  p.rect(0, 0, 16, 1, '#b8915a');
+  for (const x of [2, 7, 12]) p.rect(x, 4, 3, 12, '#3b2c18');               // the fork openings between the blocks
+});
+texture('pallet_strap', (p) => { p.rect(0, 0, 16, 16, '#2f9e44'); p.rect(0, 0, 16, 1, '#5ac26a'); p.rect(0, 15, 16, 1, '#1f6e2e'); });
+// A drum standing on the pallet: the drum's own shape, moved to (cx, cz), its steel tinted with tint index tint.
+function drumOnPallet(cx, cz, y0, tint) {
+  const bands = [[1, 2, 5, 11], [2, 3, 3, 13], [3, 5, 2, 14], [5, 11, 1, 15], [11, 13, 2, 14], [13, 14, 3, 13], [14, 15, 5, 11]];
+  const dx = cx - 8, dz = cz - 8, out = [];
+  for (const [z1, z2, x1, x2] of bands) {
+    for (const [ya, yb, side] of [[0, 16, '#drum_side'], [16, 24, '#drum_side_top']]) {
+      const vTop = side === '#drum_side' ? 0 : 8;
+      out.push(box([x1 + dx, y0 + ya, z1 + dz], [x2 + dx, y0 + yb, z2 + dz], {
+        north: { uv: [x1, vTop, x2, vTop + (yb - ya)], texture: side, tintindex: tint }, south: { uv: [x1, vTop, x2, vTop + (yb - ya)], texture: side, tintindex: tint },
+        east: { uv: [z1, vTop, z2, vTop + (yb - ya)], texture: side, tintindex: tint }, west: { uv: [z1, vTop, z2, vTop + (yb - ya)], texture: side, tintindex: tint },
+        ...(yb === 24 ? { up: { uv: [x1, z1, x2, z2], texture: '#drum_top', tintindex: tint } } : {}),
+      }));
+    }
+  }
+  out.push(box([5.5 + dx, y0 + 9, 0.9 + dz], [10.5 + dx, y0 + 13, 1 + dz], { north: { uv: [0, 0, 16, 16], texture: '#drum_label' } }));
+  out.push(box([5 + dx, y0 + 24, 4 + dz], [7 + dx, y0 + 24.5, 6 + dz], allFaces([0, 0, 2, 2], '#drum_bung', ['down'])));
+  return out;
+}
+// The strap: a band hugging the drums, straight between them and round where it bends around one.
+function strapAround(centres, y, h = 1.5, r = 7.35, t = 0.5) {
+  if (centres.length < 2) return [];
+  const mx = centres.reduce((a, c) => a + c[0], 0) / centres.length, mz = centres.reduce((a, c) => a + c[1], 0) / centres.length;
+  const pts = [...centres].sort((a, b) => Math.atan2(a[1] - mz, a[0] - mx) - Math.atan2(b[1] - mz, b[0] - mx));
+  const out = [];
+  const piece = (px, pz, tx, tz, len) => {
+    const angle = +(Math.atan2(-tz, tx) * 180 / Math.PI).toFixed(3);
+    out.push({ from: [px - len / 2, y, pz - t / 2], to: [px + len / 2, y + h, pz + t / 2], rotation: { origin: [px, y, pz], x: 0, y: angle, z: 0 },
+      faces: allFaces([0, 0, Math.min(16, len), h], '#pallet_strap') });
+  };
+  const n = pts.length, normals = [];
+  for (let i = 0; i < n; i++) { // the straight runs, each on the outside of a line from drum to drum
+    const a = pts[i], b = pts[(i + 1) % n], len = Math.hypot(b[0] - a[0], b[1] - a[1]), tx = (b[0] - a[0]) / len, tz = (b[1] - a[1]) / len;
+    const mxe = (a[0] + b[0]) / 2, mze = (a[1] + b[1]) / 2;
+    let nx = tz, nz = -tx;
+    const awayX = n === 2 ? (i === 0 ? 1 : -1) * nx : mxe - mx, awayZ = n === 2 ? (i === 0 ? 1 : -1) * nz : mze - mz;
+    if (nx * awayX + nz * awayZ < 0) { nx = -nx; nz = -nz; }
+    normals.push([nx, nz]);
+    piece(mxe + nx * r, mze + nz * r, tx, tz, len);
+  }
+  for (let i = 0; i < n; i++) { // the bends, around each drum from one straight run to the next
+    const c = pts[i], nin = normals[(i - 1 + n) % n], nout = normals[i];
+    const a1 = Math.atan2(nin[1], nin[0]);
+    let delta = Math.atan2(nout[1], nout[0]) - a1;
+    while (delta <= -Math.PI) delta += 2 * Math.PI;
+    while (delta > Math.PI) delta -= 2 * Math.PI;
+    const mid = a1 + delta / 2, ox = c[0] - mx, oz = c[1] - mz;
+    if (Math.cos(mid) * ox + Math.sin(mid) * oz < 0) delta = delta > 0 ? delta - 2 * Math.PI : delta + 2 * Math.PI; // bend the outside way
+    const steps = Math.max(1, Math.ceil(Math.abs(delta) / (Math.PI / 12)));
+    for (let k = 0; k < steps; k++) {
+      const phi = a1 + delta * (k + 0.5) / steps;
+      piece(c[0] + r * Math.cos(phi), c[1] + r * Math.sin(phi), -Math.sin(phi), Math.cos(phi), r * Math.abs(delta) / steps + 0.35);
+    }
+  }
+  return out;
+}
+{
+  const layouts = { 0: [], 1: [[16, 16]], 2: [[9, 16], [23, 16]], 3: [[16, 9.94], [9, 22.06], [23, 22.06]], 4: [[9, 9], [23, 9], [9, 23], [23, 23]] };
+  const deck = () => {
+    const els = [...tiled([0, 0, 0], [32, 2, 32], () => '#pallet_block', (face) => (face === 'down' ? { cullface: 'down' } : {}))];
+    for (const [z1, z2] of [[0, 5], [6.75, 11.75], [13.5, 18.5], [20.25, 25.25], [27, 32]]) {
+      els.push(...tiled([0, 2, z1], [32, 3, z2], (face) => (face === 'down' ? null : '#pallet_board')));
+    }
+    return els;
+  };
+  const textures = { pallet_board: tex('pallet_board'), pallet_block: tex('pallet_block'), pallet_strap: tex('pallet_strap'), drum_side: tex('drum_side'),
+    drum_side_top: tex('drum_side_top'), drum_top: tex('drum_top'), drum_label: tex('drum_label'), drum_bung: tex('drum_bung'), particle: tex('pallet_board') };
+  for (const [count, centres] of Object.entries(layouts)) {
+    const elements = deck();
+    centres.forEach(([cx, cz], i) => elements.push(...drumOnPallet(cx, cz, 3, i)));
+    elements.push(...strapAround(centres, 3 + 5), ...strapAround(centres, 3 + 18));
+    M('pallet_' + count, { parent: 'minecraft:block/block', ambientocclusion: false, textures, elements });
+  }
+  M('pallet_item', { parent: 'minecraft:block/block', textures, elements: shrunk(deck(), [16, 8, 16], 0.5) });
+  BS('pallet', { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => [0, 1, 2, 3, 4].map((n) =>
+    [`drums=${n},facing=${f}`, { model: 'setpoint:block/pallet_' + n, ...(y ? { y } : {}) }]))) });
+  item('pallet', 'setpoint:block/pallet_item');
+  M('pallet_part', { textures: { particle: tex('pallet_board') } });
+  BS('pallet_part', { variants: Object.fromEntries([0, 1, 2].map((k) => [`kind=${k}`, { model: 'setpoint:block/pallet_part' }])) });
+}
+recipe('pallet', ['SSS', 'P P'], { S: 'minecraft:oak_slab', P: 'minecraft:oak_planks' }, 'setpoint:pallet');
+
 // the rest of a drum or IBC: nothing to draw (the base block's model reaches over it), only break particles
 M('tank_part', { textures: { particle: tex('ibc_tote') } });
 BS('tank_part', { variants: { 'kind=0': { model: 'setpoint:block/tank_part' }, 'kind=1': { model: 'setpoint:block/tank_part' } } });
@@ -1230,7 +1325,7 @@ const lootOre = (name, drop) => json(join(DATA, 'loot_table/blocks', name + '.js
 });
 const MACHINES = ['pipe', 'tank', 'centrifugal_pump', 'creative_generator', 'level_transmitter', 'control_valve', 'controller',
   'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine', 'dcs_console', 'hand_valve', 'water_intake', 'flow_transmitter',
-  'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve', 'pid_board'];
+  'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve', 'pid_board', 'pallet'];
 for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) lootSelf(name);
 for (const name of ['drum', 'ibc']) json(join(DATA, 'loot_table/blocks', name + '.json'), {
   type: 'minecraft:block', random_sequence: 'setpoint:blocks/' + name,

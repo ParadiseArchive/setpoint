@@ -20,6 +20,7 @@
     "setpoint:drain_valve",
     "setpoint:check_valve",
     "setpoint:pid_board",
+    "setpoint:pallet",
     "setpoint:drum",
     "setpoint:ibc",
     "setpoint:hookonium_ore",

@@ -17,6 +17,8 @@ import io.hookdev.setpoint.block.GeneratorBlock;
 import io.hookdev.setpoint.block.HandValveBlock;
 import io.hookdev.setpoint.block.IbcBlock;
 import io.hookdev.setpoint.block.LevelTransmitterBlock;
+import io.hookdev.setpoint.block.PalletBlock;
+import io.hookdev.setpoint.block.PalletPartBlock;
 import io.hookdev.setpoint.block.PidBoardBlock;
 import io.hookdev.setpoint.block.PressureTransmitterBlock;
 import io.hookdev.setpoint.block.PumpBlock;
@@ -34,6 +36,8 @@ import io.hookdev.setpoint.block.entity.CreativeGeneratorBlockEntity;
 import io.hookdev.setpoint.block.entity.DrainValveBlockEntity;
 import io.hookdev.setpoint.block.entity.FlowTransmitterBlockEntity;
 import io.hookdev.setpoint.block.entity.LevelTransmitterBlockEntity;
+import io.hookdev.setpoint.block.entity.MultiblockPartBlockEntity;
+import io.hookdev.setpoint.block.entity.PalletBlockEntity;
 import io.hookdev.setpoint.block.entity.PidBoardBlockEntity;
 import io.hookdev.setpoint.block.entity.PortableTankBlockEntity;
 import io.hookdev.setpoint.block.entity.PressureTransmitterBlockEntity;
@@ -142,6 +146,10 @@ public final class SetpointContent {
             p -> p.mapColor(MapColor.COLOR_BLUE).strength(2.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
     public static final DeferredBlock<IbcBlock> IBC = BLOCKS.registerBlock("ibc", IbcBlock::new,
             p -> p.mapColor(MapColor.SNOW).strength(2.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<PalletBlock> PALLET = BLOCKS.registerBlock("pallet", PalletBlock::new,
+            p -> p.mapColor(MapColor.WOOD).strength(1.5f, 3.0f).sound(SoundType.WOOD).noOcclusion());
+    public static final DeferredBlock<PalletPartBlock> PALLET_PART = BLOCKS.registerBlock("pallet_part", PalletPartBlock::new,
+            p -> p.mapColor(MapColor.WOOD).strength(1.5f, 3.0f).sound(SoundType.WOOD).noOcclusion().noLootTable());
     public static final DeferredBlock<TankPartBlock> TANK_PART = BLOCKS.registerBlock("tank_part", TankPartBlock::new,
             p -> p.mapColor(MapColor.SNOW).strength(2.0f, 6.0f).sound(SoundType.METAL).noOcclusion().noLootTable());
     public static final DeferredBlock<PidBoardBlock> PID_BOARD = BLOCKS.registerBlock("pid_board", PidBoardBlock::new,
@@ -206,6 +214,7 @@ public final class SetpointContent {
     public static final DeferredItem<BlockItem> PID_BOARD_ITEM = ITEMS.registerSimpleBlockItem(PID_BOARD);
     public static final DeferredItem<BlockItem> DRUM_ITEM = ITEMS.registerSimpleBlockItem(DRUM);
     public static final DeferredItem<BlockItem> IBC_ITEM = ITEMS.registerSimpleBlockItem(IBC);
+    public static final DeferredItem<BlockItem> PALLET_ITEM = ITEMS.registerSimpleBlockItem(PALLET);
     public static final DeferredItem<BlockItem> CONTROL_VALVE_ITEM = ITEMS.registerSimpleBlockItem(CONTROL_VALVE);
     public static final DeferredItem<BlockItem> CONTROLLER_ITEM = ITEMS.registerSimpleBlockItem(CONTROLLER);
     public static final DeferredItem<BlockItem> HAND_VALVE_ITEM = ITEMS.registerSimpleBlockItem(HAND_VALVE);
@@ -239,6 +248,10 @@ public final class SetpointContent {
             () -> new BlockEntityType<>(PressureTransmitterBlockEntity::new, PRESSURE_TRANSMITTER.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PortableTankBlockEntity>> PORTABLE_TANK_ENTITY = BLOCK_ENTITIES.register("portable_tank",
             () -> new BlockEntityType<>(PortableTankBlockEntity::new, DRUM.get(), IBC.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PalletBlockEntity>> PALLET_ENTITY = BLOCK_ENTITIES.register("pallet",
+            () -> new BlockEntityType<>(PalletBlockEntity::new, PALLET.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MultiblockPartBlockEntity>> PALLET_PART_ENTITY = BLOCK_ENTITIES.register("pallet_part",
+            () -> new BlockEntityType<>((pos, state) -> new MultiblockPartBlockEntity(SetpointContent.PALLET_PART_ENTITY.get(), pos, state), PALLET_PART.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<TankPartBlockEntity>> TANK_PART_ENTITY = BLOCK_ENTITIES.register("tank_part",
             () -> new BlockEntityType<>(TankPartBlockEntity::new, TANK_PART.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PidBoardBlockEntity>> PID_BOARD_ENTITY = BLOCK_ENTITIES.register("pid_board",
@@ -293,6 +306,7 @@ public final class SetpointContent {
                 output.accept(TANK_ITEM.get());
                 output.accept(DRUM_ITEM.get());
                 output.accept(IBC_ITEM.get());
+                output.accept(PALLET_ITEM.get());
                 output.accept(PUMP_ITEM.get());
                 output.accept(STIRLING_ENGINE_ITEM.get());
                 output.accept(BIOGAS_GENERATOR_ITEM.get());

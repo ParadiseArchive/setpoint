@@ -1,42 +1,22 @@
 package io.hookdev.setpoint.block;
 
-import org.jspecify.annotations.Nullable;
-
-import io.hookdev.setpoint.block.entity.PortableTankBlockEntity;
 import io.hookdev.setpoint.block.entity.TankPartBlockEntity;
-import io.hookdev.setpoint.hydraulics.Vessel;
 import io.hookdev.setpoint.hydraulics.VesselBlock;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
-import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 
-/**
- * The rest of a drum or IBC that is bigger than one block. It draws nothing itself (the base block's model reaches
- * over it), holds you up, connects to pipes, and passes buckets, pumps and breaking on to the base.
- */
-public class TankPartBlock extends BaseEntityBlock implements VesselBlock {
+/** The rest of a drum or IBC: pipes connect to it as to the container itself. */
+public class TankPartBlock extends MultiblockPartBlock implements VesselBlock {
     /** Which shape: the top of a drum, or a full block of an IBC. */
     public static final IntegerProperty KIND = IntegerProperty.create("kind", 0, 1);
     public static final int IBC = 0, DRUM_TOP = 1;
@@ -50,69 +30,6 @@ public class TankPartBlock extends BaseEntityBlock implements VesselBlock {
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new TankPartBlockEntity(pos, state);
-    }
-
-    @Override
-    protected RenderShape getRenderShape(BlockState state) {
-        return RenderShape.INVISIBLE;
-    }
-
-    private static @Nullable BlockPos base(BlockGetter level, BlockPos pos) {
-        return level.getBlockEntity(pos) instanceof TankPartBlockEntity part ? part.base() : null;
-    }
-
-    @Override
-    protected InteractionResult useItemOn(ItemStack itemStack, BlockState state, Level level, BlockPos pos, Player player,
-                                          InteractionHand hand, BlockHitResult hitResult) {
-        BlockPos base = base(level, pos);
-        if (base != null && itemStack.has(DataComponents.DYE)) return PortableTankBlock.dye(itemStack, level, base, player);
-        if (base != null && FluidUtil.interactWithFluidHandler(player, hand, level, base, hitResult.getDirection(), null)) {
-            return InteractionResult.SUCCESS;
-        }
-        return InteractionResult.TRY_WITH_EMPTY_HAND;
-    }
-
-    @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        BlockPos base = base(level, pos);
-        if (!level.isClientSide() && base != null && level.getBlockEntity(base) instanceof PortableTankBlockEntity tank) tank.describe(player);
-        return InteractionResult.SUCCESS;
-    }
-
-    /** Middle-click (and Jade) see the drum or IBC it belongs to, not this part. */
-    @Override
-    protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
-        BlockPos base = base(level, pos);
-        return base == null ? ItemStack.EMPTY : level.getBlockState(base).getCloneItemStack(level, base, includeData);
-    }
-
-    /** Broken in creative: the whole container goes, without a drop. */
-    @Override
-    public BlockState playerWillDestroy(Level level, BlockPos pos, BlockState state, Player player) {
-        BlockPos base = base(level, pos);
-        if (!level.isClientSide() && player.isCreative() && base != null && level.getBlockState(base).getBlock() instanceof PortableTankBlock) {
-            level.removeBlock(base, false);
-        }
-        return super.playerWillDestroy(level, pos, state, player);
-    }
-
-    /** Any part gone (broken, blown up): the whole container breaks, and drops with its liquid inside. */
-    @Override
-    protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
-        super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
-        BlockPos base = TankPartBlockEntity.lastBase(pos);
-        if (base != null && level.getBlockState(base).getBlock() instanceof PortableTankBlock) level.destroyBlock(base, true);
-    }
-
-    @Override
-    protected boolean hasAnalogOutputSignal(BlockState state) {
-        return true;
-    }
-
-    @Override
-    protected int getAnalogOutputSignal(BlockState state, Level level, BlockPos pos, Direction direction) {
-        BlockPos base = base(level, pos);
-        return base != null && level.getBlockEntity(base) instanceof PortableTankBlockEntity tank ? Vessel.comparatorSignal(tank.fillFraction()) : 0;
     }
 
     @Override

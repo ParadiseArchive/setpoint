@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "kind=0": {
+      "model": "setpoint:block/pallet_part"
+    },
+    "kind=1": {
+      "model": "setpoint:block/pallet_part"
+    },
+    "kind=2": {
+      "model": "setpoint:block/pallet_part"
+    }
+  }
+}

@@ -329,6 +329,34 @@
         },
         {
           "type": "h",
+          "text": "Pallet"
+        },
+        {
+          "type": "p",
+          "text": "A wooden pallet, two by two blocks, for up to **four drums**. Right-click it with a drum to load it; the drums keep their liquid and colour. Two or more get a green strap around them; three stand in a triangle."
+        },
+        {
+          "type": "p",
+          "text": "Sneak-right-click with an empty hand to take the last drum off. Break the pallet and everything drops."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:pallet",
+          "grid": [
+            "minecraft:oak_slab",
+            "minecraft:oak_slab",
+            "minecraft:oak_slab",
+            "minecraft:oak_planks",
+            "",
+            "minecraft:oak_planks",
+            "",
+            "",
+            ""
+          ],
+          "count": 1
+        },
+        {
+          "type": "h",
           "text": "Liquid runs downhill"
         },
         {

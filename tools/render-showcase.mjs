@@ -172,7 +172,12 @@ function render(file, parts, scale = 4, pad = 2, outline = true) {
     for (const e of model(name)) {
       for (const [face, f] of Object.entries(e.faces)) {
         const q = faceQuad(face, e.from, e.to);
-        const place = (p) => rotY(p, y).map((v, i) => v + at[i] * 16);
+        const turn = (p) => { // an element turned about its origin (only the y axis is used)
+          if (!e.rotation || !e.rotation.y) return p;
+          const th = e.rotation.y * Math.PI / 180, [ox, , oz] = e.rotation.origin, dx = p[0] - ox, dz = p[2] - oz;
+          return [ox + Math.cos(th) * dx + Math.sin(th) * dz, p[1], oz - Math.sin(th) * dx + Math.cos(th) * dz];
+        };
+        const place = (p) => rotY(turn(p), y).map((v, i) => v + at[i] * 16);
         const o = place(q.o), u = place(q.u), v = place(q.v);
         const n = [ // normal from the edges, to cull back faces
           (u[1] - o[1]) * (v[2] - o[2]) - (u[2] - o[2]) * (v[1] - o[1]),
@@ -274,6 +279,9 @@ render('drum_colours', [
   { model: 'drum', y: S, at: [0, 0, 0], tints: [[0xb0, 0x2e, 0x26]] }, { model: 'drum', y: S, at: [1, 0, 0], tints: [[0xfe, 0xd8, 0x3d]] },
   { model: 'drum', y: S, at: [2, 0, 0], tints: [[0x5e, 0x7c, 0x16]] }, { model: 'drum', y: S, at: [3, 0, 0], tints: [[0x1d, 0x1d, 0x21]] },
 ], 4);
+render('pallet_4', [{ model: 'pallet_4', y: S, tints: [[0xb0, 0x2e, 0x26], [0x3b, 0x79, 0xde], [0xfe, 0xd8, 0x3d], [0x3b, 0x79, 0xde]] }], 4);
+render('pallet_3', [{ model: 'pallet_3', y: S, tints: [[0x3b, 0x79, 0xde], [0x3b, 0x79, 0xde], [0x3b, 0x79, 0xde]] }], 4);
+render('pallet', [{ model: 'pallet_0', y: S }], 4);
 render('ibc_black', [{ model: 'ibc_5', y: S, tints: [[0x2a, 0x2c, 0x2f], [0x2a, 0x2c, 0x2f]] }], 4);
 render('ibc', [{ model: 'ibc_5', y: S }], 4);
 // gravity: a full tall tank runs into a low one through a check valve, until both stand at the same level

@@ -1,9 +1,11 @@
 package io.hookdev.setpoint.client;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import io.hookdev.setpoint.Setpoint;
 import io.hookdev.setpoint.SetpointContent;
+import io.hookdev.setpoint.block.entity.PalletBlockEntity;
 import io.hookdev.setpoint.block.entity.PortableTankBlockEntity;
 import io.hookdev.setpoint.block.entity.ShowsFluid;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
@@ -147,6 +149,23 @@ public class SetpointClient {
             }
         };
         event.register(List.of(body), SetpointContent.DRUM.get());
+        // the drums on a pallet: each one in its own colour (tint 0 to 3 is drum 1 to 4)
+        List<BlockTintSource> drums = new ArrayList<>();
+        for (int i = 0; i < PalletBlockEntity.MAX_DRUMS; i++) {
+            int index = i;
+            drums.add(new BlockTintSource() {
+                @Override
+                public int color(BlockState state) {
+                    return PortableTankBlockEntity.DRUM_BLUE;
+                }
+
+                @Override
+                public int colorInWorld(BlockState state, BlockAndTintGetter level, BlockPos pos) {
+                    return level.getBlockEntity(pos) instanceof PalletBlockEntity pallet ? pallet.colour(index) : PortableTankBlockEntity.DRUM_BLUE;
+                }
+            });
+        }
+        event.register(drums, SetpointContent.PALLET.get());
         event.register(List.of(liquid, body), SetpointContent.IBC.get());
     }
 

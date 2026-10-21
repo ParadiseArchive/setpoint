@@ -14,6 +14,7 @@ import io.hookdev.setpoint.block.ConsoleBlock;
 import io.hookdev.setpoint.block.CheckValveBlock;
 import io.hookdev.setpoint.block.DrainValveBlock;
 import io.hookdev.setpoint.block.IbcBlock;
+import io.hookdev.setpoint.block.PalletBlock;
 import io.hookdev.setpoint.block.PidBoardBlock;
 import io.hookdev.setpoint.block.PortableTankBlock;
 import io.hookdev.setpoint.block.SafetyValveBlock;
@@ -118,6 +119,7 @@ public final class SetpointGameTests {
         test("a_broken_drum_keeps_its_liquid", SetpointGameTests::aBrokenDrumKeepsItsLiquid, 40);
         test("an_ibc_takes_eight_blocks_and_breaks_whole", SetpointGameTests::anIbcTakesEightBlocksAndBreaksWhole, 40);
         test("dye_paints_drums_and_ibcs", SetpointGameTests::dyePaintsDrumsAndIbcs, 20);
+        test("a_pallet_takes_up_to_four_drums", SetpointGameTests::aPalletTakesUpToFourDrums, 20);
         test("high_pressure_trips_the_burner", SetpointGameTests::highPressureTripsTheBurner, 400);
         test("safety_valve_saves_the_boiler", SetpointGameTests::safetyValveSavesTheBoiler, 300);
         test("overpressure_bursts_an_unprotected_boiler", SetpointGameTests::overpressureBurstsAnUnprotectedBoiler, 100);
@@ -751,7 +753,7 @@ public final class SetpointGameTests {
         BlockPos pos = helper.absolutePos(new BlockPos(1, 1, 1));
         for (var block : SetpointContent.BLOCKS.getEntries()) {
             if (block.get() == SetpointContent.HOOKONIUM_ORE.get() || block.get() == SetpointContent.DEEPSLATE_HOOKONIUM_ORE.get()) continue;
-            if (block.get() == SetpointContent.TANK_PART.get()) continue; // the rest of a drum or IBC: its base drops
+            if (block.get() == SetpointContent.TANK_PART.get() || block.get() == SetpointContent.PALLET_PART.get()) continue; // parts: their base drops
             var drops = Block.getDrops(block.get().defaultBlockState(), helper.getLevel(), pos, null, null, new ItemStack(Items.DIAMOND_PICKAXE));
             helper.assertTrue(drops.size() == 1 && drops.get(0).is(block.get().asItem()), block.getId() + " should drop itself, got " + drops);
         }
@@ -1094,6 +1096,45 @@ public final class SetpointGameTests {
         BlockPos part = ibcAbs.east().above();
         ItemStack picked = helper.getLevel().getBlockState(part).getCloneItemStack(helper.getLevel(), part, false);
         helper.assertTrue(picked.is(SetpointContent.IBC_ITEM.get()), "a part of an IBC should show as an IBC, got " + picked);
+        helper.succeed();
+    }
+
+    /**
+     * Drums go on a pallet one by one, up to four, keeping their liquid; the pallet reaches up over them, and its
+     * parts tell players which pallet they belong to (so Jade names it). Taking all drums off lowers it again;
+     * breaking it drops the pallet and the drums.
+     */
+    private static void aPalletTakesUpToFourDrums(GameTestHelper helper) {
+        BlockPos base = new BlockPos(2, 1, 1);
+        BlockState state = SetpointContent.PALLET.get().defaultBlockState().setValue(PalletBlock.FACING, Direction.NORTH);
+        helper.setBlock(base, state);
+        BlockPos abs = helper.absolutePos(base);
+        state.getBlock().setPlacedBy(helper.getLevel(), abs, helper.getLevel().getBlockState(abs), null, new ItemStack(SetpointContent.PALLET_ITEM.get()));
+        var player = helper.makeMockPlayer(GameType.SURVIVAL);
+        ItemStack lava = new ItemStack(SetpointContent.DRUM_ITEM.get());
+        lava.set(SetpointContent.FLUID_CONTENTS.get(), net.neoforged.neoforge.fluids.SimpleFluidContent.copyOf(new net.neoforged.neoforge.fluids.FluidStack(Fluids.LAVA, 3_000)));
+        ItemStack empties = new ItemStack(SetpointContent.DRUM_ITEM.get(), 5);
+        BlockHitResult hit = new BlockHitResult(Vec3.atCenterOf(abs), Direction.UP, abs, false);
+        helper.getLevel().getBlockState(abs).useItemOn(lava, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+        for (int i = 0; i < 4; i++) helper.getLevel().getBlockState(abs).useItemOn(empties, helper.getLevel(), player, InteractionHand.MAIN_HAND, hit);
+        helper.assertBlockProperty(base, PalletBlock.DRUMS, 4);
+        helper.assertTrue(empties.getCount() == 2, "only three of the empty drums should fit next to the lava drum, " + empties.getCount() + " left");
+        BlockPos top = abs.above().east().south();
+        helper.assertTrue(helper.getLevel().getBlockState(top).is(SetpointContent.PALLET_PART.get()), "the pallet should reach up over its drums");
+        var part = (io.hookdev.setpoint.block.entity.MultiblockPartBlockEntity) helper.getLevel().getBlockEntity(top);
+        helper.assertTrue(part.getUpdateTag(helper.getLevel().registryAccess()).getLong("base").orElse(0L) == abs.asLong(), "players should learn which pallet a part belongs to");
+        helper.assertTrue(helper.getLevel().getBlockState(top).getCloneItemStack(helper.getLevel(), top, false).is(SetpointContent.PALLET_ITEM.get()), "a part should show as the pallet");
+        player.setShiftKeyDown(true);
+        for (int i = 0; i < 4; i++) helper.getLevel().getBlockState(abs).useWithoutItem(helper.getLevel(), player, hit);
+        helper.assertBlockProperty(base, PalletBlock.DRUMS, 0);
+        helper.assertTrue(helper.getLevel().getBlockState(top).isAir(), "an empty pallet should be low again");
+        helper.assertBlockPresent(SetpointContent.PALLET.get(), base);
+        boolean gotLava = false;
+        for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
+            var contents = player.getInventory().getItem(slot).get(SetpointContent.FLUID_CONTENTS.get());
+            if (contents != null && contents.copy().getAmount() == 3_000) gotLava = true;
+        }
+        helper.assertTrue(gotLava, "the lava drum should come off with its lava");
         helper.succeed();
     }
 
