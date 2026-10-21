@@ -85,7 +85,8 @@ Early Stirling engine / biogas, mid steam, late diesel from your own distillatio
 - Endgame · Hookonium machines: the floating roof tank is the first (22 Oct 2026). Ideas still open: a stronger pump, a wireless transmitter or controller, a reactor with its own control loop. A floating roof tank could later draw big on a P&ID (now one symbol at its base).
 - WTHIT support once WTHIT has a build for 26.3.
 - GitHub repo https://github.com/ParadiseArchive/setpoint (public) is live; Actions builds and runs all tests on every push.
-- Modrinth organisation + CurseForge account named "Hook Development": the owner creates them before the first release.
+- Modrinth organisation + CurseForge account named "Hook Development": the owner creates them before the first release. The owner made a Modrinth account and project (22 Oct 2026).
+- Release (on hold, owner 22 Oct 2026): the plan was an early 0.1.0-alpha for feedback, but Modrinth's content rules (section 6, since Aug 2026) forbid public projects that are "entirely or primarily" AI output ("prompting or testing" alone does not count as human input; unlisted is allowed) and any AI-made image on the project page (icon, gallery, description: our logo and renders count). Setpoint's code, textures, logo and texts are AI-made, so it would likely be refused. Options when picked up again: ask Modrinth moderation first with an honest description (offer to draft it); raise the human share (the owner redraws textures and the icon, writes the description); Modrinth unlisted for testers; CurseForge (no general AI ban found, only a disclosure for misleading AI showcase images; read its author agreement); GitHub Releases plus a download button on hookdev.io. Always fill in AI disclosures honestly.
 - Jade/WTHIT tooltips (flow, pressure), JEI/EMI recipes, spark profiling for big pipe networks.
 
 ## Assets
