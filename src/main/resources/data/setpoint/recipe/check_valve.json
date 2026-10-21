@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "H": "minecraft:iron_trapdoor",
+    "C": "minecraft:copper_ingot",
+    "I": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    " H ",
+    "CIC"
+  ],
+  "result": {
+    "id": "setpoint:check_valve"
+  }
+}

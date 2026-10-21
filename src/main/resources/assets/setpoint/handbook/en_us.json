@@ -241,6 +241,42 @@
         },
         {
           "type": "h",
+          "text": "Liquid runs downhill"
+        },
+        {
+          "type": "p",
+          "text": "Join two tanks with a pipe and the fuller one runs into the other until both stand at the same level, without a pump. A tank only lets liquid out while the level is above the pipe, so a pipe on a **higher block** of a tall tank is its **overflow**."
+        },
+        {
+          "type": "p",
+          "text": "A water intake in a river feeds a lower tank all by itself. A control valve in a gravity line works too: a controller holds the level of the low tank."
+        },
+        {
+          "type": "h",
+          "text": "Check valve"
+        },
+        {
+          "type": "p",
+          "text": "Lets liquid through one way only: the way its arrow points. It is placed pointing the way you look. Use it to stop a tank from running back, or a line from draining back when a pump stops."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:check_valve",
+          "grid": [
+            "",
+            "minecraft:iron_trapdoor",
+            "",
+            "minecraft:copper_ingot",
+            "minecraft:iron_ingot",
+            "minecraft:copper_ingot",
+            "",
+            "",
+            ""
+          ],
+          "count": 1
+        },
+        {
+          "type": "h",
           "text": "Water intake"
         },
         {

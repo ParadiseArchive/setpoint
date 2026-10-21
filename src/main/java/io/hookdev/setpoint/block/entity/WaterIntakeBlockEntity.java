@@ -1,7 +1,10 @@
 package io.hookdev.setpoint.block.entity;
 
+import java.util.List;
+
 import io.hookdev.setpoint.SetpointContent;
 import io.hookdev.setpoint.advancement.PlantEventTrigger;
+import io.hookdev.setpoint.hydraulics.GravityFlow;
 import io.hookdev.setpoint.hydraulics.Vessel;
 
 import net.minecraft.ChatFormatting;
@@ -24,6 +27,7 @@ import net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler;
  */
 public class WaterIntakeBlockEntity extends BlockEntity implements Vessel, NamedEquipment {
     private final EquipmentName name = new EquipmentName("WI");
+    private final GravityFlow gravity = new GravityFlow();
 
     /** How much a pump can take in one tick, refilled every tick while the intake sits in water. */
     public static final int BUFFER = 4_000;
@@ -84,6 +88,7 @@ public class WaterIntakeBlockEntity extends BlockEntity implements Vessel, Named
         int before = amount();
         if (before < BUFFER) drawn += BUFFER - before;
         water.set(0, submerged() ? FluidResource.of(Fluids.WATER) : FluidResource.EMPTY, submerged() ? BUFFER : 0);
+        gravity.tick(level, this, List.of(pos)); // river water runs down a pipe to a lower tank by itself
         if (drawn >= 1_000) { // a bucket's worth pumped out of the river
             drawn = 0;
             PlantEventTrigger.near(level, pos, PlantEventTrigger.INTAKE_RUNNING);

@@ -91,8 +91,8 @@ public class PumpBlockEntity extends BlockEntity implements NamedEquipment {
         Direction out = state.getValue(PumpBlock.FACING);
         if (--rescanIn <= 0) {
             rescanIn = RESCAN_TICKS;
-            suction = PipeRun.trace(level, pos, out.getOpposite());
-            discharge = PipeRun.trace(level, pos, out);
+            suction = PipeRun.trace(level, pos, out.getOpposite(), false);
+            discharge = PipeRun.trace(level, pos, out, true);
         }
         Vessel source = vesselAt(level, suction);
         Vessel destination = vesselAt(level, discharge);

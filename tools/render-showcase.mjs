@@ -267,6 +267,15 @@ render('flow_transmitter', [{ model: 'flow_transmitter', y: 90 }], 6);
 render('pressure_transmitter', [{ model: 'pressure_transmitter', y: S }]);
 render('safety_valve', [{ model: 'safety_valve' }], 6);
 render('drain_valve', [{ model: 'drain_valve_open', y: 90 }], 6);
+render('check_valve', [{ model: 'check_valve', y: 90 }], 6);
+// gravity: a full tall tank runs into a low one through a check valve, until both stand at the same level
+render('gravity_line', [
+  { model: 'tank_8', at: [0, 0, 0] }, { model: 'tank_4', at: [0, 1, 0] },
+  ...pipe([1, 0, 0], [E, W_]),
+  { model: 'check_valve', at: [2, 0, 0], y: 90 },
+  ...pipe([3, 0, 0], [E, W_]),
+  { model: 'tank_3', at: [4, 0, 0] },
+], 3);
 // a protected boiler: turbine, boiler with a safety valve on top, pressure transmitter and its PIC
 render('pressure_plant', [
   { model: 'steam_turbine_on', at: [0, 0, 0], y: S },

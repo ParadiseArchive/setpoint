@@ -8,6 +8,7 @@ import java.util.Map;
 import io.hookdev.setpoint.block.BoilerBlock;
 import io.hookdev.setpoint.block.ConsoleBlock;
 import io.hookdev.setpoint.block.ControlValveBlock;
+import io.hookdev.setpoint.block.CheckValveBlock;
 import io.hookdev.setpoint.block.ControllerBlock;
 import io.hookdev.setpoint.block.DrainValveBlock;
 import io.hookdev.setpoint.block.CreativeGeneratorBlock;
@@ -164,6 +165,10 @@ public final class PidCapture {
         if (block instanceof HandValveBlock) {
             return new Found(HandValveBlock.isOpen(state) ? PidDrawing.HAND_VALVE : PidDrawing.HAND_VALVE_SHUT,
                     axisQuarter(state.getValue(HandValveBlock.AXIS)), "", 3);
+        }
+        if (block instanceof CheckValveBlock) {
+            Direction arrow = state.getValue(CheckValveBlock.FACING);
+            return new Found(PidDrawing.CHECK_VALVE, arrow.getAxis() == Direction.Axis.Y ? 1 : quarter(arrow), "", 3);
         }
         if (block instanceof DrainValveBlock) {
             Direction outlet = state.getValue(DrainValveBlock.FACING);

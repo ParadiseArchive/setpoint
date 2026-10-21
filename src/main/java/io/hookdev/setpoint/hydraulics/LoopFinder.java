@@ -56,6 +56,14 @@ public final class LoopFinder {
                     if (valve != null) return new ValveLink(valve, feeds);
                     continue;
                 }
+                if (!atTank && !vessel.contains(next) && (state.getBlock() instanceof VesselBlock || ForeignVessel.isStorage(level, next, direction.getOpposite()))) {
+                    // no pump: a gravity line to another vessel. It feeds us when that one stands higher.
+                    Vessel own = ForeignVessel.at(level, vessel.iterator().next(), null);
+                    Vessel other = ForeignVessel.at(level, next, direction.getOpposite());
+                    BlockPos valve = valveOnPath(level, current, parent);
+                    if (valve != null && own != null && other != null) return new ValveLink(valve, other.surfaceY() > own.surfaceY());
+                    continue;
+                }
                 if (Piping.enters(state, direction)) {
                     parent.put(next, current);
                     queue.add(next);

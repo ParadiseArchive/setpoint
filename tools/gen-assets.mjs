@@ -895,6 +895,36 @@ BS('flow_transmitter', { variants: { 'axis=z': { model: 'setpoint:block/flow_tra
 item('flow_transmitter', 'setpoint:block/flow_transmitter');
 recipe('flow_transmitter', [' G ', 'PCP'], { G: 'minecraft:glass_pane', P: 'setpoint:pipe', C: 'minecraft:comparator' }, 'setpoint:flow_transmitter');
 
+// check valve: a swing-check body on the pipe with an arrow cast on top, pointing the way the liquid may go
+texture('check_valve_body', (p) => {
+  plate(p, C.steel2);
+  p.rect(3, 7, 7, 2, C.cyan);                                   // arrow shaft
+  p.rect(10, 5, 1, 6, C.cyan); p.rect(11, 6, 1, 4, C.cyan); p.rect(12, 7, 1, 2, C.cyan); // arrow head
+  p.rect(3, 7, 1, 2, C.cyanDark);
+  rivets(p, [[1, 1], [13, 1], [1, 13], [13, 13]]);
+});
+M('check_valve', { // arrow points north (flow along -Z)
+  parent: 'minecraft:block/block',
+  textures: { pipe: tex('pipe'), body: tex('check_valve_body'), particle: tex('check_valve_body') },
+  elements: [
+    box([5, 5, 0], [11, 11, 16], {
+      north: { uv: [5, 5, 11, 11], texture: '#pipe', cullface: 'north' }, south: { uv: [5, 5, 11, 11], texture: '#pipe', cullface: 'south' },
+      east: face([0, 5, 16, 11]), west: face([0, 5, 16, 11]), down: face([5, 0, 11, 16]),
+    }),
+    box([4, 4, 4], [12, 12, 12], {
+      up: { uv: [2, 2, 14, 14], texture: '#body', rotation: 270 }, down: { uv: [2, 2, 14, 14], texture: '#body', rotation: 270 },
+      east: { uv: [2, 4, 14, 12], texture: '#body' }, west: { uv: [2, 4, 14, 12], texture: '#body' },
+      north: { uv: [4, 4, 12, 12], texture: '#pipe' }, south: { uv: [4, 4, 12, 12], texture: '#pipe' },
+    }),
+  ],
+});
+{
+  const turn = { north: {}, east: { y: 90 }, south: { y: 180 }, west: { y: 270 }, up: { x: 270 }, down: { x: 90 } };
+  BS('check_valve', { variants: Object.fromEntries(Object.entries(turn).map(([f, rot]) => [`facing=${f}`, { model: 'setpoint:block/check_valve', ...rot }])) });
+  item('check_valve', 'setpoint:block/check_valve');
+}
+recipe('check_valve', [' H ', 'CIC'], { H: 'minecraft:iron_trapdoor', C: 'minecraft:copper_ingot', I: 'minecraft:iron_ingot' }, 'setpoint:check_valve');
+
 // drain valve: a small hand valve with an open spout, on the side of a tank; the wheel turns up when it is open
 for (const open of [false, true]) {
   M('drain_valve' + (open ? '_open' : ''), { // outlet points north: the tank is to the south
@@ -1037,7 +1067,7 @@ const lootOre = (name, drop) => json(join(DATA, 'loot_table/blocks', name + '.js
 });
 const MACHINES = ['pipe', 'tank', 'centrifugal_pump', 'creative_generator', 'level_transmitter', 'control_valve', 'controller',
   'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine', 'dcs_console', 'hand_valve', 'water_intake', 'flow_transmitter',
-  'pressure_transmitter', 'safety_valve', 'drain_valve'];
+  'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve'];
 for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) lootSelf(name);
 lootOre('hookonium_ore', 'setpoint:raw_hookonium');
 lootOre('deepslate_hookonium_ore', 'setpoint:raw_hookonium');

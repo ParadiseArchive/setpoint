@@ -44,13 +44,21 @@ public final class PipeRun {
 
     /** Nearest vessel (ours or another mod's tank) reached from {@code pumpPos} going out through {@code side}, or null if there is none. */
     public static @Nullable End trace(Level level, BlockPos pumpPos, Direction side) {
+        return trace(level, pumpPos, side, null);
+    }
+
+    /**
+     * Same, knowing which way the liquid goes, so check valves count: {@code downstream} is true when the liquid flows
+     * from {@code pumpPos} out along the run (a discharge, a tank draining), false when it flows towards it (a suction).
+     */
+    public static @Nullable End trace(Level level, BlockPos pumpPos, Direction side, @Nullable Boolean downstream) {
         BlockPos first = pumpPos.relative(side);
         if (!level.isLoaded(first)) return null;
         BlockState firstState = level.getBlockState(first);
         if (firstState.getBlock() instanceof VesselBlock || ForeignVessel.isStorage(level, first, side.getOpposite())) {
             return new End(first, 0, List.of(), List.of(), side.getOpposite());
         }
-        if (!Piping.enters(firstState, side)) return null;
+        if (!Piping.enters(firstState, side, downstream)) return null;
 
         // Breadth first, so the first tank found is the closest one. Parents rebuild the path for the valves.
         Map<BlockPos, BlockPos> parent = new HashMap<>();
@@ -62,14 +70,14 @@ public final class PipeRun {
             BlockPos current = queue.poll();
             BlockState currentState = level.getBlockState(current);
             for (Direction direction : Direction.values()) {
-                if (!Piping.leaves(currentState, direction)) continue;
+                if (!Piping.leaves(currentState, direction, downstream)) continue;
                 BlockPos next = current.relative(direction);
                 if (parent.containsKey(next) || !level.isLoaded(next)) continue;
                 BlockState state = level.getBlockState(next);
                 if (state.getBlock() instanceof VesselBlock || ForeignVessel.isStorage(level, next, direction.getOpposite())) {
                     return finish(level, next, current, parent, direction.getOpposite());
                 }
-                if (Piping.enters(state, direction)) {
+                if (Piping.enters(state, direction, downstream)) {
                     parent.put(next, current);
                     queue.add(next);
                 }

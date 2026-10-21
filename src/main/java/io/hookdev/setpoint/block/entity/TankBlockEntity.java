@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import io.hookdev.setpoint.SetpointContent;
+import io.hookdev.setpoint.hydraulics.GravityFlow;
 import io.hookdev.setpoint.hydraulics.Vessel;
 import io.hookdev.setpoint.block.TankBlock;
 import io.hookdev.setpoint.menu.TankMenu;
@@ -60,6 +61,7 @@ import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
  */
 public class TankBlockEntity extends BlockEntity implements MenuProvider, Vessel, NamedEquipment {
     private final EquipmentName name = new EquipmentName("T");
+    private final GravityFlow gravity = new GravityFlow();
 
     public static final int CAPACITY = 16_000;
     public static final int BUCKET = 1_000;
@@ -242,6 +244,8 @@ public class TankBlockEntity extends BlockEntity implements MenuProvider, Vessel
             io.hookdev.setpoint.advancement.PlantEventTrigger.near(server, pos, io.hookdev.setpoint.advancement.PlantEventTrigger.TALL_TANK);
         }
         tank.processBuckets();
+        // the bottom block lets the whole column run downhill through its pipes
+        if (level instanceof net.minecraft.server.level.ServerLevel server && tank.bottom() == tank) tank.gravity.tick(server, tank, tank.positions());
     }
 
     /** Liquid runs down into the tank below until that one is full. */

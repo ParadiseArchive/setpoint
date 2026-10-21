@@ -1,0 +1,27 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "setpoint:block/check_valve"
+    },
+    "facing=east": {
+      "model": "setpoint:block/check_valve",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "setpoint:block/check_valve",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "setpoint:block/check_valve",
+      "y": 270
+    },
+    "facing=up": {
+      "model": "setpoint:block/check_valve",
+      "x": 270
+    },
+    "facing=down": {
+      "model": "setpoint:block/check_valve",
+      "x": 90
+    }
+  }
+}

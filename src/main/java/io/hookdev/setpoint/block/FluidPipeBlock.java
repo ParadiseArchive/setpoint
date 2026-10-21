@@ -92,6 +92,9 @@ public class FluidPipeBlock extends Block {
         if (neighbour.getBlock() instanceof HandValveBlock) {
             return neighbour.getValue(HandValveBlock.AXIS) == direction.getAxis();
         }
+        if (neighbour.getBlock() instanceof CheckValveBlock) {
+            return neighbour.getValue(CheckValveBlock.FACING).getAxis() == direction.getAxis();
+        }
         return false;
     }
 

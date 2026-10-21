@@ -11,6 +11,7 @@ import io.hookdev.setpoint.block.PumpBlock;
 import io.hookdev.setpoint.block.PumpStatus;
 import io.hookdev.setpoint.block.entity.BiogasGeneratorBlockEntity;
 import io.hookdev.setpoint.block.ConsoleBlock;
+import io.hookdev.setpoint.block.CheckValveBlock;
 import io.hookdev.setpoint.block.DrainValveBlock;
 import io.hookdev.setpoint.block.SafetyValveBlock;
 import io.hookdev.setpoint.block.entity.DrainValveBlockEntity;
@@ -115,6 +116,10 @@ public final class SetpointGameTests {
         test("pump_can_run_on_a_signal", SetpointGameTests::pumpCanRunOnASignal, 100);
         test("drain_valve_empties_a_tank", SetpointGameTests::drainValveEmptiesATank, 100);
         test("pump_moves_lava_slower_and_harder", SetpointGameTests::pumpMovesLavaSlowerAndHarder, 200);
+        test("connected_tanks_find_one_level", SetpointGameTests::connectedTanksFindOneLevel, 400);
+        test("a_high_pipe_is_an_overflow", SetpointGameTests::aHighPipeIsAnOverflow, 600);
+        test("check_valve_lets_one_way_through", SetpointGameTests::checkValveLetsOneWayThrough, 200);
+        test("controller_holds_a_gravity_fed_tank", SetpointGameTests::controllerHoldsAGravityFedTank, 1600);
     }
 
     private static void test(String name, Consumer<GameTestHelper> function, int maxTicks) {
@@ -550,6 +555,83 @@ public final class SetpointGameTests {
             var water = io.hookdev.setpoint.physics.PumpModel.solve(new io.hookdev.setpoint.physics.PumpModel.Inputs(0, 0, 1, 1, true, true, 0));
             helper.assertTrue(lava != null && lava.flow() < water.flow(), "lava should flow slower than water");
             helper.assertTrue(lava.power() / lava.flow() > water.power() / water.flow(), "lava should take more power per mB");
+            helper.succeed();
+        });
+    }
+
+    // ---------- gravity ----------
+
+    /** Two tanks joined by a pipe at the bottom: the full one runs into the empty one until both stand at the same level. */
+    private static void connectedTanksFindOneLevel(GameTestHelper helper) {
+        helper.setBlock(SOURCE, SetpointContent.TANK.get());
+        helper.setBlock(2, 1, 1, SetpointContent.PIPE.get());
+        helper.setBlock(3, 1, 1, SetpointContent.PIPE.get());
+        helper.setBlock(4, 1, 1, SetpointContent.PIPE.get());
+        helper.setBlock(DESTINATION, SetpointContent.TANK.get());
+        fill(helper, SOURCE, 12_000);
+        helper.runAfterDelay(300, () -> {
+            int a = helper.getBlockEntity(SOURCE, TankBlockEntity.class).amount(), b = helper.getBlockEntity(DESTINATION, TankBlockEntity.class).amount();
+            helper.assertTrue(a + b == 12_000, "no liquid should get lost, have " + (a + b));
+            helper.assertTrue(Math.abs(a - b) <= 400, "both tanks should stand at about the same level: " + a + " and " + b);
+            helper.succeed();
+        });
+    }
+
+    /** A tank two blocks high with a pipe from its top block to a low tank: everything above that nozzle runs off. */
+    private static void aHighPipeIsAnOverflow(GameTestHelper helper) {
+        helper.setBlock(1, 1, 1, SetpointContent.TANK.get());
+        helper.setBlock(1, 2, 1, SetpointContent.TANK.get());
+        helper.setBlock(2, 2, 1, SetpointContent.PIPE.get());
+        helper.setBlock(3, 2, 1, SetpointContent.PIPE.get());
+        helper.setBlock(3, 1, 1, SetpointContent.PIPE.get());
+        helper.setBlock(4, 1, 1, SetpointContent.PIPE.get());
+        helper.setBlock(5, 1, 1, SetpointContent.TANK.get());
+        helper.setBlock(5, 2, 1, SetpointContent.TANK.get());
+        fill(helper, new BlockPos(1, 1, 1), 16_000);
+        fill(helper, new BlockPos(1, 2, 1), 14_000);
+        helper.runAfterDelay(500, () -> {
+            int left = helper.getBlockEntity(new BlockPos(1, 1, 1), TankBlockEntity.class).amount();
+            int over = helper.getBlockEntity(new BlockPos(5, 1, 1), TankBlockEntity.class).amount();
+            helper.assertTrue(left + over == 30_000, "no liquid should get lost");
+            helper.assertTrue(Math.abs(left - 17_600) <= 600, "the tank should drain down to its overflow nozzle (17.6 B), has " + left);
+            helper.succeed();
+        });
+    }
+
+    /** A high tank feeds a low one through a control valve, no pump: the controller finds the valve and holds the level. */
+    private static void controllerHoldsAGravityFedTank(GameTestHelper helper) {
+        helper.setBlock(1, 1, 1, Blocks.STONE);
+        helper.setBlock(1, 2, 1, SetpointContent.TANK.get());
+        helper.setBlock(2, 2, 1, SetpointContent.PIPE.get());
+        helper.setBlock(3, 2, 1, SetpointContent.PIPE.get());
+        helper.setBlock(3, 1, 1, SetpointContent.CONTROL_VALVE.get().defaultBlockState().setValue(ControlValveBlock.AXIS, Direction.Axis.Y));
+        helper.setBlock(4, 0, 1, SetpointContent.PIPE.get());
+        helper.setBlock(3, 0, 1, SetpointContent.PIPE.get());
+        helper.setBlock(5, 0, 1, SetpointContent.TANK.get());
+        helper.setBlock(5, 0, 2, SetpointContent.CONTROLLER.get());
+        helper.setBlock(5, 1, 1, SetpointContent.DRAIN_VALVE.get().defaultBlockState().setValue(DrainValveBlock.FACING, Direction.UP).setValue(DrainValveBlock.OPEN, true));
+        helper.onEachTick(() -> fill(helper, new BlockPos(1, 2, 1), 16_000)); // an endless high tank
+        ControllerBlockEntity lic = helper.getBlockEntity(new BlockPos(5, 0, 2), ControllerBlockEntity.class);
+        ControlValveBlockEntity lv = helper.getBlockEntity(new BlockPos(3, 1, 1), ControlValveBlockEntity.class);
+        helper.runAfterDelay(1_400, () -> {
+            helper.assertTrue(lic.mvTag().equals(lv.tag()), "the controller should find the valve in the gravity line, has '" + lic.mvTag() + "'");
+            helper.assertTrue(lic.mode() == PidController.Mode.AUTO, "the controller should be in AUTO");
+            helper.assertTrue(Math.abs(lic.pv() - 50) < 6, String.format("the level should hold at 50 %%, is %.1f %%", lic.pv()));
+            helper.succeed();
+        });
+    }
+
+    /** A check valve pointing from the empty tank to the full one: nothing runs back. Turned around, the liquid runs. */
+    private static void checkValveLetsOneWayThrough(GameTestHelper helper) {
+        BlockPos fullA = new BlockPos(1, 1, 0), emptyA = new BlockPos(3, 1, 0), fullB = new BlockPos(1, 1, 2), emptyB = new BlockPos(3, 1, 2);
+        for (BlockPos tank : new BlockPos[]{fullA, emptyA, fullB, emptyB}) helper.setBlock(tank, SetpointContent.TANK.get());
+        fill(helper, fullA, 8_000);
+        fill(helper, fullB, 8_000);
+        helper.setBlock(2, 1, 0, SetpointContent.CHECK_VALVE.get().defaultBlockState().setValue(CheckValveBlock.FACING, Direction.WEST)); // towards the full one
+        helper.setBlock(2, 1, 2, SetpointContent.CHECK_VALVE.get().defaultBlockState().setValue(CheckValveBlock.FACING, Direction.EAST)); // towards the empty one
+        helper.runAfterDelay(150, () -> {
+            helper.assertTrue(helper.getBlockEntity(emptyA, TankBlockEntity.class).amount() == 0, "the check valve should stop the flow against its arrow");
+            helper.assertTrue(helper.getBlockEntity(emptyB, TankBlockEntity.class).amount() > 2_000, "the check valve should let the flow through along its arrow");
             helper.succeed();
         });
     }

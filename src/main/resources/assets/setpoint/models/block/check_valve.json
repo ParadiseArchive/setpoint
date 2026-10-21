@@ -1,0 +1,141 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "pipe": "setpoint:block/pipe",
+    "body": "setpoint:block/check_valve_body",
+    "particle": "setpoint:block/check_valve_body"
+  },
+  "elements": [
+    {
+      "from": [
+        5,
+        5,
+        0
+      ],
+      "to": [
+        11,
+        11,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ],
+          "texture": "#pipe",
+          "cullface": "north"
+        },
+        "south": {
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ],
+          "texture": "#pipe",
+          "cullface": "south"
+        },
+        "east": {
+          "uv": [
+            0,
+            5,
+            16,
+            11
+          ],
+          "texture": "#pipe"
+        },
+        "west": {
+          "uv": [
+            0,
+            5,
+            16,
+            11
+          ],
+          "texture": "#pipe"
+        },
+        "down": {
+          "uv": [
+            5,
+            0,
+            11,
+            16
+          ],
+          "texture": "#pipe"
+        }
+      }
+    },
+    {
+      "from": [
+        4,
+        4,
+        4
+      ],
+      "to": [
+        12,
+        12,
+        12
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ],
+          "texture": "#body",
+          "rotation": 270
+        },
+        "down": {
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ],
+          "texture": "#body",
+          "rotation": 270
+        },
+        "east": {
+          "uv": [
+            2,
+            4,
+            14,
+            12
+          ],
+          "texture": "#body"
+        },
+        "west": {
+          "uv": [
+            2,
+            4,
+            14,
+            12
+          ],
+          "texture": "#body"
+        },
+        "north": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#pipe"
+        },
+        "south": {
+          "uv": [
+            4,
+            4,
+            12,
+            12
+          ],
+          "texture": "#pipe"
+        }
+      }
+    }
+  ]
+}
