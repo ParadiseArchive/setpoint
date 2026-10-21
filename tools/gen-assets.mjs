@@ -1070,10 +1070,13 @@ function strapAround(centres, y, h = 1.5, r = 7.35, t = 0.5) {
   const mx = centres.reduce((a, c) => a + c[0], 0) / centres.length, mz = centres.reduce((a, c) => a + c[1], 0) / centres.length;
   const pts = [...centres].sort((a, b) => Math.atan2(a[1] - mz, a[0] - mx) - Math.atan2(b[1] - mz, b[0] - mx));
   const out = [];
+  // each piece is laid along the axis it nearly follows and turned at most 45°, so it stays inside the model's bounds
   const piece = (px, pz, tx, tz, len) => {
-    const angle = +(Math.atan2(-tz, tx) * 180 / Math.PI).toFixed(3);
-    out.push({ from: [px - len / 2, y, pz - t / 2], to: [px + len / 2, y + h, pz + t / 2], rotation: { origin: [px, y, pz], x: 0, y: angle, z: 0 },
-      faces: allFaces([0, 0, Math.min(16, len), h], '#pallet_strap') });
+    const alongX = Math.abs(tx) >= Math.abs(tz);
+    const angle = +(alongX ? Math.atan2(-tz, tx) : Math.atan2(tx, tz)) * 180 / Math.PI;
+    const turn = ((angle + 90) % 180 + 180) % 180 - 90; // a band piece looks the same turned half round
+    const from = alongX ? [px - len / 2, y, pz - t / 2] : [px - t / 2, y, pz - len / 2], to = alongX ? [px + len / 2, y + h, pz + t / 2] : [px + t / 2, y + h, pz + len / 2];
+    out.push({ from, to, rotation: { origin: [px, y, pz], x: 0, y: +turn.toFixed(3), z: 0 }, faces: allFaces([0, 0, Math.min(16, len), h], '#pallet_strap') });
   };
   const n = pts.length, normals = [];
   for (let i = 0; i < n; i++) { // the straight runs, each on the outside of a line from drum to drum
