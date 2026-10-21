@@ -6,6 +6,7 @@ import com.mojang.logging.LogUtils;
 
 import io.hookdev.setpoint.gametest.SetpointGameTests;
 import io.hookdev.setpoint.network.ConsoleSnapshot;
+import io.hookdev.setpoint.network.PidRename;
 
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Prediction;
@@ -54,7 +55,9 @@ public class Setpoint {
 
     private static void registerPayloads(RegisterPayloadHandlersEvent event) {
         // The control room screen's live data; the client handler is registered in SetpointClient.
-        event.registrar("1").playToClient(ConsoleSnapshot.TYPE, ConsoleSnapshot.CODEC);
+        event.registrar("1")
+                .playToClient(ConsoleSnapshot.TYPE, ConsoleSnapshot.CODEC)
+                .playToServer(PidRename.TYPE, PidRename.CODEC, PidRename::handle);
     }
 
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {

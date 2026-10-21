@@ -1,0 +1,28 @@
+{
+  "parent": "setpoint:root",
+  "criteria": {
+    "pid_drawn": {
+      "trigger": "setpoint:plant_event",
+      "conditions": {
+        "event": "pid_drawn"
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "setpoint:pid"
+    },
+    "frame": "goal",
+    "title": {
+      "translate": "advancements.setpoint.draftsman.title"
+    },
+    "description": {
+      "translate": "advancements.setpoint.draftsman.description"
+    }
+  },
+  "requirements": [
+    [
+      "pid_drawn"
+    ]
+  ]
+}

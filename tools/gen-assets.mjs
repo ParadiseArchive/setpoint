@@ -878,6 +878,34 @@ item('flow_transmitter', 'setpoint:block/flow_transmitter');
 recipe('flow_transmitter', [' G ', 'PCP'], { G: 'minecraft:glass_pane', P: 'setpoint:pipe', C: 'minecraft:comparator' }, 'setpoint:flow_transmitter');
 
 // =====================================================================================
+// P&IDs: the blank sheet and the drawn sheet
+// =====================================================================================
+const BP = { e: '#0b1f3d', f: '#1d4c8f', g: '#28599f', w: '#e8f1ff', c: '#2de2e6', k: '#173a6e' };
+function blueprintSheet(p) {
+  p.rect(2, 1, 12, 14, BP.e);
+  p.rect(3, 2, 10, 12, BP.f);
+  for (let x = 5; x < 13; x += 3) p.rect(x, 2, 1, 12, BP.g);
+  for (let y = 4; y < 14; y += 3) p.rect(3, y, 10, 1, BP.g);
+  p.rect(11, 1, 3, 3, null); p.set(11, 1, BP.e); p.rect(12, 2, 2, 2, null); // folded corner
+  p.rect(11, 2, 1, 2, BP.k); p.rect(12, 3, 1, 1, BP.k); p.set(13, 4, BP.e); p.set(12, 4, BP.e); p.set(11, 4, BP.e);
+}
+texture('blank_pid', blueprintSheet, 'item');
+texture('pid', (p) => {
+  blueprintSheet(p);
+  // a tank, a pipe, a pump and a valve, drawn in white
+  p.rect(4, 4, 3, 5, BP.w); p.rect(5, 6, 1, 2, BP.c);                  // tank with liquid
+  p.rect(7, 8, 3, 1, BP.w);                                            // pipe
+  p.rect(10, 7, 2, 3, BP.w); p.set(10, 7, BP.f);                       // pump
+  p.rect(9, 11, 3, 1, BP.w); p.set(10, 10, BP.w);                      // valve stem and body
+  p.set(8, 12, BP.c); p.set(6, 12, BP.c);                              // dashed signal line
+}, 'item');
+for (const name of ['blank_pid', 'pid']) {
+  json(join(ASSETS, 'models/item', name + '.json'), { parent: 'minecraft:item/generated', textures: { layer0: 'setpoint:item/' + name } });
+  item(name, 'setpoint:item/' + name);
+}
+shapeless('blank_pid', ['minecraft:paper', 'minecraft:blue_dye'], 'setpoint:blank_pid', 1);
+
+// =====================================================================================
 // Loot tables and tool tags for every block
 // =====================================================================================
 const lootSelf = (name) => json(join(DATA, 'loot_table/blocks', name + '.json'), {
@@ -1024,6 +1052,7 @@ shapeless('handbook', ['minecraft:book', 'minecraft:copper_ingot'], 'setpoint:ha
     ['bottomless', 'moving_water', 'setpoint:water_intake', 'task', happened('intake_running')],
     ['lockout', 'moving_water', 'setpoint:hand_valve', 'task', happened('valve_shut')],
     ['righty_tighty', 'root', 'setpoint:pipe_wrench', 'task', has('setpoint:pipe_wrench')],
+    ['draftsman', 'root', 'setpoint:pid', 'goal', happened('pid_drawn')],
     ['skyscraper', 'moving_water', 'setpoint:tank', 'goal', happened('tall_tank')],
     ['steady_flow', 'hands_off', 'setpoint:flow_transmitter', 'goal', happened('flow_holding')],
     ['good_neighbours', 'moving_water', 'setpoint:centrifugal_pump', 'task', happened('foreign_tank')],

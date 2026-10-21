@@ -17,6 +17,12 @@ import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.neoforged.neoforge.client.network.event.RegisterClientPayloadHandlersEvent;
 
 /** Client-only setup. Never loaded on a dedicated server. */
@@ -26,6 +32,31 @@ public class SetpointClient {
         modEventBus.addListener(SetpointClient::registerScreens);
         modEventBus.addListener(SetpointClient::registerPayloadHandlers);
         NeoForge.EVENT_BUS.addListener(SetpointClient::tooltip);
+        NeoForge.EVENT_BUS.addListener(SetpointClient::showPidSelection);
+    }
+
+    /** While a blank P&ID has its first corner, outline the box from that corner to the block you look at. */
+    private static void showPidSelection(ClientTickEvent.Post event) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.player == null || mc.level == null || mc.level.getGameTime() % 4 != 0) return;
+        ItemStack held = mc.player.getMainHandItem().is(SetpointContent.BLANK_PID.get()) ? mc.player.getMainHandItem() : mc.player.getOffhandItem();
+        BlockPos corner = held.is(SetpointContent.BLANK_PID.get()) ? held.get(SetpointContent.PID_CORNER.get()) : null;
+        if (corner == null) return;
+        BlockPos target = mc.hitResult instanceof BlockHitResult hit && hit.getType() == HitResult.Type.BLOCK ? hit.getBlockPos() : corner;
+        double x0 = Math.min(corner.getX(), target.getX()), y0 = Math.min(corner.getY(), target.getY()), z0 = Math.min(corner.getZ(), target.getZ());
+        double x1 = Math.max(corner.getX(), target.getX()) + 1, y1 = Math.max(corner.getY(), target.getY()) + 1, z1 = Math.max(corner.getZ(), target.getZ()) + 1;
+        DustParticleOptions dust = new DustParticleOptions(0x2DE2E6, 0.7f);
+        double[][] ends = {{x0, y0, z0, x1, y0, z0}, {x0, y1, z0, x1, y1, z0}, {x0, y0, z1, x1, y0, z1}, {x0, y1, z1, x1, y1, z1},
+                {x0, y0, z0, x0, y1, z0}, {x1, y0, z0, x1, y1, z0}, {x0, y0, z1, x0, y1, z1}, {x1, y0, z1, x1, y1, z1},
+                {x0, y0, z0, x0, y0, z1}, {x1, y0, z0, x1, y0, z1}, {x0, y1, z0, x0, y1, z1}, {x1, y1, z0, x1, y1, z1}};
+        for (double[] e : ends) {
+            double length = Math.abs(e[3] - e[0]) + Math.abs(e[4] - e[1]) + Math.abs(e[5] - e[2]);
+            int steps = (int) Math.min(64, Math.max(1, length * 2));
+            for (int i = 0; i <= steps; i++) {
+                double t = i / (double) steps;
+                mc.level.addParticle(dust, e[0] + (e[3] - e[0]) * t, e[1] + (e[4] - e[1]) * t, e[2] + (e[5] - e[2]) * t, 0, 0, 0);
+            }
+        }
     }
 
     /** Every Setpoint item explains itself in plain words; Shift shows the details. */

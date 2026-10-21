@@ -29,7 +29,10 @@ import io.hookdev.setpoint.block.entity.StirlingEngineBlockEntity;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
 import io.hookdev.setpoint.block.entity.WaterIntakeBlockEntity;
 import io.hookdev.setpoint.item.FieldCommunicatorItem;
+import io.hookdev.setpoint.item.BlankPidItem;
 import io.hookdev.setpoint.item.HandbookItem;
+import io.hookdev.setpoint.item.PidItem;
+import io.hookdev.setpoint.pid.PidDrawing;
 import io.hookdev.setpoint.item.PipeWrenchItem;
 import io.hookdev.setpoint.menu.BoilerMenu;
 import io.hookdev.setpoint.menu.ConsoleMenu;
@@ -39,6 +42,8 @@ import io.hookdev.setpoint.menu.TankMenu;
 
 import com.mojang.serialization.Codec;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvent;
@@ -73,6 +78,13 @@ public final class SetpointContent {
     public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(Registries.SOUND_EVENT, Setpoint.MODID);
     public static final DeferredRegister<net.minecraft.advancements.triggers.CriterionTrigger<?>> TRIGGERS = DeferredRegister.create(Registries.TRIGGER_TYPE, Setpoint.MODID);
     public static final DeferredHolder<net.minecraft.advancements.triggers.CriterionTrigger<?>, PlantEventTrigger> PLANT_EVENT = TRIGGERS.register("plant_event", PlantEventTrigger::new);
+    public static final DeferredRegister<DataComponentType<?>> COMPONENTS = DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, Setpoint.MODID);
+    /** The drawing on a P&ID. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<PidDrawing>> PID_DRAWING = COMPONENTS.register("pid_drawing",
+            () -> DataComponentType.<PidDrawing>builder().persistent(PidDrawing.CODEC).networkSynchronized(PidDrawing.STREAM_CODEC).build());
+    /** The first corner picked with a blank P&ID. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<BlockPos>> PID_CORNER = COMPONENTS.register("pid_corner",
+            () -> DataComponentType.<BlockPos>builder().persistent(BlockPos.CODEC).networkSynchronized(BlockPos.STREAM_CODEC).build());
     public static final DeferredRegister<AttachmentType<?>> ATTACHMENTS = DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, Setpoint.MODID);
 
     /** Whether a player already got their handbook (kept through death). */
@@ -161,6 +173,8 @@ public final class SetpointContent {
     public static final DeferredItem<BlockItem> RAW_HOOKONIUM_BLOCK_ITEM = ITEMS.registerSimpleBlockItem(RAW_HOOKONIUM_BLOCK);
     public static final DeferredItem<Item> RAW_HOOKONIUM = ITEMS.registerSimpleItem("raw_hookonium");
     public static final DeferredItem<Item> HOOKONIUM_INGOT = ITEMS.registerSimpleItem("hookonium_ingot", p -> p.rarity(Rarity.RARE));
+    public static final DeferredItem<BlankPidItem> BLANK_PID = ITEMS.registerItem("blank_pid", BlankPidItem::new);
+    public static final DeferredItem<PidItem> PID = ITEMS.registerItem("pid", PidItem::new, p -> p.stacksTo(1));
     public static final DeferredItem<HandbookItem> HANDBOOK = ITEMS.registerItem("handbook", HandbookItem::new, p -> p.stacksTo(1));
     public static final DeferredItem<FieldCommunicatorItem> FIELD_COMMUNICATOR = ITEMS.registerItem("field_communicator", FieldCommunicatorItem::new,
             p -> p.stacksTo(1));
@@ -211,6 +225,7 @@ public final class SetpointContent {
             .icon(() -> PUMP_ITEM.get().getDefaultInstance())
             .displayItems((parameters, output) -> {
                 output.accept(HANDBOOK.get());
+                output.accept(BLANK_PID.get());
                 output.accept(PIPE_WRENCH.get());
                 output.accept(PIPE_ITEM.get());
                 output.accept(HAND_VALVE_ITEM.get());
@@ -247,6 +262,7 @@ public final class SetpointContent {
         SOUNDS.register(modEventBus);
         MENUS.register(modEventBus);
         ATTACHMENTS.register(modEventBus);
+        COMPONENTS.register(modEventBus);
         TRIGGERS.register(modEventBus);
     }
 }

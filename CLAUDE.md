@@ -8,6 +8,9 @@ Process engineering mod for Minecraft by Hook Development. Showcased on https://
 - **Privacy:** this repository is public. Never add the owner's name or personal details anywhere (code, docs, metadata, Modrinth/CurseForge pages, commit messages). The author is "Hook Development".
 - Ideas go in the backlog below instead of being built all at once.
 
+## Core concept (owner, 21 Oct 2026): P&IDs
+Building a plant and drawing it as a P&ID is the heart of Setpoint. A blank P&ID picks two corners (the box shows in the world with dust particles); pid/PidCapture turns the box into a plan view (one symbol per column, priority: process equipment > controllers/power/console > valves > instruments > pipe; ties: the top block), turned a quarter if deeper than wide (max 32 x 24 x 16), plus dashed signal links from controllers to their valve and measurement. The drawing lives on the P&ID item as the data component setpoint:pid_drawing; PidScreen draws it on blueprint paper with the 8x8 masks in client/PidSymbols (the site's docs use the same masks). Renaming goes to the server with the PidRename payload. Next (owner's plan): give P&IDs a job in the game; ideas still open.
+
 ## Design principle (owner feedback after the M2 playtest)
 Easy by default, depth for those who want it. A normal Minecraft player must be able to use every machine without knowing process engineering: things link and configure themselves, sensible defaults, plain-language messages. The realistic layer (tuning, MAN/CAS, fail actions, NPSH numbers, field communicator) stays, but is optional.
 - Pumps run by themselves; a redstone signal stops them.
@@ -60,6 +63,7 @@ Early Stirling engine / biogas, mid steam, late diesel from your own distillatio
 - Handbook: when a block, item or recipe changes, update tools/handbook-content.mjs too (recipes fill in by themselves), then run gen-assets.
 
 ## Backlog
+- P&IDs in the game (owner's plan, not designed yet): for example the console showing a P&ID with live values, building or checking a plant from a P&ID, or handing out P&IDs as quests.
 - Endgame · Hookonium machines: parked by the owner on 21 Oct 2026 until the foundations are done. Ideas so far: a stronger pump, a wireless transmitter or controller, a reactor with its own control loop, a multiblock mega tank.
 - WTHIT support once WTHIT has a build for 26.3.
 - GitHub repo https://github.com/ParadiseArchive/setpoint (public) is live; Actions builds and runs all tests on every push.

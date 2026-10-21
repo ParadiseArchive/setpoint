@@ -23,6 +23,10 @@
           "text": "**Depth if you want it.** Underneath runs real physics: pump curves, cavitation and PID control. Ignore it, or dive in."
         },
         {
+          "type": "p",
+          "text": "**At the heart of it: P&IDs.** Build a plant, then draw it as a real P&ID with a blank P&ID sheet. See the next chapter."
+        },
+        {
           "type": "tip",
           "text": "Right-click any Setpoint machine with an empty hand to read its status."
         },
@@ -53,6 +57,69 @@
             ""
           ],
           "count": 1
+        }
+      ]
+    },
+    {
+      "id": "pid",
+      "title": "P&IDs",
+      "icon": "setpoint:pid",
+      "content": [
+        {
+          "type": "h",
+          "text": "Draw your plant"
+        },
+        {
+          "type": "p",
+          "text": "A P&ID (piping and instrumentation diagram) is how real plants are drawn: every pump, tank, valve and instrument as a symbol, with the pipes between them. In Setpoint you draw one of your own plant."
+        },
+        {
+          "type": "p",
+          "text": "**1.** Take a blank P&ID and right-click a block at one corner of your plant."
+        },
+        {
+          "type": "p",
+          "text": "**2.** Look at the opposite corner: the box shows in the world. Right-click it."
+        },
+        {
+          "type": "p",
+          "text": "**3.** You get a P&ID. Right-click it to give it a name and read the drawing."
+        },
+        {
+          "type": "tip",
+          "text": "Sneak-right-click the air with the blank sheet to start over. A P&ID covers up to 32 x 24 blocks, 16 high."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:blank_pid",
+          "grid": [
+            "minecraft:paper",
+            "minecraft:blue_dye",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "count": 1
+        },
+        {
+          "type": "h",
+          "text": "Reading a P&ID"
+        },
+        {
+          "type": "p",
+          "text": "A circle with an arrow is a **pump**, pointing where it pumps. A box with liquid is a **tank**. A bow tie is a **valve**: with a dome on top for a control valve, a T for a hand valve, filled in when it is shut."
+        },
+        {
+          "type": "p",
+          "text": "Bubbles are **instruments**: L for level, F for flow. A circle in a square is a **DCS controller**; dashed amber lines are its signal wiring to its valve and transmitter."
+        },
+        {
+          "type": "p",
+          "text": "Hover any symbol on the drawing to see its tag."
         }
       ]
     },

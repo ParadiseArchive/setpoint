@@ -98,6 +98,7 @@ public final class SetpointGameTests {
         test("pump_fills_a_tall_tank", SetpointGameTests::pumpFillsATallTank, 400);
         test("flow_loop_holds_its_setpoint", SetpointGameTests::flowLoopHoldsItsSetpoint, 2400);
         test("pump_fills_a_cauldron", SetpointGameTests::pumpFillsACauldron, 300);
+        test("pid_draws_the_plant", SetpointGameTests::pidDrawsThePlant, 100);
     }
 
     private static void test(String name, Consumer<GameTestHelper> function, int maxTicks) {
@@ -646,5 +647,28 @@ public final class SetpointGameTests {
         helper.setBlock(DESTINATION, Blocks.CAULDRON);
         fill(helper, SOURCE, 8_000);
         helper.succeedWhen(() -> helper.assertBlockPresent(Blocks.WATER_CAULDRON, DESTINATION));
+    }
+
+    // ---------- P&IDs ----------
+
+    /** A small loop drawn as a P&ID: the right symbols, the pump pointing the right way, and the controller's signal lines. */
+    private static void pidDrawsThePlant(GameTestHelper helper) {
+        buildLine(helper, false);
+        helper.setBlock(4, 1, 1, SetpointContent.CONTROL_VALVE.get().defaultBlockState().setValue(ControlValveBlock.AXIS, Direction.Axis.X));
+        helper.setBlock(5, 1, 2, SetpointContent.CONTROLLER.get()); // against the destination tank
+        helper.runAfterDelay(40, () -> {
+            var result = io.hookdev.setpoint.pid.PidCapture.capture(helper.getLevel(), helper.absolutePos(new BlockPos(0, 0, 0)), helper.absolutePos(new BlockPos(6, 2, 2)));
+            var drawing = result.drawing();
+            helper.assertTrue(drawing != null, "the area should be drawable: " + result.error());
+            helper.assertTrue(drawing.width() == 7 && drawing.height() == 3, "a 7 x 3 drawing expected, got " + drawing.width() + " x " + drawing.height());
+            var symbols = drawing.cells().stream().map(io.hookdev.setpoint.pid.PidDrawing.Cell::symbol).toList();
+            helper.assertTrue(symbols.stream().filter(sym -> sym == io.hookdev.setpoint.pid.PidDrawing.TANK).count() == 2, "two tanks expected: " + symbols);
+            var pump = drawing.cells().stream().filter(c -> c.symbol() == io.hookdev.setpoint.pid.PidDrawing.PUMP).findFirst().orElse(null);
+            helper.assertTrue(pump != null && pump.rotation() == 0, "the pump should point east");
+            helper.assertTrue(symbols.contains(io.hookdev.setpoint.pid.PidDrawing.CONTROL_VALVE), "the control valve should be drawn");
+            helper.assertTrue(symbols.contains(io.hookdev.setpoint.pid.PidDrawing.CONTROLLER), "the controller should be drawn");
+            helper.assertTrue(drawing.links().size() == 2, "signal lines to the valve and the tank expected, got " + drawing.links().size());
+            helper.succeed();
+        });
     }
 }

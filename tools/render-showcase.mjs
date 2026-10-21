@@ -303,7 +303,7 @@ render('plant', [
 
 // ---------- item icons and recipes for the docs ----------
 // Items the machine screens on the docs page show (fuel, buckets). Add any new ones here.
-const SCREEN_ITEMS = ['minecraft:coal', 'minecraft:bucket', 'minecraft:water_bucket'];
+const SCREEN_ITEMS = ['minecraft:coal', 'minecraft:bucket', 'minecraft:water_bucket', 'setpoint:pid'];
 
 /** Writes items/<namespace>/<name>.png: a flat item at 16x16, a block item rendered like in the inventory. */
 function icon(id) {
