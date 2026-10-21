@@ -63,7 +63,8 @@ public class SteamTurbineBlockEntity extends BlockEntity {
         for (Direction direction : Direction.values()) {
             if (steamUsed >= wanted) break;
             if (level.getBlockEntity(pos.relative(direction)) instanceof BoilerBlockEntity boiler) {
-                steamUsed += boiler.takeSteam(wanted - steamUsed);
+                // the inlet swallows less steam at low pressure
+                steamUsed += boiler.takeSteam(Math.min(wanted - steamUsed, TurbineModel.inletFlow(boiler.pressure())));
             }
         }
         speed = TurbineModel.nextSpeed(speed, steamUsed);

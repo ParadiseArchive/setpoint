@@ -91,5 +91,20 @@
         "volume": 0.5
       }
     ]
+  },
+  "block.safety_valve.lift": {
+    "subtitle": "subtitles.setpoint.block.safety_valve.lift",
+    "sounds": [
+      {
+        "name": "minecraft:random/fizz",
+        "pitch": 0.6,
+        "volume": 0.6
+      },
+      {
+        "name": "minecraft:random/fizz",
+        "pitch": 0.5,
+        "volume": 0.6
+      }
+    ]
   }
 }

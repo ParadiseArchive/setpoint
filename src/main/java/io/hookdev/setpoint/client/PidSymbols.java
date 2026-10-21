@@ -36,6 +36,11 @@ public final class PidSymbols {
             "..####..", ".#....#.", "#......#", "#.+..+.#", "#+.++.+#", "#......#", ".#....#.", "..####.."};
     private static final String[] INTAKE = {
             "########", "#.#.#.##", "#.#.#.##", "########", "........", ".++..++.", "+..++..+", "........"};
+    // an angle valve with a spring on top, and the outlet to the side
+    private static final String[] SAFETY_VALVE = {
+            "..#.#...", "...#....", "..#.#...", "...#....", ".#####..", "..###+++", "...#....", "..###..."};
+    private static final String[] PRESSURE_TRANSMITTER = {
+            "..####..", ".#....#.", "#.+++..#", "#.+..+.#", "#.+++..#", "#.+....#", ".#....#.", "..####.."};
     private static final String[] CONSOLE = {
             "########", "#++++++#", "#+....+#", "#++++++#", "########", "...##...", "..####..", "........"};
 
@@ -54,6 +59,8 @@ public final class PidSymbols {
             case PidDrawing.GENERATOR -> GENERATOR;
             case PidDrawing.INTAKE -> INTAKE;
             case PidDrawing.CONSOLE -> CONSOLE;
+            case PidDrawing.SAFETY_VALVE -> SAFETY_VALVE;
+            case PidDrawing.PRESSURE_TRANSMITTER -> PRESSURE_TRANSMITTER;
             default -> null;
         };
     }

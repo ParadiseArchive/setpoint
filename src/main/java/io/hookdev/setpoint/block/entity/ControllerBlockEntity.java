@@ -147,9 +147,13 @@ public class ControllerBlockEntity extends InstrumentBlockEntity implements Menu
         pid.update(mode, action, tuning, badPv ? sp : pv, sp, DT);
 
         ControlValveBlockEntity valve = TagDirectory.find(level, mvTag, ControlValveBlockEntity.class);
+        BoilerBlockEntity burner = valve == null ? burner(level) : null;
         if (valve != null) {
             valve.command(pid.output() / 100.0, level.getGameTime());
             valvePosition = valve.position();
+        } else if (burner != null) { // a pressure loop: the output is the boiler's firing rate
+            burner.command(pid.output() / 100.0, level.getGameTime());
+            valvePosition = burner.firingRate();
         } else {
             valvePosition = -1;
         }
@@ -167,9 +171,10 @@ public class ControllerBlockEntity extends InstrumentBlockEntity implements Menu
         }
         if (level.getGameTime() % 20 == 0) setChanged();
         // a loop that really holds its setpoint, with the valve somewhere in the middle
-        if (level.getGameTime() % 100 == 0 && mode == Mode.AUTO && !badPv && valve != null && Math.abs(pv - sp) < 1.0
+        if (level.getGameTime() % 100 == 0 && mode == Mode.AUTO && !badPv && (valve != null || burner != null) && Math.abs(pv - sp) < 1.0
                 && valvePosition > 0.02 && valvePosition < 0.98 && level instanceof ServerLevel server) {
-            PlantEventTrigger.near(server, pos, measuresFlow() ? PlantEventTrigger.FLOW_HOLDING : PlantEventTrigger.LOOP_HOLDING);
+            PlantEventTrigger.near(server, pos, burner != null ? PlantEventTrigger.PRESSURE_HOLDING
+                    : measuresFlow() ? PlantEventTrigger.FLOW_HOLDING : PlantEventTrigger.LOOP_HOLDING);
         }
     }
 
@@ -188,6 +193,24 @@ public class ControllerBlockEntity extends InstrumentBlockEntity implements Menu
         return null;
     }
 
+    private @Nullable PressureTransmitterBlockEntity adjacentPressure(Level level) {
+        for (Direction direction : Direction.values()) {
+            if (level.getBlockEntity(worldPosition.relative(direction)) instanceof PressureTransmitterBlockEntity pt) return pt;
+        }
+        return null;
+    }
+
+    /** In a pressure loop: the boiler the pressure transmitter sits on, when it is this loop's MV. */
+    private @Nullable BoilerBlockEntity burner(Level level) {
+        PressureTransmitterBlockEntity pt = pvTag.isEmpty() ? null : TagDirectory.find(level, pvTag, PressureTransmitterBlockEntity.class);
+        return pt != null && pt.vessel() instanceof BoilerBlockEntity boiler && boiler.tag().equals(mvTag) ? boiler : null;
+    }
+
+    /** Whether this loop controls a pressure (its PV is a pressure transmitter). */
+    public boolean measuresPressure() {
+        return level != null && !pvTag.isEmpty() && TagDirectory.find(level, pvTag, PressureTransmitterBlockEntity.class) != null;
+    }
+
     /** Whether this loop controls a flow (its PV is a flow transmitter) rather than a level. */
     public boolean measuresFlow() {
         return level != null && !pvTag.isEmpty() && TagDirectory.find(level, pvTag, FlowTransmitterBlockEntity.class) != null;
@@ -198,7 +221,8 @@ public class ControllerBlockEntity extends InstrumentBlockEntity implements Menu
         if (!pvTag.isEmpty()) {
             InstrumentBlockEntity transmitter = TagDirectory.find(level, pvTag, InstrumentBlockEntity.class);
             Double measured = transmitter instanceof LevelTransmitterBlockEntity lt ? lt.percent()
-                    : transmitter instanceof FlowTransmitterBlockEntity ft ? ft.percent() : null;
+                    : transmitter instanceof FlowTransmitterBlockEntity ft ? ft.percent()
+                    : transmitter instanceof PressureTransmitterBlockEntity pt ? pt.percent() : null;
             return measured == null ? Double.NaN : measured;
         }
         Vessel tank = adjacentTank(level);
@@ -209,6 +233,18 @@ public class ControllerBlockEntity extends InstrumentBlockEntity implements Menu
 
     /** Self-linking: find the tank (or flow meter) to measure and the valve that moves it. */
     private void discover(Level level) {
+        PressureTransmitterBlockEntity pt = adjacentPressure(level);
+        if (pt != null) { // a pressure loop: the burner of the boiler the transmitter sits on; more fire, more pressure
+            pvTag = pt.tag();
+            if (!(pt.vessel() instanceof BoilerBlockEntity boiler)) return;
+            boolean newLink = !boiler.tag().equals(mvTag);
+            mvTag = boiler.tag();
+            if (autoAction) action = Action.REVERSE;
+            pv = measure(level);
+            if (newLink && mode == Mode.MAN && !Double.isNaN(pv)) mode = Mode.AUTO;
+            setChanged();
+            return;
+        }
         Vessel tank = adjacentTank(level);
         FlowTransmitterBlockEntity meter = tank == null ? adjacentMeter(level) : null;
         if (meter != null) { // a flow loop: the valve in the meter's own line, opening it raises the flow
@@ -246,6 +282,7 @@ public class ControllerBlockEntity extends InstrumentBlockEntity implements Menu
     /** Where the PV comes from, for the faceplate footer. */
     public String pvSource() {
         if (!pvTag.isEmpty()) return pvTag;
+        if (level != null && adjacentPressure(level) != null) return adjacentPressure(level).tag();
         if (level != null && adjacentMeter(level) != null) return adjacentMeter(level).tag();
         return level != null && adjacentTank(level) != null ? "LOCAL" : "";
     }

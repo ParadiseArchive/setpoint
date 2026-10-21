@@ -6,6 +6,7 @@ import net.neoforged.neoforge.common.ModConfigSpec;
 public final class SetpointConfig {
     public static final ModConfigSpec SPEC;
     public static final ModConfigSpec.BooleanValue BOILER_LOW_LEVEL_TRIP;
+    public static final ModConfigSpec.BooleanValue BOILER_HIGH_PRESSURE_TRIP;
     public static final ModConfigSpec.BooleanValue GIVE_HANDBOOK;
 
     static {
@@ -15,6 +16,10 @@ public final class SetpointConfig {
                 .comment("Boiler protection: the burner trips when the drum level gets low, so a boiler can never run dry.",
                         "Set to false for the real deal: a dry boiler overheats, and feeding water into a red-hot drum, or letting it get hotter still, makes it explode.")
                 .define("lowLevelTrip", true);
+        BOILER_HIGH_PRESSURE_TRIP = builder
+                .comment("Boiler protection: the burner trips at 9 bar and starts again at 7 bar, so steam pressure stays below the design pressure (10 bar).",
+                        "Set to false and only a safety valve on the drum stands between you and a burst drum at 13 bar.")
+                .define("highPressureTrip", true);
         builder.pop();
         builder.push("handbook");
         GIVE_HANDBOOK = builder
@@ -29,6 +34,10 @@ public final class SetpointConfig {
 
     public static boolean giveHandbook() {
         return !SPEC.isLoaded() || GIVE_HANDBOOK.get();
+    }
+
+    public static boolean boilerHighPressureTrip() {
+        return !SPEC.isLoaded() || BOILER_HIGH_PRESSURE_TRIP.get();
     }
 
     public static boolean boilerLowLevelTrip() {

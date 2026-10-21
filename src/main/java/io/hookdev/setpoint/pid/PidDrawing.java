@@ -23,7 +23,8 @@ public record PidDrawing(String name, int width, int height, List<Cell> cells, L
 
     // Symbols, the way they are drawn on a real P&ID
     public static final int PIPE = 0, PUMP = 1, TANK = 2, CONTROL_VALVE = 3, HAND_VALVE = 4, HAND_VALVE_SHUT = 5, LEVEL_TRANSMITTER = 6,
-            FLOW_TRANSMITTER = 7, CONTROLLER = 8, BOILER = 9, TURBINE = 10, GENERATOR = 11, INTAKE = 12, CONSOLE = 13;
+            FLOW_TRANSMITTER = 7, CONTROLLER = 8, BOILER = 9, TURBINE = 10, GENERATOR = 11, INTAKE = 12, CONSOLE = 13,
+            SAFETY_VALVE = 14, PRESSURE_TRANSMITTER = 15;
     // Pipe connections in the drawing: the four sides, plus a riser going up or down
     public static final int NORTH = 1, EAST = 2, SOUTH = 4, WEST = 8, UP = 16, DOWN = 32;
 
@@ -93,6 +94,8 @@ public record PidDrawing(String name, int width, int height, List<Cell> cells, L
             case GENERATOR -> "Generator";
             case INTAKE -> "Water intake";
             case CONSOLE -> "DCS console";
+            case SAFETY_VALVE -> "Safety valve";
+            case PRESSURE_TRANSMITTER -> "Pressure transmitter";
             default -> "Pipe";
         };
     }

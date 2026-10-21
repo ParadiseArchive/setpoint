@@ -1,0 +1,28 @@
+{
+  "parent": "setpoint:full_steam",
+  "criteria": {
+    "pressure_holding": {
+      "trigger": "setpoint:plant_event",
+      "conditions": {
+        "event": "pressure_holding"
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "setpoint:pressure_transmitter"
+    },
+    "frame": "goal",
+    "title": {
+      "translate": "advancements.setpoint.under_pressure.title"
+    },
+    "description": {
+      "translate": "advancements.setpoint.under_pressure.description"
+    }
+  },
+  "requirements": [
+    [
+      "pressure_holding"
+    ]
+  ]
+}

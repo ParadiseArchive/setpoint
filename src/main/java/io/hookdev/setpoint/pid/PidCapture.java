@@ -16,7 +16,9 @@ import io.hookdev.setpoint.block.FluidPipeBlock;
 import io.hookdev.setpoint.block.GeneratorBlock;
 import io.hookdev.setpoint.block.HandValveBlock;
 import io.hookdev.setpoint.block.LevelTransmitterBlock;
+import io.hookdev.setpoint.block.PressureTransmitterBlock;
 import io.hookdev.setpoint.block.PumpBlock;
+import io.hookdev.setpoint.block.SafetyValveBlock;
 import io.hookdev.setpoint.block.SteamTurbineBlock;
 import io.hookdev.setpoint.block.TankBlock;
 import io.hookdev.setpoint.block.WaterIntakeBlock;
@@ -37,7 +39,8 @@ import net.minecraft.world.level.block.state.BlockState;
 /**
  * Draws a P&ID of the Setpoint equipment in a box: a plan view where every column of blocks becomes one cell
  * showing its most important piece: process equipment, then controllers, power and consoles, then valves,
- * then instruments, then pipe. Between equals the top one wins, as seen from above.
+ * then instruments, then pipe. Between equals the top one wins, as seen from above. A tagged instrument hidden under
+ * something bigger (a safety valve on a boiler, a transmitter on a tank) is drawn in a free cell next to it instead.
  * A box deeper than it is wide is turned a quarter, so the drawing always fits the screen.
  */
 public final class PidCapture {
@@ -63,13 +66,20 @@ public final class PidCapture {
 
         Found[][] found = new Found[w][d];
         int[][] pipes = new int[w][d];
+        List<int[]> hiddenAt = new ArrayList<>(); // x, z of tagged pieces that lost their column
+        List<Found> hidden = new ArrayList<>();
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         for (int x = 0; x < w; x++) for (int z = 0; z < d; z++) for (int y = 0; y < h; y++) {
             pos.set(minX + x, minY + y, minZ + z);
             BlockState state = level.getBlockState(pos);
             Found here = classify(level, pos, state);
             if (here == null) continue;
-            if (found[x][z] == null || here.priority >= found[x][z].priority) found[x][z] = here; // ties: the top one, as seen from above
+            Found loser = here;
+            if (found[x][z] == null || here.priority >= found[x][z].priority) { // ties: the top one, as seen from above
+                loser = found[x][z];
+                found[x][z] = here;
+            }
+            if (loser != null && !loser.tag.isEmpty()) { hidden.add(loser); hiddenAt.add(new int[]{x, z}); }
             if (state.getBlock() instanceof FluidPipeBlock) {
                 for (Direction dir : Direction.values()) {
                     if (!state.getValue(FluidPipeBlock.CONNECTIONS.get(dir))) continue;
@@ -78,6 +88,19 @@ public final class PidCapture {
                     int nx = x + dir.getStepX(), nz = z + dir.getStepZ();
                     if (dir.getAxis() != Direction.Axis.Y && nx >= 0 && nz >= 0 && nx < w && nz < d) pipes[nx][nz] |= bit(dir.getOpposite());
                 }
+            }
+        }
+
+        // hidden instruments move to a free cell beside their column (not one with a pipe through it)
+        for (int i = 0; i < hidden.size(); i++) {
+            Found f = hidden.get(i);
+            int x = hiddenAt.get(i)[0], z = hiddenAt.get(i)[1];
+            if (found[x][z] != null && found[x][z].tag.equals(f.tag)) continue; // the same thing, like a tall tank
+            for (int[] step : new int[][]{{1, 0}, {0, 1}, {-1, 0}, {0, -1}}) {
+                int nx = x + step[0], nz = z + step[1];
+                if (nx < 0 || nz < 0 || nx >= w || nz >= d || found[nx][nz] != null || pipes[nx][nz] != 0) continue;
+                found[nx][nz] = f;
+                break;
             }
         }
 
@@ -139,6 +162,8 @@ public final class PidCapture {
             return new Found(HandValveBlock.isOpen(state) ? PidDrawing.HAND_VALVE : PidDrawing.HAND_VALVE_SHUT,
                     axisQuarter(state.getValue(HandValveBlock.AXIS)), "", 3);
         }
+        if (block instanceof SafetyValveBlock) return new Found(PidDrawing.SAFETY_VALVE, 0, tag, 3);
+        if (block instanceof PressureTransmitterBlock) return new Found(PidDrawing.PRESSURE_TRANSMITTER, 0, tag, 2);
         if (block instanceof FlowTransmitterBlock) return new Found(PidDrawing.FLOW_TRANSMITTER, axisQuarter(state.getValue(FlowTransmitterBlock.AXIS)), tag, 2);
         if (block instanceof LevelTransmitterBlock) return new Found(PidDrawing.LEVEL_TRANSMITTER, 0, tag, 2);
         if (block instanceof FluidPipeBlock) return new Found(PidDrawing.PIPE, 0, "", 1);

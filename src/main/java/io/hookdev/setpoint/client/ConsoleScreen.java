@@ -39,7 +39,7 @@ public class ConsoleScreen extends AbstractContainerScreen<ConsoleMenu> {
     private static final int AREA_X = 8, AREA_Y = TOP + 12, AREA_W = W - 16, AREA_H = H - 32 - AREA_Y;
     /** Equipment that is not on the plant any more (or out of range) shows in this grey. */
     private static final int MISSING = 0xFF5C6F92;
-    private static final Set<String> ACTIVE = Set.of("RUNNING", "STEAMING", "HEATING", "FLOWING", "AUTO", "CAS", "IN CONTROL");
+    private static final Set<String> ACTIVE = Set.of("RUNNING", "STEAMING", "HEATING", "FLOWING", "AUTO", "CAS", "IN CONTROL", "OK");
 
     private enum Tab { OVERVIEW, TRENDS, ALARMS, PID }
 
@@ -96,7 +96,7 @@ public class ConsoleScreen extends AbstractContainerScreen<ConsoleMenu> {
 
     private boolean trendIsController() {
         int row = rowOf(data().trendTag());
-        return row >= 0 && (data().rows().get(row).kind().equals("LIC") || data().rows().get(row).kind().equals("FIC"));
+        return row >= 0 && List.of("LIC", "FIC", "PIC").contains(data().rows().get(row).kind());
     }
 
     private void openFaceplate() {

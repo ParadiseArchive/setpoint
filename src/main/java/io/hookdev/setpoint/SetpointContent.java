@@ -11,6 +11,8 @@ import io.hookdev.setpoint.block.FlowTransmitterBlock;
 import io.hookdev.setpoint.block.GeneratorBlock;
 import io.hookdev.setpoint.block.HandValveBlock;
 import io.hookdev.setpoint.block.LevelTransmitterBlock;
+import io.hookdev.setpoint.block.PressureTransmitterBlock;
+import io.hookdev.setpoint.block.SafetyValveBlock;
 import io.hookdev.setpoint.block.PumpBlock;
 import io.hookdev.setpoint.block.SteamTurbineBlock;
 import io.hookdev.setpoint.block.TankBlock;
@@ -23,6 +25,8 @@ import io.hookdev.setpoint.block.entity.ControllerBlockEntity;
 import io.hookdev.setpoint.block.entity.CreativeGeneratorBlockEntity;
 import io.hookdev.setpoint.block.entity.FlowTransmitterBlockEntity;
 import io.hookdev.setpoint.block.entity.LevelTransmitterBlockEntity;
+import io.hookdev.setpoint.block.entity.PressureTransmitterBlockEntity;
+import io.hookdev.setpoint.block.entity.SafetyValveBlockEntity;
 import io.hookdev.setpoint.block.entity.PumpBlockEntity;
 import io.hookdev.setpoint.block.entity.SteamTurbineBlockEntity;
 import io.hookdev.setpoint.block.entity.StirlingEngineBlockEntity;
@@ -101,6 +105,9 @@ public final class SetpointContent {
     /** A soft two-tone chime for new alarms in the control room. */
     public static final DeferredHolder<SoundEvent, SoundEvent> CONSOLE_ALARM = SOUNDS.register("block.dcs_console.alarm",
             SoundEvent::createVariableRangeEvent);
+    /** The hiss of a safety valve blowing off steam. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> SAFETY_VALVE_LIFT = SOUNDS.register("block.safety_valve.lift",
+            SoundEvent::createVariableRangeEvent);
 
     public static final DeferredBlock<FluidPipeBlock> PIPE = BLOCKS.registerBlock("pipe", FluidPipeBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(2.0f, 6.0f).sound(SoundType.COPPER).noOcclusion());
@@ -115,6 +122,10 @@ public final class SetpointContent {
             p -> p.mapColor(MapColor.METAL).strength(2.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
     public static final DeferredBlock<FlowTransmitterBlock> FLOW_TRANSMITTER = BLOCKS.registerBlock("flow_transmitter", FlowTransmitterBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(2.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<PressureTransmitterBlock> PRESSURE_TRANSMITTER = BLOCKS.registerBlock("pressure_transmitter", PressureTransmitterBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(2.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<SafetyValveBlock> SAFETY_VALVE = BLOCKS.registerBlock("safety_valve", SafetyValveBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
     public static final DeferredBlock<ControlValveBlock> CONTROL_VALVE = BLOCKS.registerBlock("control_valve", ControlValveBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
     public static final DeferredBlock<ControllerBlock> CONTROLLER = BLOCKS.registerBlock("controller", ControllerBlock::new,
@@ -161,6 +172,8 @@ public final class SetpointContent {
     public static final DeferredItem<BlockItem> STEAM_TURBINE_ITEM = ITEMS.registerSimpleBlockItem(STEAM_TURBINE);
     public static final DeferredItem<BlockItem> LEVEL_TRANSMITTER_ITEM = ITEMS.registerSimpleBlockItem(LEVEL_TRANSMITTER);
     public static final DeferredItem<BlockItem> FLOW_TRANSMITTER_ITEM = ITEMS.registerSimpleBlockItem(FLOW_TRANSMITTER);
+    public static final DeferredItem<BlockItem> PRESSURE_TRANSMITTER_ITEM = ITEMS.registerSimpleBlockItem(PRESSURE_TRANSMITTER);
+    public static final DeferredItem<BlockItem> SAFETY_VALVE_ITEM = ITEMS.registerSimpleBlockItem(SAFETY_VALVE);
     public static final DeferredItem<BlockItem> CONTROL_VALVE_ITEM = ITEMS.registerSimpleBlockItem(CONTROL_VALVE);
     public static final DeferredItem<BlockItem> CONTROLLER_ITEM = ITEMS.registerSimpleBlockItem(CONTROLLER);
     public static final DeferredItem<BlockItem> HAND_VALVE_ITEM = ITEMS.registerSimpleBlockItem(HAND_VALVE);
@@ -190,6 +203,10 @@ public final class SetpointContent {
             () -> new BlockEntityType<>(LevelTransmitterBlockEntity::new, LEVEL_TRANSMITTER.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<FlowTransmitterBlockEntity>> FLOW_TRANSMITTER_ENTITY = BLOCK_ENTITIES.register("flow_transmitter",
             () -> new BlockEntityType<>(FlowTransmitterBlockEntity::new, FLOW_TRANSMITTER.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<PressureTransmitterBlockEntity>> PRESSURE_TRANSMITTER_ENTITY = BLOCK_ENTITIES.register("pressure_transmitter",
+            () -> new BlockEntityType<>(PressureTransmitterBlockEntity::new, PRESSURE_TRANSMITTER.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SafetyValveBlockEntity>> SAFETY_VALVE_ENTITY = BLOCK_ENTITIES.register("safety_valve",
+            () -> new BlockEntityType<>(SafetyValveBlockEntity::new, SAFETY_VALVE.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ControlValveBlockEntity>> CONTROL_VALVE_ENTITY = BLOCK_ENTITIES.register("control_valve",
             () -> new BlockEntityType<>(ControlValveBlockEntity::new, CONTROL_VALVE.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ControllerBlockEntity>> CONTROLLER_ENTITY = BLOCK_ENTITIES.register("controller",
@@ -236,8 +253,10 @@ public final class SetpointContent {
                 output.accept(BIOGAS_GENERATOR_ITEM.get());
                 output.accept(BOILER_ITEM.get());
                 output.accept(STEAM_TURBINE_ITEM.get());
+                output.accept(SAFETY_VALVE_ITEM.get());
                 output.accept(LEVEL_TRANSMITTER_ITEM.get());
                 output.accept(FLOW_TRANSMITTER_ITEM.get());
+                output.accept(PRESSURE_TRANSMITTER_ITEM.get());
                 output.accept(CONTROL_VALVE_ITEM.get());
                 output.accept(CONTROLLER_ITEM.get());
                 output.accept(CONSOLE_ITEM.get());

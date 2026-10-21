@@ -1,0 +1,56 @@
+{
+  "variants": {
+    "facing=up,lifting=false": {
+      "model": "setpoint:block/safety_valve"
+    },
+    "facing=up,lifting=true": {
+      "model": "setpoint:block/safety_valve_lifting"
+    },
+    "facing=down,lifting=false": {
+      "model": "setpoint:block/safety_valve",
+      "x": 180
+    },
+    "facing=down,lifting=true": {
+      "model": "setpoint:block/safety_valve_lifting",
+      "x": 180
+    },
+    "facing=north,lifting=false": {
+      "model": "setpoint:block/safety_valve",
+      "x": 90
+    },
+    "facing=north,lifting=true": {
+      "model": "setpoint:block/safety_valve_lifting",
+      "x": 90
+    },
+    "facing=south,lifting=false": {
+      "model": "setpoint:block/safety_valve",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south,lifting=true": {
+      "model": "setpoint:block/safety_valve_lifting",
+      "x": 90,
+      "y": 180
+    },
+    "facing=east,lifting=false": {
+      "model": "setpoint:block/safety_valve",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,lifting=true": {
+      "model": "setpoint:block/safety_valve_lifting",
+      "x": 90,
+      "y": 90
+    },
+    "facing=west,lifting=false": {
+      "model": "setpoint:block/safety_valve",
+      "x": 90,
+      "y": 270
+    },
+    "facing=west,lifting=true": {
+      "model": "setpoint:block/safety_valve_lifting",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

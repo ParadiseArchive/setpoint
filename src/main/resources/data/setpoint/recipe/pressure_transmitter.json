@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "G": "minecraft:glass_pane",
+    "I": "minecraft:iron_ingot",
+    "C": "minecraft:comparator"
+  },
+  "pattern": [
+    " G ",
+    "ICI",
+    " I "
+  ],
+  "result": {
+    "id": "setpoint:pressure_transmitter"
+  }
+}

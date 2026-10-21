@@ -61,4 +61,30 @@ class BoilerModelTest {
         assertFalse(BoilerModel.flashes(300, 0));
         assertFalse(BoilerModel.flashes(100, 100));
     }
+
+    @Test
+    void steamInTheDrumIsPressure() {
+        assertEquals(0, BoilerModel.pressure(0), 1e-9);
+        assertEquals(10, BoilerModel.pressure(4_000), 1e-9);
+    }
+
+    @Test
+    void pressureTripHasAResetBand() {
+        assertFalse(BoilerModel.pressureTripped(false, 8.9));
+        assertTrue(BoilerModel.pressureTripped(false, 9.0));
+        assertTrue(BoilerModel.pressureTripped(true, 7.5), "stays tripped until the pressure is below the reset pressure");
+        assertFalse(BoilerModel.pressureTripped(true, 6.9));
+    }
+
+    @Test
+    void theDrumBurstsWellAboveItsDesignPressure() {
+        assertFalse(BoilerModel.burstsFromPressure(BoilerModel.DESIGN_PRESSURE));
+        assertTrue(BoilerModel.burstsFromPressure(13.0));
+    }
+
+    @Test
+    void partFireMakesLessSteam() {
+        assertEquals(5, BoilerModel.boil(100, true, 1_000, 1_000, 5));
+        assertEquals(BoilerModel.STEAM_RATE, BoilerModel.boil(100, true, 1_000, 1_000, 99), "never more than full fire");
+    }
 }

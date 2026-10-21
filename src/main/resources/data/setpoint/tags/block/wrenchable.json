@@ -14,6 +14,8 @@
     "setpoint:dcs_console",
     "setpoint:hand_valve",
     "setpoint:water_intake",
-    "setpoint:flow_transmitter"
+    "setpoint:flow_transmitter",
+    "setpoint:pressure_transmitter",
+    "setpoint:safety_valve"
   ]
 }

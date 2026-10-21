@@ -13,8 +13,15 @@ public final class TurbineModel {
     public static final double INERTIA = 0.02;
     /** FE made per mB of steam at rated speed: one boiler gives 60 FE/t. */
     public static final double FE_PER_MB = 3.0;
+    /** Inlet pressure for full steam flow, in bar. Below it the turbine swallows less, in proportion. */
+    public static final double RATED_PRESSURE = 6.0;
 
     private TurbineModel() {}
+
+    /** Steam the turbine can take this tick at this inlet pressure, in mB. */
+    public static int inletFlow(double pressure) {
+        return (int) Math.round(MAX_STEAM * Math.max(0, Math.min(1, pressure / RATED_PRESSURE)));
+    }
 
     /** Rotor speed after one tick with this much steam, in rpm. */
     public static double nextSpeed(double speed, int steam) {

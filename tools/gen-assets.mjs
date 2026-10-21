@@ -746,6 +746,10 @@ json(join(ASSETS, 'sounds.json'), {
     subtitle: 'subtitles.setpoint.block.dcs_console.alarm',
     sounds: [{ name: 'minecraft:note/bell', pitch: 1.0, volume: 0.5 }],
   },
+  'block.safety_valve.lift': {
+    subtitle: 'subtitles.setpoint.block.safety_valve.lift',
+    sounds: [{ name: 'minecraft:random/fizz', pitch: 0.6, volume: 0.6 }, { name: 'minecraft:random/fizz', pitch: 0.5, volume: 0.6 }],
+  },
 });
 
 // =====================================================================================
@@ -878,6 +882,73 @@ item('flow_transmitter', 'setpoint:block/flow_transmitter');
 recipe('flow_transmitter', [' G ', 'PCP'], { G: 'minecraft:glass_pane', P: 'setpoint:pipe', C: 'minecraft:comparator' }, 'setpoint:flow_transmitter');
 
 // =====================================================================================
+// M4 · Pressure: pressure transmitter and safety valve
+// =====================================================================================
+
+// pressure transmitter: the transmitter housing with a round gauge on its face
+texture('pressure_transmitter_front', (p) => {
+  p.rect(0, 0, 16, 16, C.steel1);
+  p.rect(4, 1, 8, 1, C.outline); p.rect(3, 2, 10, 1, C.outline); p.rect(2, 3, 12, 6, C.outline); p.rect(3, 9, 10, 1, C.outline); p.rect(4, 10, 8, 1, C.outline);
+  p.rect(5, 2, 6, 1, '#e8edf5'); p.rect(4, 3, 8, 1, '#e8edf5'); p.rect(3, 4, 10, 4, '#e8edf5'); p.rect(4, 8, 8, 1, '#e8edf5'); p.rect(5, 9, 6, 1, '#e8edf5'); // dial
+  p.set(4, 6, C.steel0); p.set(8, 3, C.steel0); p.set(11, 6, C.steel0);   // scale marks
+  p.rect(10, 4, 2, 1, C.magenta);                                          // red zone
+  p.set(8, 6, C.outline); p.set(7, 6, C.outline); p.set(6, 5, C.magenta); p.set(5, 4, C.magenta); // needle
+  p.rect(4, 12, 8, 2, C.amber); p.rect(5, 13, 6, 1, '#c98a2c');            // tag plate
+});
+M('pressure_transmitter', {
+  parent: 'minecraft:block/block',
+  textures: { front: tex('pressure_transmitter_front'), side: tex('transmitter_side'), top: tex('transmitter_top'), particle: tex('transmitter_side') },
+  elements: [box([4, 1, 4], [12, 13, 12], {
+    north: { uv: [4, 2, 12, 14], texture: '#front' }, south: { uv: [4, 2, 12, 14], texture: '#side' },
+    east: { uv: [4, 2, 12, 14], texture: '#side' }, west: { uv: [4, 2, 12, 14], texture: '#side' },
+    up: { uv: [4, 4, 12, 12], texture: '#top' }, down: { uv: [4, 4, 12, 12], texture: '#top', cullface: 'down' },
+  })],
+});
+BS('pressure_transmitter', { variants: Object.fromEntries(Object.entries(yaw).map(([f, y]) => [`facing=${f}`, { model: 'setpoint:block/pressure_transmitter', ...(y ? { y } : {}) }])) });
+item('pressure_transmitter', 'setpoint:block/pressure_transmitter');
+recipe('pressure_transmitter', [' G ', 'ICI', ' I '], { G: 'minecraft:glass_pane', I: 'minecraft:iron_ingot', C: 'minecraft:comparator' }, 'setpoint:pressure_transmitter');
+
+// safety valve: a brass body on a flange, a spring bonnet with a red cap, and a side outlet; the cap pops up when it lifts
+texture('safety_valve_body', (p) => {
+  p.rect(0, 0, 16, 16, '#b08a3e'); p.rect(0, 0, 16, 1, '#d6b062'); p.rect(0, 15, 16, 1, '#7d5f26');
+  p.rect(2, 3, 12, 1, '#7d5f26'); p.rect(2, 12, 12, 1, '#d6b062');
+  p.set(2, 2, C.steel4); p.set(13, 2, C.steel4); p.set(2, 13, C.steel4); p.set(13, 13, C.steel4);
+});
+texture('safety_valve_spring', (p) => {
+  p.rect(0, 0, 16, 16, C.steel1);
+  for (let y = 0; y < 16; y += 3) { p.rect(0, y, 16, 1, C.steel3); p.rect(0, y + 1, 16, 1, C.steel4); }
+});
+texture('safety_valve_cap', (p) => {
+  p.rect(0, 0, 16, 16, '#b8312f'); p.rect(0, 0, 16, 1, '#d24a45'); p.rect(0, 15, 16, 1, '#7a1f1d');
+  p.rect(6, 6, 4, 4, '#7a1f1d'); p.rect(7, 7, 2, 2, C.steel3);
+});
+for (const lifting of [false, true]) {
+  const up = lifting ? 2 : 0;
+  M('safety_valve' + (lifting ? '_lifting' : ''), { // points up: the vessel is below
+    parent: 'minecraft:block/block',
+    textures: { body: tex('safety_valve_body'), spring: tex('safety_valve_spring'), cap: tex('safety_valve_cap'), flange: tex('valve_body'), particle: tex('safety_valve_body') },
+    elements: [
+      box([3, 0, 3], [13, 2, 13], allFaces([3, 3, 13, 13], '#flange')),
+      box([5, 2, 5], [11, 8, 11], allFaces([5, 2, 11, 8], '#body')),
+      box([11, 3, 6], [15, 7, 10], allFaces([0, 4, 4, 8], '#body')),
+      box([6, 8, 6], [10, 13, 10], allFaces([0, 0, 4, 5], '#spring', ['down'])),
+      box([7.5, 13, 7.5], [8.5, 13 + up + 0.01, 8.5], allFaces([0, 0, 1, 2], '#spring', ['down'])),
+      box([5, 13 + up, 5], [11, 15 + up, 11], allFaces([5, 5, 11, 11], '#cap')),
+    ],
+  });
+}
+{
+  const turn = { up: {}, down: { x: 180 }, north: { x: 90 }, south: { x: 90, y: 180 }, east: { x: 90, y: 90 }, west: { x: 90, y: 270 } };
+  const variants = {};
+  for (const [facing, rot] of Object.entries(turn)) for (const lifting of [false, true]) {
+    variants[`facing=${facing},lifting=${lifting}`] = { model: 'setpoint:block/safety_valve' + (lifting ? '_lifting' : ''), ...rot };
+  }
+  BS('safety_valve', { variants });
+  item('safety_valve', 'setpoint:block/safety_valve');
+}
+recipe('safety_valve', [' H ', 'CIC'], { H: 'minecraft:tripwire_hook', C: 'minecraft:copper_ingot', I: 'minecraft:iron_ingot' }, 'setpoint:safety_valve');
+
+// =====================================================================================
 // P&IDs: the blank sheet and the drawn sheet
 // =====================================================================================
 const BP = { e: '#0b1f3d', f: '#1d4c8f', g: '#28599f', w: '#e8f1ff', c: '#2de2e6', k: '#173a6e' };
@@ -921,7 +992,8 @@ const lootOre = (name, drop) => json(join(DATA, 'loot_table/blocks', name + '.js
   ] }] }],
 });
 const MACHINES = ['pipe', 'tank', 'centrifugal_pump', 'creative_generator', 'level_transmitter', 'control_valve', 'controller',
-  'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine', 'dcs_console', 'hand_valve', 'water_intake', 'flow_transmitter'];
+  'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine', 'dcs_console', 'hand_valve', 'water_intake', 'flow_transmitter',
+  'pressure_transmitter', 'safety_valve'];
 for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) lootSelf(name);
 lootOre('hookonium_ore', 'setpoint:raw_hookonium');
 lootOre('deepslate_hookonium_ore', 'setpoint:raw_hookonium');
@@ -1054,6 +1126,8 @@ shapeless('handbook', ['minecraft:book', 'minecraft:copper_ingot'], 'setpoint:ha
     ['righty_tighty', 'root', 'setpoint:pipe_wrench', 'task', has('setpoint:pipe_wrench')],
     ['draftsman', 'root', 'setpoint:pid', 'goal', happened('pid_drawn')],
     ['mimic_panel', 'draftsman', 'setpoint:dcs_console', 'goal', happened('pid_on_console')],
+    ['blowing_off_steam', 'full_steam', 'setpoint:safety_valve', 'task', happened('psv_lifted')],
+    ['under_pressure', 'full_steam', 'setpoint:pressure_transmitter', 'goal', happened('pressure_holding')],
     ['skyscraper', 'moving_water', 'setpoint:tank', 'goal', happened('tall_tank')],
     ['steady_flow', 'hands_off', 'setpoint:flow_transmitter', 'goal', happened('flow_holding')],
     ['good_neighbours', 'moving_water', 'setpoint:centrifugal_pump', 'task', happened('foreign_tank')],

@@ -137,6 +137,23 @@ export const HANDBOOK = {
       ],
     },
     {
+      id: 'pressure', title: 'Pressure', icon: 'setpoint:safety_valve',
+      content: [
+        ['h', 'Steam is pressure'],
+        ['p', 'A boiler keeps its steam in a closed drum, so the steam builds **pressure**. 400 mB of steam is one bar. The drum is built for **10 bar**; the turbine wants **6 bar** for full power.'],
+        ['p', 'When the turbine stops taking steam (its power has nowhere to go), the pressure climbs. Three things stand in the way, like on a real plant:'],
+        ['p', '**1. The trip.** The burner stops at 9 bar and starts again at 7. On by default (config).'],
+        ['p', '**2. The safety valve.** Put one on the drum. It pops open at 10 bar and blows off steam until the pressure is a bar lower.'],
+        ['p', '**3. Nothing.** With the trip off and no safety valve, the drum bursts at 13 bar.'],
+        ['craft', 'setpoint:safety_valve'],
+        ['tip', 'Sneak-right-click a safety valve to set it to 6, 8 or 10 bar. A comparator next to it sees it lift.'],
+        ['h', 'Pressure control'],
+        ['p', 'Put a **pressure transmitter** against the boiler, and a DCS controller against the transmitter. It becomes a **PIC**: it holds the pressure by turning the burner up and down, and the coal lasts longer at part fire.'],
+        ['craft', 'setpoint:pressure_transmitter'],
+        ['tip', 'Place the controller against the transmitter, not against the boiler: against the boiler it holds the drum level instead.'],
+      ],
+    },
+    {
       id: 'control_room', title: 'Control room', icon: 'setpoint:dcs_console',
       content: [
         ['h', 'DCS console'],

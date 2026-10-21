@@ -10,10 +10,13 @@ import io.hookdev.setpoint.block.EquipmentTag;
 import io.hookdev.setpoint.block.entity.BoilerBlockEntity;
 import io.hookdev.setpoint.block.entity.ControlValveBlockEntity;
 import io.hookdev.setpoint.block.entity.ControllerBlockEntity;
+import io.hookdev.setpoint.block.entity.CreativeGeneratorBlockEntity;
 import io.hookdev.setpoint.block.entity.FlowTransmitterBlockEntity;
 import io.hookdev.setpoint.block.entity.GeneratorBlockEntity;
 import io.hookdev.setpoint.block.entity.LevelTransmitterBlockEntity;
+import io.hookdev.setpoint.block.entity.PressureTransmitterBlockEntity;
 import io.hookdev.setpoint.block.entity.PumpBlockEntity;
+import io.hookdev.setpoint.block.entity.SafetyValveBlockEntity;
 import io.hookdev.setpoint.block.entity.SteamTurbineBlockEntity;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
 import io.hookdev.setpoint.block.entity.WaterIntakeBlockEntity;
@@ -31,7 +34,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 public final class PlantScanner {
     /** How far a console sees, in blocks, in every direction. */
     public static final int RANGE = 32;
-    private static final List<String> KIND_ORDER = List.of("LIC", "FIC", "PUMP", "VALVE", "FT", "TANK", "LT", "BOILER", "TURBINE", "GEN", "INTAKE");
+    private static final List<String> KIND_ORDER = List.of("LIC", "FIC", "PIC", "PUMP", "VALVE", "FT", "PT", "TANK", "LT", "BOILER", "PSV", "TURBINE", "GEN", "INTAKE");
 
     private PlantScanner() {}
 
@@ -70,8 +73,13 @@ public final class PlantScanner {
             if ((a & ControllerBlockEntity.ALARM_LO) != 0) alarms.add("PV LO");
             double pv = lic.pv();
             boolean man = lic.mode() == PidController.Mode.MAN;
-            return new Reading(pos, lic.tag(), lic.measuresFlow() ? "FIC" : "LIC", lic.mode().name(), !alarms.isEmpty() ? Reading.ALARM : man ? Reading.ATTENTION : Reading.NORMAL,
-                    Double.isNaN(pv) ? "----" : "PV " + pct(pv) + "  SP " + pct(lic.setpoint()),
+            boolean pressure = lic.measuresPressure();
+            String kind = pressure ? "PIC" : lic.measuresFlow() ? "FIC" : "LIC";
+            String value = Double.isNaN(pv) ? "----" : pressure
+                    ? String.format("PV %.1f bar  SP %.1f bar", pv / 100 * PressureTransmitterBlockEntity.RANGE, lic.setpoint() / 100 * PressureTransmitterBlockEntity.RANGE)
+                    : "PV " + pct(pv) + "  SP " + pct(lic.setpoint());
+            return new Reading(pos, lic.tag(), kind, lic.mode().name(), !alarms.isEmpty() ? Reading.ALARM : man ? Reading.ATTENTION : Reading.NORMAL,
+                    value,
                     List.of("PV", "SP", "OP"), new float[]{(float) pv, (float) lic.setpoint(), (float) lic.output()}, alarms);
         }
         if (be instanceof PumpBlockEntity pump) {
@@ -124,6 +132,19 @@ public final class PlantScanner {
             return new Reading(pos, ft.tag(), "FT", flow > 0 ? "FLOWING" : "NO FLOW", Reading.NORMAL, String.format("%.1f mB/t", flow),
                     List.of("FLOW %"), new float[]{(float) (flow / FlowTransmitterBlockEntity.RANGE * 100)}, List.of());
         }
+        if (be instanceof PressureTransmitterBlockEntity pt) {
+            Double bar = pt.bar();
+            return new Reading(pos, pt.tag(), "PT", bar == null ? "BAD PV" : "OK", bar == null ? Reading.ATTENTION : Reading.NORMAL,
+                    bar == null ? "----" : String.format("%.1f bar", bar), List.of("PRESS %"),
+                    new float[]{bar == null ? Float.NaN : (float) (bar / PressureTransmitterBlockEntity.RANGE * 100)}, List.of());
+        }
+        if (be instanceof SafetyValveBlockEntity psv) {
+            boolean mounted = psv.vessel() != null;
+            return new Reading(pos, psv.tag(), "PSV", !mounted ? "NOT MOUNTED" : psv.lifting() ? "LIFTING" : "SHUT",
+                    psv.lifting() ? Reading.ALARM : mounted ? Reading.NORMAL : Reading.ATTENTION,
+                    String.format("set %.0f bar", psv.setPressure()), List.of("OPEN %"), new float[]{psv.lifting() ? 100 : 0},
+                    psv.lifting() ? List.of("PSV LIFTING") : List.of());
+        }
         if (be instanceof LevelTransmitterBlockEntity lt) {
             Double pv = lt.percent();
             return new Reading(pos, lt.tag(), "LT", pv == null ? "BAD PV" : "OK", pv == null ? Reading.ATTENTION : Reading.NORMAL,
@@ -133,13 +154,15 @@ public final class PlantScanner {
             List<String> alarms = new ArrayList<>();
             if (boiler.tripped()) alarms.add("LOW WATER TRIP");
             if (boiler.temperature() > BoilerModel.OVERHEAT) alarms.add("OVERHEAT");
-            String status = boiler.temperature() > BoilerModel.OVERHEAT ? "OVERHEAT" : boiler.tripped() ? "TRIPPED"
+            if (boiler.pressure() >= BoilerModel.DESIGN_PRESSURE) alarms.add("PRESSURE HH");
+            else if (boiler.pressureTripped()) alarms.add("HP TRIP");
+            String status = boiler.temperature() > BoilerModel.OVERHEAT ? "OVERHEAT" : boiler.tripped() ? "TRIPPED" : boiler.pressureTripped() ? "HP TRIP"
                     : boiler.firing() && boiler.temperature() >= BoilerModel.BOILING ? "STEAMING" : boiler.firing() ? "HEATING" : "IDLE";
             double drum = boiler.fillFraction() * 100;
             return new Reading(pos, boiler.tag(), "BOILER", status, alarms.isEmpty() ? Reading.NORMAL : Reading.ALARM,
-                    String.format("%.0f °C  drum %.0f %%", boiler.temperature(), drum),
-                    List.of("DRUM %", "TEMP (0-500 °C)", "STEAM %"),
-                    new float[]{(float) drum, (float) (boiler.temperature() / 5), boiler.steam() * 100f / BoilerBlockEntity.STEAM_CAPACITY}, alarms);
+                    String.format("%.1f bar  %.0f °C  drum %.0f %%", boiler.pressure(), boiler.temperature(), drum),
+                    List.of("DRUM %", "TEMP (0-500 °C)", "PRESS (0-15 bar)"),
+                    new float[]{(float) drum, (float) (boiler.temperature() / 5), (float) (boiler.pressure() / BoilerModel.PRESSURE_RANGE * 100)}, alarms);
         }
         if (be instanceof SteamTurbineBlockEntity turbine) {
             boolean running = turbine.speed() > 100;
@@ -151,6 +174,9 @@ public final class PlantScanner {
             boolean ok = intake.submerged();
             return new Reading(pos, intake.tag(), "INTAKE", ok ? "RUNNING" : "NO WATER", ok ? Reading.NORMAL : Reading.ATTENTION,
                     intake.sources() + " water sources", List.of("BUFFER %"), new float[]{(float) (intake.fillFraction() * 100)}, List.of());
+        }
+        if (be instanceof CreativeGeneratorBlockEntity) {
+            return new Reading(pos, EquipmentTag.of("G", pos), "GEN", "RUNNING", Reading.NORMAL, "endless FE", List.of("BUFFER %"), new float[]{100}, List.of());
         }
         if (be instanceof GeneratorBlockEntity generator) {
             int stored = generator.energy().getAmountAsInt();

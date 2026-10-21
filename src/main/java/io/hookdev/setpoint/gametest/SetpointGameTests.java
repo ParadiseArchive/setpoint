@@ -11,6 +11,8 @@ import io.hookdev.setpoint.block.PumpBlock;
 import io.hookdev.setpoint.block.PumpStatus;
 import io.hookdev.setpoint.block.entity.BiogasGeneratorBlockEntity;
 import io.hookdev.setpoint.block.ConsoleBlock;
+import io.hookdev.setpoint.block.SafetyValveBlock;
+import io.hookdev.setpoint.block.entity.SafetyValveBlockEntity;
 import io.hookdev.setpoint.block.FluidPipeBlock;
 import io.hookdev.setpoint.block.HandValveBlock;
 import io.hookdev.setpoint.block.entity.BoilerBlockEntity;
@@ -25,6 +27,7 @@ import io.hookdev.setpoint.block.entity.SteamTurbineBlockEntity;
 import io.hookdev.setpoint.block.entity.StirlingEngineBlockEntity;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
 import io.hookdev.setpoint.control.PidController;
+import io.hookdev.setpoint.physics.BoilerModel;
 import io.hookdev.setpoint.physics.PumpModel;
 
 import net.minecraft.core.BlockPos;
@@ -101,6 +104,11 @@ public final class SetpointGameTests {
         test("pid_draws_the_plant", SetpointGameTests::pidDrawsThePlant, 100);
         test("blank_pid_is_used_up_in_survival", SetpointGameTests::blankPidIsUsedUpInSurvival, 20);
         test("console_shows_a_pid_live", SetpointGameTests::consoleShowsAPidLive, 100);
+        test("high_pressure_trips_the_burner", SetpointGameTests::highPressureTripsTheBurner, 400);
+        test("safety_valve_saves_the_boiler", SetpointGameTests::safetyValveSavesTheBoiler, 300);
+        test("overpressure_bursts_an_unprotected_boiler", SetpointGameTests::overpressureBurstsAnUnprotectedBoiler, 100);
+        test("pressure_controller_holds_the_boiler", SetpointGameTests::pressureControllerHoldsTheBoiler, 600);
+        test("pid_shows_the_safety_valve_on_a_boiler", SetpointGameTests::pidShowsTheSafetyValveOnABoiler, 20);
     }
 
     private static void test(String name, Consumer<GameTestHelper> function, int maxTicks) {
@@ -418,6 +426,87 @@ public final class SetpointGameTests {
         boiler.setTemperature(300);
         boiler.fluid().set(0, FluidResource.of(Fluids.WATER), 1_000);
         helper.succeedWhen(() -> helper.assertBlockNotPresent(SetpointContent.BOILER.get(), pos));
+    }
+
+    // ---------- pressure ----------
+
+    /** With nothing taking the steam, the pressure climbs until the trip stops the burner at 9 bar, below the design pressure. */
+    private static void highPressureTripsTheBurner(GameTestHelper helper) {
+        BoilerBlockEntity boiler = boiler(helper, new BlockPos(1, 1, 1), 6_000, 16);
+        boiler.setTemperature(BoilerModel.BOILING);
+        helper.runAfterDelay(300, () -> {
+            helper.assertTrue(boiler.pressureTripped(), String.format("the burner should have tripped on pressure, at %.1f bar", boiler.pressure()));
+            helper.assertFalse(boiler.firing(), "a tripped burner must not fire");
+            helper.assertTrue(boiler.pressure() < BoilerModel.DESIGN_PRESSURE, String.format("pressure should stay below 10 bar, is %.1f", boiler.pressure()));
+            helper.succeed();
+        });
+    }
+
+    /** No trip, a boiler near its design pressure: the safety valve on top lifts and keeps the drum in one piece. */
+    private static void safetyValveSavesTheBoiler(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(3, 1, 1);
+        BoilerBlockEntity boiler = boiler(helper, pos, 6_000, 16);
+        boiler.setPressureTripOverride(false);
+        boiler.setTemperature(BoilerModel.BOILING);
+        boiler.setSteam(3_800); // 9.5 bar
+        helper.setBlock(pos.above(), SetpointContent.SAFETY_VALVE.get().defaultBlockState().setValue(SafetyValveBlock.FACING, Direction.UP));
+        SafetyValveBlockEntity psv = helper.getBlockEntity(pos.above(), SafetyValveBlockEntity.class);
+        boolean[] lifted = {false};
+        double[] peak = {0};
+        helper.onEachTick(() -> {
+            if (psv.lifting()) lifted[0] = true;
+            if (helper.getLevel().getBlockEntity(helper.absolutePos(pos)) instanceof BoilerBlockEntity b) peak[0] = Math.max(peak[0], b.pressure());
+        });
+        helper.runAfterDelay(200, () -> {
+            helper.assertBlockPresent(SetpointContent.BOILER.get(), pos);
+            helper.assertTrue(lifted[0], "the safety valve should have lifted");
+            helper.assertTrue(peak[0] < BoilerModel.DESIGN_PRESSURE + 0.5, String.format("pressure should top out at 10 bar, peaked at %.1f", peak[0]));
+            helper.succeed();
+        });
+    }
+
+    /** No trip, no safety valve: the pressure runs up to 13 bar and the drum bursts. */
+    private static void overpressureBurstsAnUnprotectedBoiler(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(3, 1, 1);
+        BoilerBlockEntity boiler = boiler(helper, pos, 6_000, 16);
+        boiler.setPressureTripOverride(false);
+        boiler.setTemperature(BoilerModel.BOILING);
+        boiler.setSteam(5_000); // 12.5 bar
+        helper.succeedWhen(() -> helper.assertBlockNotPresent(SetpointContent.BOILER.get(), pos));
+    }
+
+    /** A pressure transmitter on a boiler and a controller against it: a PIC that holds 7.5 bar by turning the burner down. */
+    private static void pressureControllerHoldsTheBoiler(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(3, 1, 1);
+        BoilerBlockEntity boiler = boiler(helper, pos, 6_000, 16);
+        boiler.setTemperature(BoilerModel.BOILING);
+        boiler.setSteam(2_000); // 5 bar
+        helper.setBlock(3, 1, 2, SetpointContent.PRESSURE_TRANSMITTER.get());
+        helper.setBlock(3, 1, 3, SetpointContent.CONTROLLER.get());
+        ControllerBlockEntity pic = helper.getBlockEntity(new BlockPos(3, 1, 3), ControllerBlockEntity.class);
+        helper.runAfterDelay(500, () -> {
+            helper.assertTrue(pic.mvTag().equals(boiler.tag()), "the controller should drive the boiler's burner, has '" + pic.mvTag() + "'");
+            helper.assertTrue(pic.measuresPressure(), "the controller should measure pressure");
+            helper.assertTrue(pic.mode() == PidController.Mode.AUTO, "the controller should be in AUTO");
+            helper.assertTrue(boiler.commanded(), "the burner should follow the controller");
+            helper.assertFalse(boiler.pressureTripped(), String.format("the boiler should never reach the trip, at %.1f bar", boiler.pressure()));
+            helper.assertTrue(Math.abs(boiler.pressure() - 7.5) < 0.6, String.format("pressure should hold near 7.5 bar, is %.1f", boiler.pressure()));
+            helper.succeed();
+        });
+    }
+
+    /** Seen from above a safety valve hides under its boiler, so the P&ID draws it in the free cell next to it. */
+    private static void pidShowsTheSafetyValveOnABoiler(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(3, 1, 1);
+        boiler(helper, pos, 0, 0);
+        helper.setBlock(pos.above(), SetpointContent.SAFETY_VALVE.get().defaultBlockState().setValue(SafetyValveBlock.FACING, Direction.UP));
+        helper.runAfterDelay(2, () -> {
+            var drawing = io.hookdev.setpoint.pid.PidCapture.capture(helper.getLevel(), helper.absolutePos(new BlockPos(2, 1, 0)), helper.absolutePos(new BlockPos(4, 1, 2))).drawing();
+            var symbols = drawing.cells().stream().map(io.hookdev.setpoint.pid.PidDrawing.Cell::symbol).toList();
+            helper.assertTrue(symbols.contains(io.hookdev.setpoint.pid.PidDrawing.BOILER), "the boiler should be drawn: " + symbols);
+            helper.assertTrue(symbols.contains(io.hookdev.setpoint.pid.PidDrawing.SAFETY_VALVE), "the safety valve should be drawn beside it: " + symbols);
+            helper.succeed();
+        });
     }
 
     /** Tank, pump, control valve, boiler; a controller against the boiler finds the feed valve and holds the drum at 50 %. */

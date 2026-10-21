@@ -146,7 +146,8 @@ public class FaceplateScreen extends AbstractContainerScreen<FaceplateMenu> {
         g.text(font, "OP", 52, 72, DIM, false);
         g.text(font, percent(menu.get(ControllerBlockEntity.DATA_OP)) + " %", 72, 72, TEXT, false);
         g.text(font, "OUTPUT", 52, 110, DIM, false);
-        g.text(font, "VALVE " + percent(menu.get(ControllerBlockEntity.DATA_VALVE)) + " %", 52, 140, DIM, false);
+        // a pressure loop moves the boiler's burner, not a valve
+        g.text(font, (menu.mvTag().startsWith("B-") ? "FIRING " : "VALVE ") + percent(menu.get(ControllerBlockEntity.DATA_VALVE)) + " %", 52, 140, DIM, false);
 
         // labels next to the button rows (rows start at y 26 and are 22 apart)
         g.text(font, "SP", 128, 55, DIM, false);

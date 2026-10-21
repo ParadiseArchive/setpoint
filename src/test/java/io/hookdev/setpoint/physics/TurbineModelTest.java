@@ -40,4 +40,12 @@ class TurbineModelTest {
         assertEquals(TurbineModel.power(TurbineModel.RATED_SPEED, TurbineModel.MAX_STEAM),
                 TurbineModel.power(TurbineModel.RATED_SPEED, TurbineModel.MAX_STEAM * 3));
     }
+
+    @Test
+    void lowPressureLetsLessSteamIn() {
+        assertEquals(0, TurbineModel.inletFlow(0));
+        assertEquals(TurbineModel.MAX_STEAM / 2, TurbineModel.inletFlow(TurbineModel.RATED_PRESSURE / 2));
+        assertEquals(TurbineModel.MAX_STEAM, TurbineModel.inletFlow(TurbineModel.RATED_PRESSURE));
+        assertEquals(TurbineModel.MAX_STEAM, TurbineModel.inletFlow(12), "more pressure does not push more through");
+    }
 }

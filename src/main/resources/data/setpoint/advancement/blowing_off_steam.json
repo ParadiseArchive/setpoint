@@ -1,0 +1,28 @@
+{
+  "parent": "setpoint:full_steam",
+  "criteria": {
+    "psv_lifted": {
+      "trigger": "setpoint:plant_event",
+      "conditions": {
+        "event": "psv_lifted"
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "setpoint:safety_valve"
+    },
+    "frame": "task",
+    "title": {
+      "translate": "advancements.setpoint.blowing_off_steam.title"
+    },
+    "description": {
+      "translate": "advancements.setpoint.blowing_off_steam.description"
+    }
+  },
+  "requirements": [
+    [
+      "psv_lifted"
+    ]
+  ]
+}

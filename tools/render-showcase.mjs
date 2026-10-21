@@ -261,6 +261,16 @@ render('dcs_console', [{ model: 'dcs_console', y: S }]);
 render('hand_valve', [{ model: 'hand_valve_open', y: 90 }], 6);
 render('water_intake', [{ model: 'water_intake' }]);
 render('flow_transmitter', [{ model: 'flow_transmitter', y: 90 }], 6);
+render('pressure_transmitter', [{ model: 'pressure_transmitter', y: S }]);
+render('safety_valve', [{ model: 'safety_valve' }], 6);
+// a protected boiler: turbine, boiler with a safety valve on top, pressure transmitter and its PIC
+render('pressure_plant', [
+  { model: 'steam_turbine_on', at: [0, 0, 0], y: S },
+  { model: 'boiler_on', at: [1, 0, 0], y: S },
+  { model: 'safety_valve_lifting', at: [1, 1, 0] },
+  { model: 'pressure_transmitter', at: [2, 0, 0], y: S },
+  { model: 'controller', at: [3, 0, 0], y: S },
+], 3);
 render('tall_tank', [{ model: 'tank_8', at: [0, 0, 0] }, { model: 'tank_8', at: [0, 1, 0] }, { model: 'tank_5', at: [0, 2, 0] }], 3);
 render('hookonium_ore', [{ model: 'hookonium_ore' }]);
 render('deepslate_hookonium_ore', [{ model: 'deepslate_hookonium_ore' }]);

@@ -10,7 +10,7 @@ import net.minecraft.world.entity.player.Inventory;
 
 /**
  * Boiler screen. Left: fuel slot with the flame above it. Then the drum level gauge with its trip mark,
- * the status display, and the steam gauge on the right.
+ * the status display, and the steam pressure gauge on the right with its trip and design marks.
  */
 public class BoilerScreen extends MachineScreen<BoilerMenu> {
     private static final int FLAME_X = 29, FLAME_Y = 33, FLAME = 12;
@@ -47,8 +47,17 @@ public class BoilerScreen extends MachineScreen<BoilerMenu> {
         }
 
         display(g, x + INFO_X, y + INFO_Y, INFO_W, INFO_H);
-        verticalGauge(g, x + STEAM_X, y + STEAM_Y, STEAM_W, STEAM_H,
-                menu.get(BoilerBlockEntity.DATA_STEAM) / (double) BoilerBlockEntity.STEAM_CAPACITY, TEXT);
+        double pressure = BoilerModel.pressure(menu.get(BoilerBlockEntity.DATA_STEAM));
+        verticalGauge(g, x + STEAM_X, y + STEAM_Y, STEAM_W, STEAM_H, pressure / BoilerModel.PRESSURE_RANGE,
+                pressure >= BoilerModel.DESIGN_PRESSURE ? MAGENTA : TEXT);
+        if (flag(BoilerBlockEntity.FLAG_HP_PROTECTED)) mark(g, x, y, BoilerModel.HP_TRIP, AMBER); // the high-pressure trip
+        mark(g, x, y, BoilerModel.DESIGN_PRESSURE, MAGENTA);
+    }
+
+    /** A line across the pressure gauge at this pressure. */
+    private void mark(GuiGraphicsExtractor g, int x, int y, double bar, int colour) {
+        int my = y + STEAM_Y + STEAM_H - 1 - (int) Math.round(bar / BoilerModel.PRESSURE_RANGE * (STEAM_H - 2));
+        g.fill(x + STEAM_X + 1, my, x + STEAM_X + STEAM_W - 1, my + 1, colour);
     }
 
     @Override
@@ -68,19 +77,24 @@ public class BoilerScreen extends MachineScreen<BoilerMenu> {
             status = "OVERHEAT"; detail = "drum is dry!"; colour = MAGENTA;
         } else if (flag(BoilerBlockEntity.FLAG_TRIPPED)) {
             status = "LOW WATER"; detail = "burner off"; colour = MAGENTA;
+        } else if (flag(BoilerBlockEntity.FLAG_HP_TRIPPED)) {
+            status = "HP TRIP"; detail = "burner off"; colour = AMBER;
         } else if (firing && boiled > 0) {
-            status = "STEAMING"; detail = boiled + " mB/t"; colour = CYAN;
+            status = "STEAMING"; detail = boiled + " mB/t" + (flag(BoilerBlockEntity.FLAG_COMMANDED) ? "  PIC" : ""); colour = CYAN;
         } else if (firing) {
             status = "HEATING"; detail = "warming up"; colour = TEXT;
         } else if (!hasFuel) {
             status = "ADD FUEL"; detail = "put coal in"; colour = AMBER;
         } else {
-            status = "IDLE"; detail = "steam full"; colour = DIM;
+            status = "IDLE"; detail = flag(BoilerBlockEntity.FLAG_COMMANDED) ? "PIC: fire off" : "burner off"; colour = DIM;
         }
-        int tx = INFO_X + 5, ty = INFO_Y + 5;
+        double pressure = BoilerModel.pressure(menu.get(BoilerBlockEntity.DATA_STEAM));
+        int tx = INFO_X + 5, ty = INFO_Y + 4;
         g.text(font, status, tx, ty, colour, false);
-        g.text(font, detail, tx, ty + 11, DIM, false);
-        g.text(font, Math.round(temperature) + " °C", tx, ty + 26, temperature > BoilerModel.OVERHEAT ? MAGENTA : TEXT, false);
-        g.text(font, "drum " + Math.round(water * 100.0 / BoilerBlockEntity.WATER_CAPACITY) + " %", tx, ty + 38, TEXT, false);
+        g.text(font, detail, tx, ty + 10, DIM, false);
+        g.text(font, String.format("%.1f bar", pressure), tx, ty + 22, pressure >= BoilerModel.DESIGN_PRESSURE ? MAGENTA
+                : pressure >= BoilerModel.HP_TRIP ? AMBER : TEXT, false);
+        g.text(font, Math.round(temperature) + " °C", tx, ty + 32, temperature > BoilerModel.OVERHEAT ? MAGENTA : TEXT, false);
+        g.text(font, "drum " + Math.round(water * 100.0 / BoilerBlockEntity.WATER_CAPACITY) + " %", tx, ty + 42, TEXT, false);
     }
 }
