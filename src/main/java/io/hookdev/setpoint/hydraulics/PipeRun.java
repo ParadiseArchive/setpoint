@@ -10,7 +10,6 @@ import org.jspecify.annotations.Nullable;
 
 import io.hookdev.setpoint.block.ControlValveBlock;
 import io.hookdev.setpoint.block.FluidPipeBlock;
-import io.hookdev.setpoint.block.TankBlock;
 import io.hookdev.setpoint.block.entity.ControlValveBlockEntity;
 
 import net.minecraft.core.BlockPos;
@@ -18,7 +17,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
-/** Traces a pipe run from one side of a pump to the nearest tank, through pipes and control valves. */
+/** Traces a pipe run from one side of a pump to the nearest vessel (tank, boiler), through pipes and control valves. */
 public final class PipeRun {
     /** Longer runs than this are not followed (keeps big networks cheap). */
     public static final int MAX_PIPES = 512;
@@ -53,7 +52,7 @@ public final class PipeRun {
         BlockPos first = pumpPos.relative(side);
         if (!level.isLoaded(first)) return null;
         BlockState firstState = level.getBlockState(first);
-        if (firstState.getBlock() instanceof TankBlock) return new End(first, 0, List.of());
+        if (firstState.getBlock() instanceof VesselBlock) return new End(first, 0, List.of());
         if (!passes(firstState, side)) return null;
 
         // Breadth first, so the first tank found is the closest one. Parents rebuild the path for the valves.
@@ -70,7 +69,7 @@ public final class PipeRun {
                 BlockPos next = current.relative(direction);
                 if (parent.containsKey(next) || !level.isLoaded(next)) continue;
                 BlockState state = level.getBlockState(next);
-                if (state.getBlock() instanceof TankBlock) {
+                if (state.getBlock() instanceof VesselBlock) {
                     return finish(level, next, current, parent);
                 }
                 if (passes(state, direction)) {

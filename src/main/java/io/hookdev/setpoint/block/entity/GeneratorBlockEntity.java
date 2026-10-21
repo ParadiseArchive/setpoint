@@ -6,7 +6,6 @@ import io.hookdev.setpoint.block.GeneratorBlock;
 import io.hookdev.setpoint.menu.GeneratorMenu;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.Containers;
@@ -29,8 +28,6 @@ import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.energy.SimpleEnergyHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
@@ -43,7 +40,7 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
  */
 public abstract class GeneratorBlockEntity extends BlockEntity implements MenuProvider {
     public static final int ENERGY_CAPACITY = 20_000;
-    public static final int PUSH_PER_SIDE = 1_000;
+    public static final int PUSH_PER_SIDE = EnergyPush.PER_SIDE;
 
     // Values shown on the screen (synced as shorts, all well below 32767)
     public static final int DATA_ENERGY = 0, DATA_RUN_LEFT = 1, DATA_RUN_TOTAL = 2, DATA_RUNNING = 3, DATA_COUNT = 4;
@@ -149,7 +146,7 @@ public abstract class GeneratorBlockEntity extends BlockEntity implements MenuPr
             runTicksLeft--;
             energy.set(stored + output());
         }
-        pushEnergy(level, pos);
+        EnergyPush.push(level, pos, energy);
 
         if (state.getValue(GeneratorBlock.LIT) != running) {
             level.setBlock(pos, state.setValue(GeneratorBlock.LIT, running), Block.UPDATE_CLIENTS);
@@ -159,24 +156,6 @@ public abstract class GeneratorBlockEntity extends BlockEntity implements MenuPr
 
     /** Small visual or sound cues while running. */
     protected void effects(ServerLevel level, BlockPos pos) {}
-
-    private void pushEnergy(Level level, BlockPos pos) {
-        for (Direction direction : Direction.values()) {
-            int available = energy.getAmountAsInt();
-            if (available <= 0) return;
-            BlockPos target = pos.relative(direction);
-            if (!level.isLoaded(target)) continue;
-            EnergyHandler handler = level.getCapability(Capabilities.Energy.BLOCK, target, direction.getOpposite());
-            if (handler == null || handler == energy) continue;
-            try (Transaction transaction = Transaction.openRoot()) {
-                int sent = handler.insert(Math.min(available, PUSH_PER_SIDE), transaction);
-                if (sent > 0) {
-                    transaction.commit();
-                    energy.set(available - sent);
-                }
-            }
-        }
-    }
 
     /** Puts as much of the held stack in as fits. Returns how many went in. */
     public int insertFromHand(ItemStack stack) {

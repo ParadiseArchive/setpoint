@@ -35,11 +35,16 @@ Easy by default, depth for those who want it. A normal Minecraft player must be 
 - [x] M1 · First machine: pipes, tank, centrifugal pump, cavitation when starved (playtested 20 Oct 2026)
 - [x] M2 · Control: control valve (FC/FO, trip), level transmitter, DCS controller with faceplate (PV/SP/OP, MAN/AUTO/CAS, HI/LO, tuning presets), field communicator. Playtested 20 Oct 2026; then made self-linking
 - [x] Power 1 · Stirling engine (any furnace fuel, coal is the sensible one, 20 FE/t) and biogas generator (anything compostable + rotten flesh, 30 FE/t). Both have a hopper-fed fuel slot, a 20k FE buffer, push FE to neighbours and only burn when the buffer has room.
-- [ ] Power 2 · Steam: coal-fired boiler + steam turbine. The boiler needs feed water: pump + level control (drum level loop), boiling dry has consequences (configurable).
+- [x] Power 2 · Steam (built 21 Oct 2026, playtest pending): coal-fired boiler (water drum 8 B, steam 4 B, heats to 100 °C in 10 s, 20 mB/t steam) and steam turbine (place against a boiler, spins up to 3000 rpm, 60 FE/t: three times the FE per coal of a Stirling engine). The drum is a Vessel, so pumps feed it and a controller against it holds the drum level by itself. Low-low level trip on by default (config `boiler.lowLevelTrip`); with it off a dry drum overheats and bursts, and water on a red-hot drum flashes.
 - [ ] Power 3 · Diesel generator, running on diesel from the M5 distillation column (late game).
 - [ ] M3 · Control room: DCS screen with overview, trends, alarms
 - [ ] M4 · Pressure: closed vessels, relief valve, overpressure consequences (configurable)
 - [ ] M5 · Distillation: multiblock column, reboiler, condenser
+
+## Code notes
+- `hydraulics/Vessel` (tank, boiler drum) + `VesselBlock` marker: pumps, pipe runs, controllers and transmitters work with any vessel.
+- Physics in plain classes with JUnit tests: `PumpModel`, `BoilerModel`, `TurbineModel`; control in `PidController`.
+- Config: `SetpointConfig` (ModConfig.Type.SYNCED; NeoForge 26.3 has no SERVER type).
 
 ## Power progression (decided 20 Oct 2026)
 Early Stirling engine / biogas, mid steam, late diesel from your own distillation. Gradual but no grind: every tier is built from normal vanilla materials, the next tier is better but never mandatory, the challenge is designing the plant, not gathering.

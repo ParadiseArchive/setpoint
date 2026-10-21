@@ -4,6 +4,7 @@ import org.jspecify.annotations.Nullable;
 
 import io.hookdev.setpoint.SetpointContent;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
+import io.hookdev.setpoint.hydraulics.VesselBlock;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
@@ -24,7 +25,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 
 /** Atmospheric storage tank. Click it with a bucket, use the bucket slots on its screen, or let a pump do the work. */
-public class TankBlock extends BaseEntityBlock {
+public class TankBlock extends BaseEntityBlock implements VesselBlock {
     /** Sight glass level in eighths. */
     public static final IntegerProperty LEVEL = IntegerProperty.create("level", 0, 8);
 

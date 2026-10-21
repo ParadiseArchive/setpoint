@@ -10,6 +10,7 @@ import io.hookdev.setpoint.control.PidController.Mode;
 import io.hookdev.setpoint.control.PidController.Tuning;
 import io.hookdev.setpoint.control.TagDirectory;
 import io.hookdev.setpoint.hydraulics.LoopFinder;
+import io.hookdev.setpoint.hydraulics.Vessel;
 import io.hookdev.setpoint.menu.FaceplateMenu;
 
 import net.minecraft.ChatFormatting;
@@ -163,9 +164,9 @@ public class ControllerBlockEntity extends InstrumentBlockEntity implements Menu
         if (level.getGameTime() % 20 == 0) setChanged();
     }
 
-    private @Nullable TankBlockEntity adjacentTank(Level level) {
+    private @Nullable Vessel adjacentTank(Level level) {
         for (Direction direction : Direction.values()) {
-            if (level.getBlockEntity(worldPosition.relative(direction)) instanceof TankBlockEntity tank) return tank;
+            if (level.getBlockEntity(worldPosition.relative(direction)) instanceof Vessel vessel) return vessel;
         }
         return null;
     }
@@ -177,13 +178,13 @@ public class ControllerBlockEntity extends InstrumentBlockEntity implements Menu
             Double measured = transmitter == null ? null : transmitter.percent();
             return measured == null ? Double.NaN : measured;
         }
-        TankBlockEntity tank = adjacentTank(level);
+        Vessel tank = adjacentTank(level);
         return tank == null ? Double.NaN : tank.fillFraction() * 100.0;
     }
 
     /** Self-linking: find the tank to measure and the valve that moves its level. */
     private void discover(Level level) {
-        TankBlockEntity tank = adjacentTank(level);
+        Vessel tank = adjacentTank(level);
         if (tank == null) {
             LevelTransmitterBlockEntity transmitter = pvTag.isEmpty()
                     ? TagDirectory.nearest(level, worldPosition, 8, LevelTransmitterBlockEntity.class)

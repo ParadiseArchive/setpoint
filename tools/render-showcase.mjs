@@ -189,6 +189,22 @@ render('controller', [{ model: 'controller', y: S }]);
 render('stirling_engine', [{ model: 'stirling_engine_on', y: S }]);
 render('biogas_generator', [{ model: 'biogas_generator_on', y: S }]);
 render('creative_generator', [{ model: 'creative_generator' }]);
+render('boiler', [{ model: 'boiler_on', y: S }]);
+render('steam_turbine', [{ model: 'steam_turbine_on', y: S }]);
+
+// steam: feed water tank -> pump -> control valve -> boiler with a turbine on top and the drum level controller beside it
+render('steam_plant', [
+  { model: 'tank_6', at: [0, 0, 0] },
+  ...pipe([1, 0, 0], [E, W_]),
+  { model: 'pump_running', at: [2, 0, 0], y: 90 },
+  { model: 'stirling_engine_on', at: [2, 1, 0], y: S },
+  ...pipe([3, 0, 0], [E, W_]),
+  { model: 'control_valve_2', at: [4, 0, 0], y: 90 },
+  ...pipe([5, 0, 0], [E, W_]),
+  { model: 'boiler_on', at: [6, 0, 0], y: S },
+  { model: 'steam_turbine_on', at: [6, 1, 0], y: S },
+  { model: 'controller', at: [7, 0, 0], y: S },
+], 3);
 
 // a small plant: tank -> pump -> control valve -> tank with its controller, powered by a Stirling engine
 render('plant', [

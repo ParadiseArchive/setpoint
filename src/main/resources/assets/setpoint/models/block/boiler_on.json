@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/orientable_with_bottom",
+  "textures": {
+    "front": "setpoint:block/boiler_front_on",
+    "side": "setpoint:block/boiler_side",
+    "top": "setpoint:block/boiler_top",
+    "bottom": "setpoint:block/boiler_bottom"
+  }
+}

@@ -1,5 +1,6 @@
 package io.hookdev.setpoint;
 
+import io.hookdev.setpoint.block.BoilerBlock;
 import io.hookdev.setpoint.block.ControlValveBlock;
 import io.hookdev.setpoint.block.ControllerBlock;
 import io.hookdev.setpoint.block.CreativeGeneratorBlock;
@@ -7,16 +8,20 @@ import io.hookdev.setpoint.block.FluidPipeBlock;
 import io.hookdev.setpoint.block.GeneratorBlock;
 import io.hookdev.setpoint.block.LevelTransmitterBlock;
 import io.hookdev.setpoint.block.PumpBlock;
+import io.hookdev.setpoint.block.SteamTurbineBlock;
 import io.hookdev.setpoint.block.TankBlock;
 import io.hookdev.setpoint.block.entity.BiogasGeneratorBlockEntity;
+import io.hookdev.setpoint.block.entity.BoilerBlockEntity;
 import io.hookdev.setpoint.block.entity.ControlValveBlockEntity;
 import io.hookdev.setpoint.block.entity.ControllerBlockEntity;
 import io.hookdev.setpoint.block.entity.CreativeGeneratorBlockEntity;
 import io.hookdev.setpoint.block.entity.LevelTransmitterBlockEntity;
 import io.hookdev.setpoint.block.entity.PumpBlockEntity;
+import io.hookdev.setpoint.block.entity.SteamTurbineBlockEntity;
 import io.hookdev.setpoint.block.entity.StirlingEngineBlockEntity;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
 import io.hookdev.setpoint.item.FieldCommunicatorItem;
+import io.hookdev.setpoint.menu.BoilerMenu;
 import io.hookdev.setpoint.menu.FaceplateMenu;
 import io.hookdev.setpoint.menu.GeneratorMenu;
 import io.hookdev.setpoint.menu.TankMenu;
@@ -73,6 +78,11 @@ public final class SetpointContent {
     public static final DeferredBlock<GeneratorBlock> BIOGAS_GENERATOR = BLOCKS.registerBlock("biogas_generator",
             p -> new GeneratorBlock(p, BiogasGeneratorBlockEntity::new, () -> SetpointContent.BIOGAS_GENERATOR_ENTITY.get()),
             p -> p.mapColor(MapColor.COLOR_GREEN).strength(3.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<BoilerBlock> BOILER = BLOCKS.registerBlock("boiler", BoilerBlock::new,
+            p -> p.mapColor(MapColor.COLOR_RED).strength(3.5f, 6.0f).sound(SoundType.METAL)
+                    .lightLevel(state -> state.getValue(BoilerBlock.LIT) ? 10 : 0));
+    public static final DeferredBlock<SteamTurbineBlock> STEAM_TURBINE = BLOCKS.registerBlock("steam_turbine", SteamTurbineBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(3.5f, 6.0f).sound(SoundType.METAL));
 
     public static final DeferredItem<BlockItem> PIPE_ITEM = ITEMS.registerSimpleBlockItem(PIPE);
     public static final DeferredItem<BlockItem> TANK_ITEM = ITEMS.registerSimpleBlockItem(TANK);
@@ -80,6 +90,8 @@ public final class SetpointContent {
     public static final DeferredItem<BlockItem> CREATIVE_GENERATOR_ITEM = ITEMS.registerSimpleBlockItem(CREATIVE_GENERATOR);
     public static final DeferredItem<BlockItem> STIRLING_ENGINE_ITEM = ITEMS.registerSimpleBlockItem(STIRLING_ENGINE);
     public static final DeferredItem<BlockItem> BIOGAS_GENERATOR_ITEM = ITEMS.registerSimpleBlockItem(BIOGAS_GENERATOR);
+    public static final DeferredItem<BlockItem> BOILER_ITEM = ITEMS.registerSimpleBlockItem(BOILER);
+    public static final DeferredItem<BlockItem> STEAM_TURBINE_ITEM = ITEMS.registerSimpleBlockItem(STEAM_TURBINE);
     public static final DeferredItem<BlockItem> LEVEL_TRANSMITTER_ITEM = ITEMS.registerSimpleBlockItem(LEVEL_TRANSMITTER);
     public static final DeferredItem<BlockItem> CONTROL_VALVE_ITEM = ITEMS.registerSimpleBlockItem(CONTROL_VALVE);
     public static final DeferredItem<BlockItem> CONTROLLER_ITEM = ITEMS.registerSimpleBlockItem(CONTROLLER);
@@ -104,6 +116,10 @@ public final class SetpointContent {
             () -> new BlockEntityType<>(StirlingEngineBlockEntity::new, STIRLING_ENGINE.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BiogasGeneratorBlockEntity>> BIOGAS_GENERATOR_ENTITY = BLOCK_ENTITIES.register("biogas_generator",
             () -> new BlockEntityType<>(BiogasGeneratorBlockEntity::new, BIOGAS_GENERATOR.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BoilerBlockEntity>> BOILER_ENTITY = BLOCK_ENTITIES.register("boiler",
+            () -> new BlockEntityType<>(BoilerBlockEntity::new, BOILER.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SteamTurbineBlockEntity>> STEAM_TURBINE_ENTITY = BLOCK_ENTITIES.register("steam_turbine",
+            () -> new BlockEntityType<>(SteamTurbineBlockEntity::new, STEAM_TURBINE.get()));
 
     public static final DeferredHolder<MenuType<?>, MenuType<FaceplateMenu>> FACEPLATE = MENUS.register("faceplate",
             () -> IMenuTypeExtension.create(FaceplateMenu::new));
@@ -111,6 +127,8 @@ public final class SetpointContent {
             () -> IMenuTypeExtension.create(GeneratorMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<TankMenu>> TANK_MENU = MENUS.register("tank",
             () -> IMenuTypeExtension.create(TankMenu::new));
+    public static final DeferredHolder<MenuType<?>, MenuType<BoilerMenu>> BOILER_MENU = MENUS.register("boiler",
+            () -> IMenuTypeExtension.create(BoilerMenu::new));
 
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> TAB = TABS.register("main", () -> CreativeModeTab.builder()
             .title(Component.translatable("itemGroup.setpoint"))
@@ -122,6 +140,8 @@ public final class SetpointContent {
                 output.accept(PUMP_ITEM.get());
                 output.accept(STIRLING_ENGINE_ITEM.get());
                 output.accept(BIOGAS_GENERATOR_ITEM.get());
+                output.accept(BOILER_ITEM.get());
+                output.accept(STEAM_TURBINE_ITEM.get());
                 output.accept(LEVEL_TRANSMITTER_ITEM.get());
                 output.accept(CONTROL_VALVE_ITEM.get());
                 output.accept(CONTROLLER_ITEM.get());

@@ -10,6 +10,7 @@ import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 
@@ -24,6 +25,7 @@ public class Setpoint {
 
     public Setpoint(IEventBus modEventBus, ModContainer modContainer) {
         SetpointContent.register(modEventBus);
+        modContainer.registerConfig(ModConfig.Type.SYNCED, SetpointConfig.SPEC);
         SetpointGameTests.register(modEventBus);
         modEventBus.addListener(Setpoint::registerCapabilities);
         LOGGER.info("Setpoint loaded. Holding steady.");
@@ -45,5 +47,9 @@ public class Setpoint {
         event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.BIOGAS_GENERATOR_ENTITY.get(), (generator, side) -> generator.energy());
         event.registerBlockEntity(Capabilities.Item.BLOCK, SetpointContent.STIRLING_ENGINE_ENTITY.get(), (generator, side) -> generator.input());
         event.registerBlockEntity(Capabilities.Item.BLOCK, SetpointContent.BIOGAS_GENERATOR_ENTITY.get(), (generator, side) -> generator.input());
+        // Boilers: pipes and buckets fill the water drum, hoppers feed the firebox. Turbines give FE to cables.
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, SetpointContent.BOILER_ENTITY.get(), (boiler, side) -> boiler.fluid());
+        event.registerBlockEntity(Capabilities.Item.BLOCK, SetpointContent.BOILER_ENTITY.get(), (boiler, side) -> boiler.fuel());
+        event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.STEAM_TURBINE_ENTITY.get(), (turbine, side) -> turbine.energy());
     }
 }

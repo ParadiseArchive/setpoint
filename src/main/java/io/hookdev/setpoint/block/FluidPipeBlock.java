@@ -3,6 +3,8 @@ package io.hookdev.setpoint.block;
 import java.util.Map;
 import java.util.function.Function;
 
+import io.hookdev.setpoint.hydraulics.VesselBlock;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
@@ -61,7 +63,7 @@ public class FluidPipeBlock extends Block {
     /** Whether a pipe at {@code pos} should connect towards {@code direction}. */
     public static boolean connectsTo(BlockGetter level, BlockPos pos, Direction direction) {
         BlockState neighbour = level.getBlockState(pos.relative(direction));
-        if (neighbour.getBlock() instanceof FluidPipeBlock || neighbour.getBlock() instanceof TankBlock) {
+        if (neighbour.getBlock() instanceof FluidPipeBlock || neighbour.getBlock() instanceof VesselBlock) {
             return true;
         }
         if (neighbour.getBlock() instanceof PumpBlock) {

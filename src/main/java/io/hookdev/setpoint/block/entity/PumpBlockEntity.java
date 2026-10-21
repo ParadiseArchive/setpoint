@@ -7,6 +7,7 @@ import io.hookdev.setpoint.block.EquipmentTag;
 import io.hookdev.setpoint.block.PumpBlock;
 import io.hookdev.setpoint.block.PumpStatus;
 import io.hookdev.setpoint.hydraulics.PipeRun;
+import io.hookdev.setpoint.hydraulics.Vessel;
 import io.hookdev.setpoint.physics.PumpModel;
 
 import net.minecraft.ChatFormatting;
@@ -79,8 +80,8 @@ public class PumpBlockEntity extends BlockEntity {
             suction = PipeRun.trace(level, pos, out.getOpposite());
             discharge = PipeRun.trace(level, pos, out);
         }
-        TankBlockEntity source = tankAt(level, suction);
-        TankBlockEntity destination = tankAt(level, discharge);
+        Vessel source = vesselAt(level, suction);
+        Vessel destination = vesselAt(level, discharge);
 
         double centreline = pos.getY() + 0.5;
         boolean hasSource = source != null && source.amount() > 0;
@@ -121,13 +122,13 @@ public class PumpBlockEntity extends BlockEntity {
         }
     }
 
-    private static @Nullable TankBlockEntity tankAt(Level level, PipeRun.@Nullable End end) {
+    private static @Nullable Vessel vesselAt(Level level, PipeRun.@Nullable End end) {
         if (end == null) return null;
-        return level.getBlockEntity(end.tankPos()) instanceof TankBlockEntity tank ? tank : null;
+        return level.getBlockEntity(end.tankPos()) instanceof Vessel vessel ? vessel : null;
     }
 
     /** Moves up to {@code amount} mB, all or nothing per batch. */
-    private static void transfer(TankBlockEntity source, TankBlockEntity destination, int amount) {
+    private static void transfer(Vessel source, Vessel destination, int amount) {
         FluidResource resource = source.resource();
         if (resource.isEmpty()) return;
         try (Transaction transaction = Transaction.openRoot()) {

@@ -1,0 +1,9 @@
+{
+  "parent": "minecraft:block/orientable_with_bottom",
+  "textures": {
+    "front": "setpoint:block/turbine_front",
+    "side": "setpoint:block/turbine_side",
+    "top": "setpoint:block/turbine_top",
+    "bottom": "setpoint:block/turbine_top"
+  }
+}

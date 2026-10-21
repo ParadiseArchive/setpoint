@@ -1,6 +1,7 @@
 package io.hookdev.setpoint.block.entity;
 
 import io.hookdev.setpoint.SetpointContent;
+import io.hookdev.setpoint.hydraulics.Vessel;
 
 import org.jspecify.annotations.Nullable;
 
@@ -17,17 +18,17 @@ public class LevelTransmitterBlockEntity extends InstrumentBlockEntity {
         super(SetpointContent.LEVEL_TRANSMITTER_ENTITY.get(), pos, state, "LT");
     }
 
-    public @Nullable TankBlockEntity tank() {
+    public @Nullable Vessel tank() {
         if (level == null) return null;
         for (Direction direction : Direction.values()) {
-            if (level.getBlockEntity(worldPosition.relative(direction)) instanceof TankBlockEntity tank) return tank;
+            if (level.getBlockEntity(worldPosition.relative(direction)) instanceof Vessel vessel) return vessel;
         }
         return null;
     }
 
     /** Level in percent, or null when the transmitter is not on a tank (a bad PV). */
     public @Nullable Double percent() {
-        TankBlockEntity tank = tank();
+        Vessel tank = tank();
         return tank == null ? null : tank.fillFraction() * 100.0;
     }
 

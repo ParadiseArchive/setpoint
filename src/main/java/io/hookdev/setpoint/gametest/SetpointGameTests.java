@@ -10,11 +10,13 @@ import io.hookdev.setpoint.block.ControlValveBlock;
 import io.hookdev.setpoint.block.PumpBlock;
 import io.hookdev.setpoint.block.PumpStatus;
 import io.hookdev.setpoint.block.entity.BiogasGeneratorBlockEntity;
+import io.hookdev.setpoint.block.entity.BoilerBlockEntity;
 import io.hookdev.setpoint.block.entity.ControlValveBlockEntity;
 import io.hookdev.setpoint.block.entity.ControllerBlockEntity;
 import io.hookdev.setpoint.block.entity.LevelTransmitterBlockEntity;
 import io.hookdev.setpoint.block.entity.GeneratorBlockEntity;
 import io.hookdev.setpoint.block.entity.PumpBlockEntity;
+import io.hookdev.setpoint.block.entity.SteamTurbineBlockEntity;
 import io.hookdev.setpoint.block.entity.StirlingEngineBlockEntity;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
 import io.hookdev.setpoint.control.PidController;
@@ -63,6 +65,11 @@ public final class SetpointGameTests {
         test("biogas_generator_runs_on_seeds", SetpointGameTests::biogasGeneratorRunsOnSeeds, 200);
         test("generator_keeps_fuel_when_idle", SetpointGameTests::generatorKeepsFuelWhenIdle, 200);
         test("tank_bucket_slots", SetpointGameTests::tankBucketSlots, 100);
+        test("boiler_and_turbine_make_power", SetpointGameTests::boilerAndTurbineMakePower, 800);
+        test("low_drum_level_trips_the_burner", SetpointGameTests::lowDrumLevelTripsTheBurner, 200);
+        test("dry_boiler_bursts_without_protection", SetpointGameTests::dryBoilerBurstsWithoutProtection, 100);
+        test("water_on_a_red_hot_drum_flashes", SetpointGameTests::waterOnARedHotDrumFlashes, 100);
+        test("controller_holds_the_drum_level", SetpointGameTests::controllerHoldsTheDrumLevel, 2400);
     }
 
     private static void test(String name, Consumer<GameTestHelper> function, int maxTicks) {
@@ -330,6 +337,76 @@ public final class SetpointGameTests {
         helper.runAfterDelay(10, () -> {
             helper.assertTrue(tank.amount() == 1_000, "filling a bucket should take 1000 mB, left " + tank.amount());
             helper.assertTrue(tank.buckets().getResource(TankBlockEntity.SLOT_OUT).is(Items.WATER_BUCKET), "a water bucket expected in the output");
+            helper.succeed();
+        });
+    }
+
+    // ---------- steam ----------
+
+    private static BoilerBlockEntity boiler(GameTestHelper helper, BlockPos pos, int water, int coal) {
+        helper.setBlock(pos, SetpointContent.BOILER.get());
+        BoilerBlockEntity boiler = helper.getBlockEntity(pos, BoilerBlockEntity.class);
+        if (water > 0) boiler.fluid().set(0, FluidResource.of(Fluids.WATER), water);
+        if (coal > 0) boiler.insertFromHand(new ItemStack(Items.COAL, coal));
+        return boiler;
+    }
+
+    private static void boilerAndTurbineMakePower(GameTestHelper helper) {
+        BoilerBlockEntity boiler = boiler(helper, new BlockPos(1, 1, 1), 8_000, 8);
+        helper.setBlock(2, 1, 1, SetpointContent.STEAM_TURBINE.get());
+        SteamTurbineBlockEntity turbine = helper.getBlockEntity(new BlockPos(2, 1, 1), SteamTurbineBlockEntity.class);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(boiler.temperature() >= 100, "boiler should be boiling");
+            helper.assertTrue(turbine.speed() > 2_500, String.format("turbine should be near rated speed, is %.0f rpm", turbine.speed()));
+            helper.assertTrue(turbine.energy().getAmountAsInt() > 0, "turbine should make FE");
+        });
+    }
+
+    private static void lowDrumLevelTripsTheBurner(GameTestHelper helper) {
+        BoilerBlockEntity boiler = boiler(helper, new BlockPos(1, 1, 1), 400, 4);
+        helper.runAfterDelay(100, () -> {
+            helper.assertTrue(boiler.tripped(), "5 % drum level should trip the burner");
+            helper.assertFalse(boiler.firing(), "a tripped burner must not fire");
+            helper.assertTrue(boiler.fuel().getAmountAsInt(0) == 4, "no coal should be burnt while tripped");
+            helper.succeed();
+        });
+    }
+
+    private static void dryBoilerBurstsWithoutProtection(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(3, 1, 1);
+        BoilerBlockEntity boiler = boiler(helper, pos, 0, 4);
+        boiler.setProtectionOverride(false);
+        boiler.setTemperature(440);
+        helper.succeedWhen(() -> helper.assertBlockNotPresent(SetpointContent.BOILER.get(), pos));
+    }
+
+    private static void waterOnARedHotDrumFlashes(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(3, 1, 1);
+        BoilerBlockEntity boiler = boiler(helper, pos, 0, 0);
+        boiler.setProtectionOverride(false);
+        boiler.setTemperature(300);
+        boiler.fluid().set(0, FluidResource.of(Fluids.WATER), 1_000);
+        helper.succeedWhen(() -> helper.assertBlockNotPresent(SetpointContent.BOILER.get(), pos));
+    }
+
+    /** Tank, pump, control valve, boiler; a controller against the boiler finds the feed valve and holds the drum at 50 %. */
+    private static void controllerHoldsTheDrumLevel(GameTestHelper helper) {
+        helper.setBlock(SOURCE, SetpointContent.TANK.get());
+        helper.setBlock(2, 1, 1, SetpointContent.PUMP.get().defaultBlockState().setValue(PumpBlock.FACING, Direction.EAST));
+        helper.setBlock(3, 1, 1, SetpointContent.CONTROL_VALVE.get().defaultBlockState().setValue(ControlValveBlock.AXIS, Direction.Axis.X));
+        helper.setBlock(2, 0, 1, SetpointContent.CREATIVE_GENERATOR.get());
+        BoilerBlockEntity boiler = boiler(helper, new BlockPos(4, 1, 1), 2_400, 16);
+        helper.setBlock(4, 2, 1, SetpointContent.STEAM_TURBINE.get());
+        helper.setBlock(4, 1, 0, SetpointContent.CONTROLLER.get());
+        ControllerBlockEntity lic = helper.getBlockEntity(new BlockPos(4, 1, 0), ControllerBlockEntity.class);
+        ControlValveBlockEntity lv = helper.getBlockEntity(new BlockPos(3, 1, 1), ControlValveBlockEntity.class);
+        helper.onEachTick(() -> fill(helper, SOURCE, 16_000)); // an endless supply of feed water
+
+        helper.runAfterDelay(2_000, () -> {
+            helper.assertTrue(lic.mvTag().equals(lv.tag()), "controller should have found the feed valve, has '" + lic.mvTag() + "'");
+            helper.assertTrue(lic.mode() == PidController.Mode.AUTO, "controller should be in AUTO");
+            helper.assertTrue(Math.abs(lic.pv() - 50) < 5, String.format("drum level should hold at 50 %%, is %.1f %%", lic.pv()));
+            helper.assertFalse(boiler.tripped(), "boiler should not trip");
             helper.succeed();
         });
     }

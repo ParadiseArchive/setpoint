@@ -418,6 +418,91 @@ for (const name of ['stirling_engine', 'biogas_generator']) {
 recipe('stirling_engine', [' C ', 'IPI', 'III'], { C: 'minecraft:copper_ingot', I: 'minecraft:iron_ingot', P: 'minecraft:piston' }, 'setpoint:stirling_engine');
 recipe('biogas_generator', ['IGI', 'CXC', 'III'], { I: 'minecraft:iron_ingot', G: 'minecraft:glass', C: 'minecraft:copper_ingot', X: 'minecraft:composter' }, 'setpoint:biogas_generator');
 
+// =====================================================================================
+// Power 2: coal-fired boiler and steam turbine
+// =====================================================================================
+
+// firebrick lower half, steel water drum upper half
+function brick(p, y0, y1) {
+  const B = { mortar: '#3a2a24', b0: '#6b3324', b1: '#8a4330', b2: '#a5543b' };
+  p.rect(0, y0, 16, y1 - y0, B.mortar);
+  for (let y = y0, row = 0; y < y1; y += 3, row++) {
+    for (let x = row % 2 ? -4 : 0; x < 16; x += 8) {
+      p.rect(Math.max(0, x), y, Math.min(7, x + 7) - Math.max(0, x), 2, row % 3 === 0 ? B.b2 : B.b1);
+      if (x + 1 >= 0) p.set(Math.max(0, x + 1), y, '#b86a4e');
+    }
+  }
+}
+function drum(p) {
+  p.rect(0, 0, 16, 8, C.steel2);
+  p.rect(0, 0, 16, 1, C.steel3); p.rect(0, 7, 16, 1, C.steel0);
+  rivets(p, [[1, 2], [13, 2]]);
+}
+texture('boiler_side', (p) => {
+  drum(p); brick(p, 8, 16);
+  p.rect(6, 1, 4, 6, C.steel1); p.rect(7, 2, 2, 4, C.glass); p.rect(7, 4, 2, 2, C.water); // gauge glass
+});
+function boilerFront(lit) {
+  return (p) => {
+    drum(p); brick(p, 8, 16);
+    p.rect(2, 1, 5, 5, C.outline); p.rect(3, 2, 3, 3, '#e8e8e8'); p.set(4, 3, C.magenta); p.set(5, 2, C.outline); // pressure gauge
+    p.rect(10, 2, 4, 3, C.amber); p.rect(11, 3, 2, 1, '#c98a2c');      // nameplate
+    p.rect(4, 9, 8, 6, C.outline);                                        // firebox door
+    p.rect(5, 10, 6, 4, lit ? '#c2451a' : '#22252c');
+    if (lit) { p.rect(6, 11, 4, 3, '#f07a2a'); p.rect(7, 12, 2, 2, '#ffc06a'); }
+    for (const x of [6, 8, 10]) p.rect(x, 10, 1, 4, lit ? '#7a2a10' : C.steel0); // grate bars
+  };
+}
+texture('boiler_front', boilerFront(false));
+texture('boiler_front_on', boilerFront(true));
+texture('boiler_top', (p) => {
+  plate(p);
+  p.rect(5, 5, 6, 6, C.steel0); p.rect(6, 6, 4, 4, C.steel3); p.rect(7, 7, 2, 2, C.steel1); // steam outlet
+  p.rect(2, 2, 2, 2, C.amber);                                                          // safety valve
+  rivets(p, [[12, 2], [2, 12], [12, 12]]);
+});
+texture('boiler_bottom', (p) => brick(p, 0, 16));
+
+// steam turbine: casing with ribs, a generator end with a status light
+texture('turbine_side', (p) => {
+  plate(p, C.steel2);
+  p.rect(1, 4, 14, 8, C.steel1);                                 // rotor casing
+  for (let x = 2; x < 15; x += 3) p.rect(x, 4, 1, 8, C.steel3);   // ribs
+  p.rect(1, 7, 14, 2, C.steel0);                                  // split line
+  rivets(p, [[1, 1], [13, 1], [1, 13], [13, 13]]);
+});
+function turbineFront(led, ledDark) {
+  return (p) => {
+    plate(p, C.steel1);
+    p.rect(3, 3, 10, 10, C.steel0); p.rect(4, 4, 8, 8, C.steel2);  // bearing housing
+    p.rect(6, 6, 4, 4, C.steel3); p.rect(7, 7, 2, 2, C.outline);    // shaft end
+    p.rect(2, 13, 2, 2, ledDark); p.set(2, 13, led);                // status light
+    p.rect(6, 13, 7, 2, C.amber); p.rect(7, 14, 5, 1, '#c98a2c');   // nameplate
+  };
+}
+texture('turbine_front', turbineFront(C.ledOff, C.outline));
+texture('turbine_front_on', turbineFront(C.cyan, C.cyanDark));
+texture('turbine_top', (p) => {
+  plate(p, C.steel2);
+  p.rect(4, 4, 8, 8, C.steel0); p.rect(5, 5, 6, 6, C.cu2); p.rect(6, 6, 4, 4, C.cu1); // steam inlet flange
+  rivets(p, [[1, 1], [13, 1], [1, 13], [13, 13]]);
+});
+
+for (const on of [false, true]) {
+  M('boiler' + (on ? '_on' : ''), { parent: 'minecraft:block/orientable_with_bottom',
+    textures: { front: tex(on ? 'boiler_front_on' : 'boiler_front'), side: tex('boiler_side'), top: tex('boiler_top'), bottom: tex('boiler_bottom') } });
+  M('steam_turbine' + (on ? '_on' : ''), { parent: 'minecraft:block/orientable_with_bottom',
+    textures: { front: tex(on ? 'turbine_front_on' : 'turbine_front'), side: tex('turbine_side'), top: tex('turbine_top'), bottom: tex('turbine_top') } });
+}
+BS('boiler', { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => [false, true].map((lit) =>
+  [`facing=${f},lit=${lit}`, { model: 'setpoint:block/boiler' + (lit ? '_on' : ''), ...(y ? { y } : {}) }]))) });
+BS('steam_turbine', { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => [false, true].map((run) =>
+  [`facing=${f},running=${run}`, { model: 'setpoint:block/steam_turbine' + (run ? '_on' : ''), ...(y ? { y } : {}) }]))) });
+item('boiler', 'setpoint:block/boiler_on');
+item('steam_turbine', 'setpoint:block/steam_turbine_on');
+recipe('boiler', ['CCC', 'I I', 'IFI'], { C: 'minecraft:copper_ingot', I: 'minecraft:iron_ingot', F: 'minecraft:furnace' }, 'setpoint:boiler');
+recipe('steam_turbine', ['III', 'CPC', 'IRI'], { I: 'minecraft:iron_ingot', C: 'minecraft:copper_ingot', P: 'minecraft:piston', R: 'minecraft:redstone' }, 'setpoint:steam_turbine');
+
 // ---------- empty game test structure (NBT) ----------
 function nbt() {
   const parts = [];

@@ -1,6 +1,7 @@
 package io.hookdev.setpoint.block.entity;
 
 import io.hookdev.setpoint.SetpointContent;
+import io.hookdev.setpoint.hydraulics.Vessel;
 import io.hookdev.setpoint.block.EquipmentTag;
 import io.hookdev.setpoint.block.TankBlock;
 import io.hookdev.setpoint.menu.TankMenu;
@@ -36,7 +37,7 @@ import net.neoforged.neoforge.transfer.item.ItemStacksResourceHandler;
  * The screen has a bucket slot: a full bucket is emptied into the tank, an empty one is filled from it,
  * and the result lands in the output slot.
  */
-public class TankBlockEntity extends BlockEntity implements MenuProvider {
+public class TankBlockEntity extends BlockEntity implements MenuProvider, Vessel {
     public static final int CAPACITY = 16_000;
     public static final int BUCKET = 1_000;
     public static final int SLOT_IN = 0, SLOT_OUT = 1;
@@ -110,11 +111,6 @@ public class TankBlockEntity extends BlockEntity implements MenuProvider {
 
     public double fillFraction() {
         return amount() / (double) CAPACITY;
-    }
-
-    /** Height of the liquid surface in the world, in blocks. */
-    public double surfaceY() {
-        return getBlockPos().getY() + fillFraction();
     }
 
     public boolean canAccept(FluidResource incoming) {

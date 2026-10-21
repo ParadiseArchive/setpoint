@@ -10,5 +10,7 @@
   "block.setpoint.controller": "DCS Controller",
   "item.setpoint.field_communicator": "Field Communicator",
   "block.setpoint.stirling_engine": "Stirling Engine",
-  "block.setpoint.biogas_generator": "Biogas Generator"
+  "block.setpoint.biogas_generator": "Biogas Generator",
+  "block.setpoint.boiler": "Boiler",
+  "block.setpoint.steam_turbine": "Steam Turbine"
 }
