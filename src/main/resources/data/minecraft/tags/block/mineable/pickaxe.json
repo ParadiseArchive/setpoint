@@ -11,6 +11,7 @@
     "setpoint:biogas_generator",
     "setpoint:boiler",
     "setpoint:steam_turbine",
+    "setpoint:dcs_console",
     "setpoint:hookonium_ore",
     "setpoint:deepslate_hookonium_ore",
     "setpoint:hookonium_block",

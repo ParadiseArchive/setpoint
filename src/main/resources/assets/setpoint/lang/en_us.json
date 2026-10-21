@@ -18,5 +18,7 @@
   "block.setpoint.hookonium_block": "Block of Hookonium",
   "block.setpoint.raw_hookonium_block": "Block of Raw Hookonium",
   "item.setpoint.raw_hookonium": "Raw Hookonium",
-  "item.setpoint.hookonium_ingot": "Hookonium Ingot"
+  "item.setpoint.hookonium_ingot": "Hookonium Ingot",
+  "block.setpoint.dcs_console": "DCS Console",
+  "subtitles.setpoint.block.dcs_console.alarm": "Control room alarm"
 }

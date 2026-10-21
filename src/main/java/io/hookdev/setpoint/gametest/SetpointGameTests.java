@@ -10,7 +10,10 @@ import io.hookdev.setpoint.block.ControlValveBlock;
 import io.hookdev.setpoint.block.PumpBlock;
 import io.hookdev.setpoint.block.PumpStatus;
 import io.hookdev.setpoint.block.entity.BiogasGeneratorBlockEntity;
+import io.hookdev.setpoint.block.ConsoleBlock;
 import io.hookdev.setpoint.block.entity.BoilerBlockEntity;
+import io.hookdev.setpoint.block.entity.ConsoleBlockEntity;
+import io.hookdev.setpoint.control.AlarmList;
 import io.hookdev.setpoint.block.entity.ControlValveBlockEntity;
 import io.hookdev.setpoint.block.entity.ControllerBlockEntity;
 import io.hookdev.setpoint.block.entity.LevelTransmitterBlockEntity;
@@ -79,6 +82,7 @@ public final class SetpointGameTests {
         test("raw_hookonium_smelts_into_an_ingot", SetpointGameTests::rawHookoniumSmeltsIntoAnIngot, 400);
         test("hookonium_generates_in_the_overworld", SetpointGameTests::hookoniumGeneratesInTheOverworld, 20);
         test("machines_drop_themselves", SetpointGameTests::machinesDropThemselves, 20);
+        test("console_raises_and_acknowledges_alarms", SetpointGameTests::consoleRaisesAndAcknowledgesAlarms, 200);
     }
 
     private static void test(String name, Consumer<GameTestHelper> function, int maxTicks) {
@@ -475,5 +479,29 @@ public final class SetpointGameTests {
             helper.assertTrue(drops.size() == 1 && drops.get(0).is(block.get().asItem()), block.getId() + " should drop itself, got " + drops);
         }
         helper.succeed();
+    }
+
+    // ---------- control room ----------
+
+    /** A pump on an empty tank runs dry: the console sees it, raises an alarm, flashes, and calms down after an acknowledge. */
+    private static void consoleRaisesAndAcknowledgesAlarms(GameTestHelper helper) {
+        buildLine(helper, false); // source tank left empty
+        BlockPos pos = new BlockPos(3, 1, 2);
+        helper.setBlock(pos, SetpointContent.CONSOLE.get());
+        ConsoleBlockEntity console = helper.getBlockEntity(pos, ConsoleBlockEntity.class);
+        helper.runAfterDelay(60, () -> {
+            helper.assertTrue(console.readings().stream().anyMatch(r -> r.kind().equals("PUMP") && r.status().equals("DRY RUN")),
+                    "the console should list the pump as running dry, has " + console.readings());
+            helper.assertTrue(console.readings().stream().filter(r -> r.kind().equals("TANK")).count() >= 2, "both tanks should be listed");
+            helper.assertTrue(console.alarms().list().stream().anyMatch(a -> a.message().equals("DRY RUN") && a.state() == AlarmList.State.ACTIVE_UNACK),
+                    "a new DRY RUN alarm expected");
+            helper.assertBlockProperty(pos, ConsoleBlock.ALARM, true);
+            console.acknowledge();
+            helper.runAfterDelay(5, () -> {
+                helper.assertFalse(console.alarms().hasUnacknowledged(), "everything should be acknowledged");
+                helper.assertBlockProperty(pos, ConsoleBlock.ALARM, false);
+                helper.succeed();
+            });
+        });
     }
 }

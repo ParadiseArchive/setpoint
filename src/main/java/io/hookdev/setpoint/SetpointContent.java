@@ -1,6 +1,7 @@
 package io.hookdev.setpoint;
 
 import io.hookdev.setpoint.block.BoilerBlock;
+import io.hookdev.setpoint.block.ConsoleBlock;
 import io.hookdev.setpoint.block.ControlValveBlock;
 import io.hookdev.setpoint.block.ControllerBlock;
 import io.hookdev.setpoint.block.CreativeGeneratorBlock;
@@ -12,6 +13,7 @@ import io.hookdev.setpoint.block.SteamTurbineBlock;
 import io.hookdev.setpoint.block.TankBlock;
 import io.hookdev.setpoint.block.entity.BiogasGeneratorBlockEntity;
 import io.hookdev.setpoint.block.entity.BoilerBlockEntity;
+import io.hookdev.setpoint.block.entity.ConsoleBlockEntity;
 import io.hookdev.setpoint.block.entity.ControlValveBlockEntity;
 import io.hookdev.setpoint.block.entity.ControllerBlockEntity;
 import io.hookdev.setpoint.block.entity.CreativeGeneratorBlockEntity;
@@ -22,6 +24,7 @@ import io.hookdev.setpoint.block.entity.StirlingEngineBlockEntity;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
 import io.hookdev.setpoint.item.FieldCommunicatorItem;
 import io.hookdev.setpoint.menu.BoilerMenu;
+import io.hookdev.setpoint.menu.ConsoleMenu;
 import io.hookdev.setpoint.menu.FaceplateMenu;
 import io.hookdev.setpoint.menu.GeneratorMenu;
 import io.hookdev.setpoint.menu.TankMenu;
@@ -60,6 +63,9 @@ public final class SetpointContent {
     /** Crackling vapour bubbles collapsing in the impeller (sound files listed in sounds.json). */
     public static final DeferredHolder<SoundEvent, SoundEvent> PUMP_CAVITATE = SOUNDS.register("block.centrifugal_pump.cavitate",
             SoundEvent::createVariableRangeEvent);
+    /** A soft two-tone chime for new alarms in the control room. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> CONSOLE_ALARM = SOUNDS.register("block.dcs_console.alarm",
+            SoundEvent::createVariableRangeEvent);
 
     public static final DeferredBlock<FluidPipeBlock> PIPE = BLOCKS.registerBlock("pipe", FluidPipeBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(2.0f, 6.0f).sound(SoundType.COPPER).noOcclusion());
@@ -89,6 +95,9 @@ public final class SetpointContent {
     public static final DeferredBlock<SteamTurbineBlock> STEAM_TURBINE = BLOCKS.registerBlock("steam_turbine", SteamTurbineBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(3.5f, 6.0f).sound(SoundType.METAL));
 
+    public static final DeferredBlock<ConsoleBlock> CONSOLE = BLOCKS.registerBlock("dcs_console", ConsoleBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL).lightLevel(state -> 4));
+
     // Hookonium: endgame ore, as rare as diamond, mined with a diamond pickaxe
     public static final DeferredBlock<DropExperienceBlock> HOOKONIUM_ORE = BLOCKS.registerBlock("hookonium_ore",
             p -> new DropExperienceBlock(UniformInt.of(3, 7), p),
@@ -112,6 +121,7 @@ public final class SetpointContent {
     public static final DeferredItem<BlockItem> LEVEL_TRANSMITTER_ITEM = ITEMS.registerSimpleBlockItem(LEVEL_TRANSMITTER);
     public static final DeferredItem<BlockItem> CONTROL_VALVE_ITEM = ITEMS.registerSimpleBlockItem(CONTROL_VALVE);
     public static final DeferredItem<BlockItem> CONTROLLER_ITEM = ITEMS.registerSimpleBlockItem(CONTROLLER);
+    public static final DeferredItem<BlockItem> CONSOLE_ITEM = ITEMS.registerSimpleBlockItem(CONSOLE);
     public static final DeferredItem<BlockItem> HOOKONIUM_ORE_ITEM = ITEMS.registerSimpleBlockItem(HOOKONIUM_ORE);
     public static final DeferredItem<BlockItem> DEEPSLATE_HOOKONIUM_ORE_ITEM = ITEMS.registerSimpleBlockItem(DEEPSLATE_HOOKONIUM_ORE);
     public static final DeferredItem<BlockItem> HOOKONIUM_BLOCK_ITEM = ITEMS.registerSimpleBlockItem(HOOKONIUM_BLOCK, p -> p.rarity(Rarity.RARE));
@@ -141,6 +151,8 @@ public final class SetpointContent {
             () -> new BlockEntityType<>(BiogasGeneratorBlockEntity::new, BIOGAS_GENERATOR.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BoilerBlockEntity>> BOILER_ENTITY = BLOCK_ENTITIES.register("boiler",
             () -> new BlockEntityType<>(BoilerBlockEntity::new, BOILER.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ConsoleBlockEntity>> CONSOLE_ENTITY = BLOCK_ENTITIES.register("dcs_console",
+            () -> new BlockEntityType<>(ConsoleBlockEntity::new, CONSOLE.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SteamTurbineBlockEntity>> STEAM_TURBINE_ENTITY = BLOCK_ENTITIES.register("steam_turbine",
             () -> new BlockEntityType<>(SteamTurbineBlockEntity::new, STEAM_TURBINE.get()));
 
@@ -150,6 +162,8 @@ public final class SetpointContent {
             () -> IMenuTypeExtension.create(GeneratorMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<TankMenu>> TANK_MENU = MENUS.register("tank",
             () -> IMenuTypeExtension.create(TankMenu::new));
+    public static final DeferredHolder<MenuType<?>, MenuType<ConsoleMenu>> CONSOLE_MENU = MENUS.register("dcs_console",
+            () -> IMenuTypeExtension.create(ConsoleMenu::new));
     public static final DeferredHolder<MenuType<?>, MenuType<BoilerMenu>> BOILER_MENU = MENUS.register("boiler",
             () -> IMenuTypeExtension.create(BoilerMenu::new));
 
@@ -168,6 +182,7 @@ public final class SetpointContent {
                 output.accept(LEVEL_TRANSMITTER_ITEM.get());
                 output.accept(CONTROL_VALVE_ITEM.get());
                 output.accept(CONTROLLER_ITEM.get());
+                output.accept(CONSOLE_ITEM.get());
                 output.accept(FIELD_COMMUNICATOR.get());
                 output.accept(CREATIVE_GENERATOR_ITEM.get());
                 output.accept(HOOKONIUM_ORE_ITEM.get());

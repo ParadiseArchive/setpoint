@@ -108,6 +108,7 @@ public class ControllerBlockEntity extends InstrumentBlockEntity implements Menu
 
     public ContainerData data() { return data; }
     public double output() { return pid.output(); }
+    public int alarms() { return alarms; }
     public double setpoint() { return sp; }
     public Mode mode() { return mode; }
     public String pvTag() { return pvTag; }

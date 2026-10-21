@@ -39,7 +39,7 @@ Easy by default, depth for those who want it. A normal Minecraft player must be 
 - [x] Ore · Hookonium (built 21 Oct 2026, playtest pending): endgame ore, purple. Stone and deepslate variants, needs a diamond pickaxe, drops Raw Hookonium (Fortune works, Silk Touch gives the ore, 3 to 7 XP), smelts or blasts into a Hookonium Ingot (1 XP). Storage blocks for ingots and raw. Worldgen copies diamond's four vein types exactly (small/medium/large/buried, y 16 to bedrock) through a NeoForge biome modifier on #minecraft:is_overworld. The ore model lays a transparent overlay over vanilla stone/deepslate textures (no Mojang textures copied into the mod).
 - [ ] Endgame · Hookonium machines: to be designed with the owner.
 - [ ] Power 3 · Diesel generator, running on diesel from the M5 distillation column (late game).
-- [ ] M3 · Control room: DCS screen with overview, trends, alarms
+- [x] M3 · Control room (built 21 Oct 2026, playtest pending): DCS console block. Scans all equipment within 32 blocks every second (console/PlantScanner reads each block entity into a Reading), keeps 5 min trends per tag (TrendBuffer), runs an ISA-style alarm list (AlarmList: NEW / ACK / RTN). New alarms chime (note bell, quiet) and the console front flashes (animated texture) until ACK. Screen tabs OVERVIEW / TRENDS / ALARMS; a selected controller opens its faceplate from the console. Live data goes to the open screen as a ConsoleSnapshot payload twice a second.
 - [ ] M4 · Pressure: closed vessels, relief valve, overpressure consequences (configurable)
 - [ ] M5 · Distillation: multiblock column, reboiler, condenser
 

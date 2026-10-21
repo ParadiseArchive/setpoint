@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import com.mojang.logging.LogUtils;
 
 import io.hookdev.setpoint.gametest.SetpointGameTests;
+import io.hookdev.setpoint.network.ConsoleSnapshot;
 
 import net.minecraft.resources.Identifier;
 import net.neoforged.bus.api.IEventBus;
@@ -13,6 +14,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
 /**
  * Setpoint: process engineering for Minecraft. Pumps, tanks, valves and control loops
@@ -28,11 +30,17 @@ public class Setpoint {
         modContainer.registerConfig(ModConfig.Type.SYNCED, SetpointConfig.SPEC);
         SetpointGameTests.register(modEventBus);
         modEventBus.addListener(Setpoint::registerCapabilities);
+        modEventBus.addListener(Setpoint::registerPayloads);
         LOGGER.info("Setpoint loaded. Holding steady.");
     }
 
     public static Identifier id(String path) {
         return Identifier.fromNamespaceAndPath(MODID, path);
+    }
+
+    private static void registerPayloads(RegisterPayloadHandlersEvent event) {
+        // The control room screen's live data; the client handler is registered in SetpointClient.
+        event.registrar("1").playToClient(ConsoleSnapshot.TYPE, ConsoleSnapshot.CODEC);
     }
 
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {

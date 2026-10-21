@@ -647,6 +647,80 @@ json(join(DATA, 'neoforge/biome_modifier', 'hookonium_ore.json'), {
 });
 
 // =====================================================================================
+// M3: DCS console (the control room)
+// =====================================================================================
+
+/** An animated texture: frames stacked vertically, 16x16 each, with a .mcmeta next to it. */
+function animated(name, frametime, frames) {
+  const path = join(ASSETS, 'textures/block', name + '.png');
+  if (KEEP_TEXTURES && existsSync(path)) return;
+  const px = [];
+  for (const draw of frames) {
+    const f = Array.from({ length: 16 }, () => Array(16).fill(null));
+    const set = (x, y, c) => { if (x >= 0 && x < 16 && y >= 0 && y < 16) f[y][x] = c; };
+    const rect = (x, y, w, h, c) => { for (let j = y; j < y + h; j++) for (let i = x; i < x + w; i++) set(i, j, c); };
+    draw({ set, rect });
+    px.push(...f);
+  }
+  const raw = Buffer.alloc(px.length * (1 + 16 * 4));
+  px.forEach((row, y) => row.forEach((hex, x) => {
+    if (!hex) return;
+    const o = y * (1 + 64) + 1 + x * 4;
+    raw[o] = parseInt(hex.slice(1, 3), 16); raw[o + 1] = parseInt(hex.slice(3, 5), 16); raw[o + 2] = parseInt(hex.slice(5, 7), 16); raw[o + 3] = 255;
+  }));
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(16, 0); ihdr.writeUInt32BE(px.length, 4); ihdr[8] = 8; ihdr[9] = 6;
+  write(path, Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), chunk('IDAT', deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]));
+  json(path + '.mcmeta', { animation: { frametime } });
+}
+
+// the screen: an overview with rows of tags, values and a little trend
+function consoleScreen(p, banner) {
+  p.rect(0, 0, 16, 16, C.steel1);
+  p.rect(0, 0, 16, 1, C.steel3); p.rect(0, 15, 16, 1, C.steel0);
+  p.rect(1, 1, 14, 10, C.outline); p.rect(2, 2, 12, 8, '#12151b');                // bezel and screen
+  for (const [y, w, c] of [[3, 6, '#7c869d'], [5, 9, '#d9deea'], [7, 7, '#d9deea']]) p.rect(3, y, w, 1, c);
+  p.set(12, 3, C.cyan); p.set(12, 5, C.cyan); p.set(12, 7, C.cyan);                // status dots
+  if (banner) { p.rect(2, 8, 12, 2, C.magenta); p.rect(3, 8, 3, 1, '#ffd0e0'); }    // alarm banner
+  else p.rect(3, 9, 9, 1, '#2b2f38');
+  p.rect(2, 12, 12, 2, C.steel0);                                                   // keyboard ledge
+  for (let x = 3; x < 13; x += 2) p.set(x, 12, C.steel3);
+  p.set(14, 13, C.amber);                                                           // power light
+}
+texture('console_front', (p) => consoleScreen(p, false));
+animated('console_front_alarm', 8, [(p) => consoleScreen(p, true), (p) => consoleScreen(p, false)]);
+texture('console_side', (p) => {
+  plate(p, C.steel1);
+  for (let y = 3; y < 13; y += 2) p.rect(3, y, 10, 1, C.steel0);                    // vents
+  rivets(p, [[1, 1], [13, 1], [1, 13], [13, 13]]);
+});
+texture('console_top', (p) => {
+  plate(p, C.steel2);
+  p.rect(2, 3, 12, 6, C.steel0);                                                    // keyboard
+  for (let y = 4; y < 8; y += 2) for (let x = 3; x < 13; x += 2) p.set(x, y, C.steel3);
+  p.rect(5, 10, 6, 3, C.steel0); p.rect(6, 11, 4, 1, C.steel3);                     // trackball
+});
+for (const alarm of [false, true]) {
+  M('dcs_console' + (alarm ? '_alarm' : ''), { parent: 'minecraft:block/orientable_with_bottom',
+    textures: { front: tex(alarm ? 'console_front_alarm' : 'console_front'), side: tex('console_side'), top: tex('console_top'), bottom: tex('console_side') } });
+}
+BS('dcs_console', { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => [false, true].map((alarm) =>
+  [`alarm=${alarm},facing=${f}`, { model: 'setpoint:block/dcs_console' + (alarm ? '_alarm' : ''), ...(y ? { y } : {}) }]))) });
+item('dcs_console', 'setpoint:block/dcs_console');
+recipe('dcs_console', ['GGG', 'CRC', 'III'], { G: 'minecraft:glass_pane', C: 'minecraft:comparator', R: 'minecraft:redstone_block', I: 'minecraft:iron_ingot' }, 'setpoint:dcs_console');
+json(join(ASSETS, 'sounds.json'), {
+  'block.centrifugal_pump.cavitate': {
+    subtitle: 'subtitles.setpoint.block.centrifugal_pump.cavitate',
+    sounds: [1, 2, 3, 4, 5, 6].map((n, i) => ({ name: 'minecraft:block/campfire/crackle' + n, pitch: [0.7, 0.75, 0.7, 0.8, 0.75, 0.7][i] }))
+      .concat([1, 2].map((n) => ({ name: 'minecraft:block/bubble_column/bubble' + n, pitch: 0.6, volume: 0.6 }))),
+  },
+  'block.dcs_console.alarm': {
+    subtitle: 'subtitles.setpoint.block.dcs_console.alarm',
+    sounds: [{ name: 'minecraft:note/bell', pitch: 1.0, volume: 0.5 }],
+  },
+});
+
+// =====================================================================================
 // Loot tables and tool tags for every block
 // =====================================================================================
 const lootSelf = (name) => json(join(DATA, 'loot_table/blocks', name + '.json'), {
@@ -662,7 +736,7 @@ const lootOre = (name, drop) => json(join(DATA, 'loot_table/blocks', name + '.js
   ] }] }],
 });
 const MACHINES = ['pipe', 'tank', 'centrifugal_pump', 'creative_generator', 'level_transmitter', 'control_valve', 'controller',
-  'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine'];
+  'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine', 'dcs_console'];
 for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) lootSelf(name);
 lootOre('hookonium_ore', 'setpoint:raw_hookonium');
 lootOre('deepslate_hookonium_ore', 'setpoint:raw_hookonium');

@@ -257,6 +257,7 @@ render('biogas_generator', [{ model: 'biogas_generator_on', y: S }]);
 render('creative_generator', [{ model: 'creative_generator' }]);
 render('boiler', [{ model: 'boiler_on', y: S }]);
 render('steam_turbine', [{ model: 'steam_turbine_on', y: S }]);
+render('dcs_console', [{ model: 'dcs_console', y: S }]);
 render('hookonium_ore', [{ model: 'hookonium_ore' }]);
 render('deepslate_hookonium_ore', [{ model: 'deepslate_hookonium_ore' }]);
 render('hookonium_block', [{ model: 'hookonium_block' }]);

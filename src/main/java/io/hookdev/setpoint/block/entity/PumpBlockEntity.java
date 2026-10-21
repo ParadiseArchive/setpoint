@@ -61,6 +61,15 @@ public class PumpBlockEntity extends BlockEntity {
         return energy;
     }
 
+    /** Started (no stop signal) and enough power. */
+    public boolean running() {
+        return commanded && powered;
+    }
+
+    public boolean commanded() {
+        return commanded;
+    }
+
     public double wear() {
         return wear;
     }

@@ -41,6 +41,14 @@ public class ControlValveBlockEntity extends InstrumentBlockEntity {
         return position;
     }
 
+    public boolean tripped() {
+        return tripped;
+    }
+
+    public boolean signalOk() {
+        return signalOk;
+    }
+
     public boolean failOpen() {
         return failOpen;
     }

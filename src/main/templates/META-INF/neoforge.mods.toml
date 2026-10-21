@@ -7,7 +7,7 @@ modId="${mod_id}"
 version="${mod_version}"
 displayName="${mod_name}"
 displayURL="https://hookdev.io/projects/minecraft-mods/setpoint/"
-logoFile="logo.png"
+bannerFile="logo.png"
 authors="Hook Development"
 description='''
 Process engineering for Minecraft. Pumps that cavitate, controllers that hold a tank
