@@ -6,11 +6,13 @@ issueTrackerURL="https://github.com/ParadiseArchive/setpoint/issues"
 modId="${mod_id}"
 version="${mod_version}"
 displayName="${mod_name}"
-displayURL="https://hookdev.io/projects/minecraft-mods/"
+displayURL="https://hookdev.io/projects/minecraft-mods/setpoint/"
+logoFile="logo.png"
 authors="Hook Development"
 description='''
-Process engineering for Minecraft. Pumps that cavitate, tanks that overpressure,
-control valves and PID loops you have to tune, and a control room to run it all.
+Process engineering for Minecraft. Pumps that cavitate, controllers that hold a tank
+level by themselves, power from coal and steam, and Hookonium, a purple endgame ore.
+Easy by default, real physics underneath.
 '''
 
 [[dependencies.${mod_id}]]

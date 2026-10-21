@@ -63,5 +63,6 @@ Early Stirling engine / biogas, mid steam, late diesel from your own distillatio
 ## Assets
 - `node tools/gen-assets.mjs` regenerates textures, models, blockstates, item models, recipes and the game test structure. Use `--keep-textures` once textures are drawn by hand.
 - `node tools/render-showcase.mjs ../hook-development/projects/minecraft-mods/img` renders the website pictures straight from the models and textures: block renders, real vanilla item icons (read from the Minecraft client jar in the Gradle cache) for every recipe ingredient, and recipes.js for the docs' crafting grids.
+- `node tools/draw-logo.mjs <extra paths>` draws the logo (yellow SETPOINT in front of a pixel factory, 256x144) into src/main/resources/logo.png (mod list logo, at 2x) and any extra path (the website).
 - **Docs rule (owner, 21 Oct 2026):** every player-visible change (new block or item, recipe, screen, number, behaviour, milestone status) is written into the docs page on the site (`../hook-development/projects/minecraft-mods/setpoint/`) in the same session, the renderer is re-run, and both repos are pushed. Vanilla items always appear with their real textures, never placeholders.
 - `sounds.json` reuses vanilla sound files for now (cavitation = campfire crackle at low pitch + bubbles). Custom .ogg files can replace them later.
