@@ -27,6 +27,9 @@
     "setpoint:compressor",
     "setpoint:fuel_cell",
     "setpoint:ammonia_reactor",
-    "setpoint:fertilizer_mixer"
+    "setpoint:fertilizer_mixer",
+    "setpoint:pumpjack",
+    "setpoint:distillation_column",
+    "setpoint:diesel_generator"
   ]
 }

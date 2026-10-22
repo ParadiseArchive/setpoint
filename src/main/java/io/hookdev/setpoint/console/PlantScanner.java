@@ -36,7 +36,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 public final class PlantScanner {
     /** How far a console sees, in blocks, in every direction. */
     public static final int RANGE = 32;
-    private static final List<String> KIND_ORDER = List.of("LIC", "FIC", "PIC", "PUMP", "VALVE", "FT", "PT", "TANK", "IBC", "DRUM", "LT", "BOILER", "PSV", "TURBINE", "GEN", "INTAKE", "ELECTROLYSER", "N2 GEN", "COMPRESSOR", "FUEL CELL", "REACTOR", "MIXER", "SPHERE", "CYLINDER");
+    private static final List<String> KIND_ORDER = List.of("LIC", "FIC", "PIC", "PUMP", "VALVE", "FT", "PT", "TANK", "IBC", "DRUM", "LT", "BOILER", "PSV", "TURBINE", "GEN", "INTAKE", "ELECTROLYSER", "N2 GEN", "COMPRESSOR", "FUEL CELL", "REACTOR", "MIXER", "SPHERE", "CYLINDER", "PUMPJACK", "COLUMN");
 
     private PlantScanner() {}
 
@@ -126,7 +126,8 @@ public final class PlantScanner {
             String height = tank.column().size() > 1 ? "  (" + tank.column().size() + " high)" : "";
             double level = tank.fillFraction() * 100;
             String what = tank.amount() == 0 ? "EMPTY" : tank.resource().getFluidType().getDescription().getString().toUpperCase();
-            return new Reading(pos, tank.tag(), "TANK", what, Reading.NORMAL, pct(level) + height,
+            if (tank.losingVapour()) what = "VAPOUR LOSS";
+            return new Reading(pos, tank.tag(), "TANK", what, tank.losingVapour() ? Reading.ATTENTION : Reading.NORMAL, pct(level) + height,
                     List.of("LEVEL %"), new float[]{(float) level}, List.of());
         }
         if (be instanceof PortableTankBlockEntity tank) {
@@ -164,6 +165,25 @@ public final class PlantScanner {
             int severity = maker.status().equals("RUNNING") || maker.status().equals("FULL") ? Reading.NORMAL : Reading.ATTENTION;
             return new Reading(be.getBlockPos(), maker.tag(), kind, maker.status(), severity, String.format("%.1f bar  %d mB/t", outlet, maker.made()),
                     List.of("OUTLET bar"), new float[]{(float) outlet}, List.of());
+        }
+        if (be instanceof io.hookdev.setpoint.block.entity.DieselGeneratorBlockEntity generator) {
+            boolean ok = generator.status().equals("RUNNING") || generator.status().equals("FULL");
+            double level = generator.fillFraction() * 100;
+            return new Reading(be.getBlockPos(), generator.tag(), "GEN", generator.status(), ok ? Reading.NORMAL : Reading.ATTENTION,
+                    generator.status().equals("RUNNING") ? io.hookdev.setpoint.block.entity.DieselGeneratorBlockEntity.POWER + " FE/t" : "0 FE/t",
+                    List.of("DIESEL %"), new float[]{(float) level}, List.of());
+        }
+        if (be instanceof io.hookdev.setpoint.block.entity.DistillationColumnBlockEntity column) {
+            boolean ok = column.status().equals("RUNNING");
+            double level = column.fillFraction() * 100;
+            return new Reading(be.getBlockPos(), column.tag(), "COLUMN", column.status(), ok ? Reading.NORMAL : Reading.ATTENTION,
+                    column.rate() + " mB/t", List.of("FEED %"), new float[]{(float) level}, List.of());
+        }
+        if (be instanceof io.hookdev.setpoint.block.entity.PumpjackBlockEntity pumpjack) {
+            boolean ok = pumpjack.status().equals("RUNNING") || pumpjack.status().equals("FULL");
+            double level = pumpjack.fillFraction() * 100;
+            return new Reading(be.getBlockPos(), pumpjack.tag(), "PUMPJACK", pumpjack.status(), ok ? Reading.NORMAL : Reading.ATTENTION, pct(level),
+                    List.of("LEVEL %"), new float[]{(float) level}, List.of());
         }
         if (be instanceof io.hookdev.setpoint.block.entity.FuelCellBlockEntity cell) {
             boolean ok = cell.status().equals("RUNNING") || cell.status().equals("FULL");

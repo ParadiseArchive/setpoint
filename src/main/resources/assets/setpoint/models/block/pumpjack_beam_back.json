@@ -1,0 +1,497 @@
+{
+  "parent": "minecraft:block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "frame": "setpoint:block/pumpjack_frame",
+    "beam": "setpoint:block/pumpjack_beam",
+    "yellow": "setpoint:block/pumpjack_yellow",
+    "blue": "setpoint:block/pumpjack_blue",
+    "valve": "setpoint:block/pumpjack_valve",
+    "rod": "setpoint:block/pumpjack_rod",
+    "particle": "setpoint:block/pumpjack_frame"
+  },
+  "elements": [
+    {
+      "from": [
+        6.5,
+        -2,
+        -2
+      ],
+      "to": [
+        9.5,
+        0,
+        0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.5,
+            0,
+            9.5,
+            2
+          ],
+          "texture": "#beam"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            2,
+            2
+          ],
+          "texture": "#beam"
+        },
+        "west": {
+          "uv": [
+            14,
+            0,
+            16,
+            2
+          ],
+          "texture": "#beam"
+        },
+        "down": {
+          "uv": [
+            6.5,
+            0,
+            9.5,
+            2
+          ],
+          "texture": "#beam"
+        }
+      }
+    },
+    {
+      "from": [
+        6.5,
+        -2,
+        0
+      ],
+      "to": [
+        9.5,
+        0,
+        16
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            2
+          ],
+          "texture": "#beam"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            2
+          ],
+          "texture": "#beam"
+        },
+        "down": {
+          "uv": [
+            6.5,
+            0,
+            9.5,
+            16
+          ],
+          "texture": "#beam"
+        }
+      }
+    },
+    {
+      "from": [
+        6.5,
+        -2,
+        16
+      ],
+      "to": [
+        9.5,
+        0,
+        20
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            6.5,
+            0,
+            9.5,
+            2
+          ],
+          "texture": "#beam"
+        },
+        "east": {
+          "uv": [
+            12,
+            0,
+            16,
+            2
+          ],
+          "texture": "#beam"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            2
+          ],
+          "texture": "#beam"
+        },
+        "down": {
+          "uv": [
+            6.5,
+            12,
+            9.5,
+            16
+          ],
+          "texture": "#beam"
+        }
+      }
+    },
+    {
+      "from": [
+        6.5,
+        0,
+        -2
+      ],
+      "to": [
+        9.5,
+        2,
+        0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            6.5,
+            14,
+            9.5,
+            16
+          ],
+          "texture": "#beam"
+        },
+        "east": {
+          "uv": [
+            0,
+            14,
+            2,
+            16
+          ],
+          "texture": "#beam"
+        },
+        "west": {
+          "uv": [
+            14,
+            14,
+            16,
+            16
+          ],
+          "texture": "#beam"
+        },
+        "up": {
+          "uv": [
+            6.5,
+            14,
+            9.5,
+            16
+          ],
+          "texture": "#beam"
+        }
+      }
+    },
+    {
+      "from": [
+        6.5,
+        0,
+        0
+      ],
+      "to": [
+        9.5,
+        2,
+        16
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            0,
+            14,
+            16,
+            16
+          ],
+          "texture": "#beam"
+        },
+        "west": {
+          "uv": [
+            0,
+            14,
+            16,
+            16
+          ],
+          "texture": "#beam"
+        },
+        "up": {
+          "uv": [
+            6.5,
+            0,
+            9.5,
+            16
+          ],
+          "texture": "#beam"
+        }
+      }
+    },
+    {
+      "from": [
+        6.5,
+        0,
+        16
+      ],
+      "to": [
+        9.5,
+        2,
+        20
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            6.5,
+            14,
+            9.5,
+            16
+          ],
+          "texture": "#beam"
+        },
+        "east": {
+          "uv": [
+            12,
+            14,
+            16,
+            16
+          ],
+          "texture": "#beam"
+        },
+        "west": {
+          "uv": [
+            0,
+            14,
+            4,
+            16
+          ],
+          "texture": "#beam"
+        },
+        "up": {
+          "uv": [
+            6.5,
+            0,
+            9.5,
+            4
+          ],
+          "texture": "#beam"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        -1.5,
+        -1
+      ],
+      "to": [
+        16,
+        0,
+        0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            1.5
+          ],
+          "texture": "#beam"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            1.5
+          ],
+          "texture": "#beam"
+        },
+        "west": {
+          "uv": [
+            15,
+            0,
+            16,
+            1.5
+          ],
+          "texture": "#beam"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            1
+          ],
+          "texture": "#beam"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        -1.5,
+        0
+      ],
+      "to": [
+        16,
+        0,
+        1
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            1.5
+          ],
+          "texture": "#beam"
+        },
+        "east": {
+          "uv": [
+            15,
+            0,
+            16,
+            1.5
+          ],
+          "texture": "#beam"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            1.5
+          ],
+          "texture": "#beam"
+        },
+        "down": {
+          "uv": [
+            0,
+            15,
+            16,
+            16
+          ],
+          "texture": "#beam"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        0,
+        -1
+      ],
+      "to": [
+        16,
+        1.5,
+        0
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            14.5,
+            16,
+            16
+          ],
+          "texture": "#beam"
+        },
+        "east": {
+          "uv": [
+            0,
+            14.5,
+            1,
+            16
+          ],
+          "texture": "#beam"
+        },
+        "west": {
+          "uv": [
+            15,
+            14.5,
+            16,
+            16
+          ],
+          "texture": "#beam"
+        },
+        "up": {
+          "uv": [
+            0,
+            15,
+            16,
+            16
+          ],
+          "texture": "#beam"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        1.5,
+        1
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            0,
+            14.5,
+            16,
+            16
+          ],
+          "texture": "#beam"
+        },
+        "east": {
+          "uv": [
+            15,
+            14.5,
+            16,
+            16
+          ],
+          "texture": "#beam"
+        },
+        "west": {
+          "uv": [
+            0,
+            14.5,
+            1,
+            16
+          ],
+          "texture": "#beam"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            1
+          ],
+          "texture": "#beam"
+        }
+      }
+    }
+  ]
+}

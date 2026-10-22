@@ -35,7 +35,9 @@ public final class Gases {
     public static final Gas STEAM = gas("steam", 0xFFD8DDE3, 0, 100);
     /** Yellow, like every toxic gas's cylinder. */
     public static final Gas AMMONIA = gas("ammonia", 0xFFE8C547, -1, 20);
-    public static final List<Gas> ALL = List.of(HYDROGEN, OXYGEN, NITROGEN, STEAM, AMMONIA);
+    /** LPG (propane and butane) off the top of the distillation column, orange like a camping gas bottle. */
+    public static final Gas LPG = gas("lpg", 0xFFE07B22, 1, 20);
+    public static final List<Gas> ALL = List.of(HYDROGEN, OXYGEN, NITROGEN, STEAM, AMMONIA, LPG);
 
     private Gases() {}
 
@@ -63,6 +65,7 @@ public final class Gases {
     }
 
     public static void register(IEventBus modEventBus) {
+        Liquids.load();
         TYPES.register(modEventBus);
         FLUIDS.register(modEventBus);
     }

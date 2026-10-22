@@ -161,6 +161,11 @@ public final class SetpointGameTests {
         test("ammonia_reactor_wants_pressure", SetpointGameTests::ammoniaReactorWantsPressure, 100);
         test("fertilizer_grows_crops_at_once", SetpointGameTests::fertilizerGrowsCropsAtOnce, 100);
         test("oxygen_feeds_the_boiler_burner", SetpointGameTests::oxygenFeedsTheBoilerBurner, 100);
+        test("pumpjack_pumps_crude_oil", SetpointGameTests::pumpjackPumpsCrudeOil, 100);
+        test("the_column_splits_crude_oil", SetpointGameTests::theColumnSplitsCrudeOil, 100);
+        BIG.add("the_column_splits_crude_oil");
+        test("diesel_makes_power", SetpointGameTests::dieselMakesPower, 40);
+        test("nitrogen_blankets_naphtha", SetpointGameTests::nitrogenBlanketsNaphtha, 100);
     }
 
     private static void test(String name, Consumer<GameTestHelper> function, int maxTicks) {
@@ -782,9 +787,11 @@ public final class SetpointGameTests {
         for (var block : SetpointContent.BLOCKS.getEntries()) {
             if (block.get() == SetpointContent.HOOKONIUM_ORE.get() || block.get() == SetpointContent.DEEPSLATE_HOOKONIUM_ORE.get()) continue;
             if (block.get() == SetpointContent.TANK_PART.get() || block.get() == SetpointContent.PALLET_PART.get()
-                    || block.get() == SetpointContent.ROOF_TANK_PART.get() || block.get() == SetpointContent.GAS_SPHERE_PART.get()) continue; // parts: their base drops
+                    || block.get() == SetpointContent.ROOF_TANK_PART.get() || block.get() == SetpointContent.GAS_SPHERE_PART.get()
+                    || block.get() == SetpointContent.PUMPJACK_PART.get() || block.get() == SetpointContent.COLUMN_PART.get()) continue; // parts: their base drops
             if (block.get() == SetpointContent.PALLET_TRUCK_MODEL.get() || block.get() == SetpointContent.FORKLIFT_MODEL.get()
-                    || block.get() == SetpointContent.FLOATING_ROOF_TANK_MODEL.get() || block.get() == SetpointContent.GAS_SPHERE_MODEL.get()) continue; // only hold models
+                    || block.get() == SetpointContent.FLOATING_ROOF_TANK_MODEL.get() || block.get() == SetpointContent.GAS_SPHERE_MODEL.get()
+                    || block.get() == SetpointContent.PUMPJACK_MODEL.get() || block.get() == SetpointContent.COLUMN_MODEL.get()) continue; // only hold models
             BlockState state = block.get() == SetpointContent.HANDRAIL.get() // a handrail is as many as the sides it rails: one here
                     ? block.get().defaultBlockState().setValue(io.hookdev.setpoint.block.HandrailBlock.EDGES.get(Direction.NORTH), true) : block.get().defaultBlockState();
             var drops = Block.getDrops(state, helper.getLevel(), pos, null, null, new ItemStack(Items.DIAMOND_PICKAXE));
@@ -1454,6 +1461,85 @@ public final class SetpointGameTests {
             for (int x = 0; x < 3; x++) for (int z = 0; z < 3; z++) {
                 helper.assertBlockProperty(new BlockPos(x, 5, z), net.minecraft.world.level.block.CropBlock.AGE, 7);
             }
+            helper.succeed();
+        });
+    }
+
+    /** A distillation column with crude oil, steam and cooling water makes all five products. */
+    private static void theColumnSplitsCrudeOil(GameTestHelper helper) {
+        BlockPos base = new BlockPos(4, 1, 1);
+        BlockState state = SetpointContent.DISTILLATION_COLUMN.get().defaultBlockState().setValue(io.hookdev.setpoint.block.DistillationColumnBlock.FACING, Direction.NORTH);
+        helper.setBlock(base, state);
+        BlockPos abs = helper.absolutePos(base);
+        state.getBlock().setPlacedBy(helper.getLevel(), abs, helper.getLevel().getBlockState(abs), null, new ItemStack(SetpointContent.DISTILLATION_COLUMN_ITEM.get()));
+        var column = helper.getBlockEntity(base, io.hookdev.setpoint.block.entity.DistillationColumnBlockEntity.class);
+        column.fluid().set(0, io.hookdev.setpoint.gas.Liquids.CRUDE_OIL.resource(), 4_000);
+        column.water().set(0, FluidResource.of(Fluids.WATER), 4_000);
+        // a cylinder of steam in front of the steam nozzle (left of the front row)
+        BlockPos steamPort = io.hookdev.setpoint.block.DistillationColumnBlock.cell(abs, state, -1, 0, 0);
+        helper.assertTrue(helper.getLevel().getBlockState(steamPort).getValue(io.hookdev.setpoint.block.ColumnPartBlock.PORT) == io.hookdev.setpoint.block.ColumnPartBlock.STEAM, "the steam nozzle should be left of the feed");
+        BlockPos cylinderPos = steamPort.north();
+        helper.getLevel().setBlockAndUpdate(cylinderPos, SetpointContent.GAS_CYLINDER.get().defaultBlockState());
+        ((io.hookdev.setpoint.block.entity.GasCylinderBlockEntity) helper.getLevel().getBlockEntity(cylinderPos)).tank().set(io.hookdev.setpoint.gas.Gases.STEAM.resource(), 20_000);
+        helper.runAfterDelay(30, () -> {
+            helper.assertTrue(column.status().equals("RUNNING"), "the column should run: " + column.status());
+            for (int port : new int[]{io.hookdev.setpoint.block.ColumnPartBlock.NAPHTHA, io.hookdev.setpoint.block.ColumnPartBlock.KEROSENE,
+                    io.hookdev.setpoint.block.ColumnPartBlock.DIESEL, io.hookdev.setpoint.block.ColumnPartBlock.RESIDUE}) {
+                helper.assertTrue(column.product(port).getAmountAsInt(0) > 0, "every side draw should fill, not port " + port);
+            }
+            helper.assertTrue(column.lpg().amount() > 0, "LPG should come off the top");
+            BlockPos diesel = io.hookdev.setpoint.block.DistillationColumnBlock.cell(abs, state, 0, 1, 3);
+            var part = (io.hookdev.setpoint.hydraulics.Vessel) helper.getLevel().getBlockEntity(diesel);
+            helper.assertTrue(part.resource().getFluid() == io.hookdev.setpoint.gas.Liquids.DIESEL.fluid().get() && part.amount() > 0, "the diesel nozzle should hold diesel");
+            helper.succeed();
+        });
+    }
+
+    /** A diesel generator with diesel makes power. */
+    private static void dieselMakesPower(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(3, 1, 1);
+        helper.setBlock(pos, SetpointContent.DIESEL_GENERATOR.get());
+        var generator = helper.getBlockEntity(pos, io.hookdev.setpoint.block.entity.DieselGeneratorBlockEntity.class);
+        generator.fluid().set(0, io.hookdev.setpoint.gas.Liquids.DIESEL.resource(), 1_000);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(generator.energy().getAmountAsInt() >= 800, "it should store the power it makes, has " + generator.energy().getAmountAsInt());
+            helper.assertTrue(generator.amount() < 1_000, "it should burn diesel");
+        });
+    }
+
+    /** Naphtha in a tank gives off vapour; a nitrogen blanket from a gas line on top stops it. */
+    private static void nitrogenBlanketsNaphtha(GameTestHelper helper) {
+        helper.setBlock(1, 1, 1, SetpointContent.TANK.get());
+        helper.setBlock(5, 1, 1, SetpointContent.TANK.get());
+        helper.setBlock(5, 2, 1, SetpointContent.GAS_PIPE.get());
+        helper.setBlock(6, 2, 1, SetpointContent.GAS_CYLINDER.get());
+        helper.getBlockEntity(new BlockPos(6, 2, 1), io.hookdev.setpoint.block.entity.GasCylinderBlockEntity.class).tank().set(io.hookdev.setpoint.gas.Gases.NITROGEN.resource(), 10_000);
+        TankBlockEntity open = helper.getBlockEntity(new BlockPos(1, 1, 1), TankBlockEntity.class), blanketed = helper.getBlockEntity(new BlockPos(5, 1, 1), TankBlockEntity.class);
+        open.own().set(0, io.hookdev.setpoint.gas.Liquids.NAPHTHA.resource(), 8_000);
+        blanketed.own().set(0, io.hookdev.setpoint.gas.Liquids.NAPHTHA.resource(), 8_000);
+        helper.runAfterDelay(60, () -> {
+            helper.assertTrue(open.amount() < 8_000 && open.losingVapour(), "naphtha under a fixed roof should lose vapour, has " + open.amount());
+            helper.assertTrue(blanketed.amount() == 8_000 && blanketed.blanketed(), "under nitrogen it should keep it all, has " + blanketed.amount());
+            helper.succeed();
+        });
+    }
+
+    /** A pumpjack with power on its far end fills its wellhead with crude oil; breaking a part takes it all down. */
+    private static void pumpjackPumpsCrudeOil(GameTestHelper helper) {
+        BlockPos base = new BlockPos(1, 1, 1);
+        BlockState state = SetpointContent.PUMPJACK.get().defaultBlockState().setValue(io.hookdev.setpoint.block.PumpjackBlock.FACING, Direction.WEST);
+        helper.setBlock(base, state);
+        BlockPos abs = helper.absolutePos(base);
+        state.getBlock().setPlacedBy(helper.getLevel(), abs, helper.getLevel().getBlockState(abs), null, new ItemStack(SetpointContent.PUMPJACK_ITEM.get()));
+        var parts = ((io.hookdev.setpoint.block.PumpjackBlock) state.getBlock()).parts(abs, state);
+        helper.assertTrue(parts.size() == 6, "six parts behind the wellhead, got " + parts.size());
+        helper.setBlock(5, 1, 1, SetpointContent.CREATIVE_GENERATOR.get()); // against the gearbox at the far end
+        var pumpjack = helper.getBlockEntity(base, io.hookdev.setpoint.block.entity.PumpjackBlockEntity.class);
+        helper.runAfterDelay(20, () -> {
+            helper.assertTrue(pumpjack.amount() >= 100 && pumpjack.resource().getFluid() == io.hookdev.setpoint.gas.Liquids.CRUDE_OIL.fluid().get(),
+                    "the wellhead should fill with crude oil, has " + pumpjack.amount() + " (" + pumpjack.status() + ")");
+            helper.getLevel().destroyBlock(parts.get(2), false);
+            helper.assertTrue(helper.getLevel().getBlockState(abs).isAir(), "breaking a part should take the whole pumpjack down");
             helper.succeed();
         });
     }

@@ -79,6 +79,12 @@ public final class PidSymbols {
     // a mixer: a vessel with an agitator
     private static final String[] FERTILIZER_MIXER = {
             "...##...", "########", "#..##..#", "#..##..#", "#.####.#", "#..##..#", "#......#", ".######."};
+    // a pumpjack: the walking beam on its post, the horsehead over the well
+    private static final String[] PUMPJACK = {
+            "........", "#######.", "##..#..#", "#...#...", "#..###..", "#..#.#..", "+..#.#..", "########"};
+    // a distillation column: a tall vessel with its trays
+    private static final String[] COLUMN = {
+            "..####..", ".#....#.", ".#+++.#.", ".#.+++#.", ".#+++.#.", ".#.+++#.", ".#....#.", "..####.."};
     private static final String[] CONSOLE = {
             "########", "#++++++#", "#+....+#", "#++++++#", "########", "...##...", "..####..", "........"};
 
@@ -112,6 +118,8 @@ public final class PidSymbols {
             case PidDrawing.FUEL_CELL -> FUEL_CELL;
             case PidDrawing.AMMONIA_REACTOR -> AMMONIA_REACTOR;
             case PidDrawing.FERTILIZER_MIXER -> FERTILIZER_MIXER;
+            case PidDrawing.PUMPJACK -> PUMPJACK;
+            case PidDrawing.COLUMN -> COLUMN;
             default -> null;
         };
     }

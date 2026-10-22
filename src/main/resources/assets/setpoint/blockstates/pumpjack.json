@@ -1,0 +1,28 @@
+{
+  "variants": {
+    "facing=north,running=false": {
+      "model": "setpoint:block/pumpjack"
+    },
+    "facing=north,running=true": {
+      "model": "setpoint:block/pumpjack"
+    },
+    "facing=east,running=false": {
+      "model": "setpoint:block/pumpjack"
+    },
+    "facing=east,running=true": {
+      "model": "setpoint:block/pumpjack"
+    },
+    "facing=south,running=false": {
+      "model": "setpoint:block/pumpjack"
+    },
+    "facing=south,running=true": {
+      "model": "setpoint:block/pumpjack"
+    },
+    "facing=west,running=false": {
+      "model": "setpoint:block/pumpjack"
+    },
+    "facing=west,running=true": {
+      "model": "setpoint:block/pumpjack"
+    }
+  }
+}

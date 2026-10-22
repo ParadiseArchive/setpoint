@@ -237,6 +237,46 @@ public class TankBlockEntity extends BlockEntity implements MenuProvider, Vessel
         fluid.set(0, amount == 0 ? FluidResource.EMPTY : resource, amount);
     }
 
+    /**
+     * A volatile liquid (crude oil, naphtha) gives off vapour under a fixed roof: every second this much of it escapes,
+     * unless a nitrogen blanket sits on top, from a gas pipe on the top of the column (it uses a little nitrogen).
+     */
+    public static final int VAPOUR_LOSS = 20, BLANKET_NITROGEN = 5;
+    private final io.hookdev.setpoint.gas.GasDraw blanket = new io.hookdev.setpoint.gas.GasDraw();
+    private boolean blanketed, losing;
+
+    /** Holds a volatile liquid without a nitrogen blanket: it is losing vapour. */
+    public boolean losingVapour() {
+        return bottom().losing;
+    }
+
+    /** Has a nitrogen blanket on its liquid. */
+    public boolean blanketed() {
+        return bottom().blanketed;
+    }
+
+    private void breathe(net.minecraft.server.level.ServerLevel level) {
+        blanketed = false;
+        losing = false;
+        if (!io.hookdev.setpoint.gas.Liquids.isVolatile(resource())) return;
+        List<TankBlockEntity> column = column();
+        TankBlockEntity top = column.get(column.size() - 1);
+        var nitrogen = blanket.fullest(level, top.getBlockPos(), net.minecraft.core.Direction.UP, io.hookdev.setpoint.gas.Gases.NITROGEN.resource());
+        if (nitrogen != null && nitrogen.amount() >= BLANKET_NITROGEN) {
+            nitrogen.extract(BLANKET_NITROGEN);
+            blanketed = true;
+            return;
+        }
+        losing = true;
+        FluidResource liquid = resource();
+        try (var transaction = net.neoforged.neoforge.transfer.transaction.Transaction.openRoot()) {
+            new Column(column).extract(liquid, VAPOUR_LOSS, transaction);
+            transaction.commit();
+        }
+        BlockPos up = top.getBlockPos();
+        level.sendParticles(net.minecraft.core.particles.ParticleTypes.CAMPFIRE_COSY_SMOKE, up.getX() + 0.5, up.getY() + 1.05, up.getZ() + 0.5, 1, 0.15, 0.02, 0.15, 0.005);
+    }
+
     public static void serverTick(Level level, BlockPos pos, BlockState state, TankBlockEntity tank) {
         tank.settle(level, pos);
         if (level.getGameTime() % 100 == 0 && level instanceof net.minecraft.server.level.ServerLevel server
@@ -246,6 +286,8 @@ public class TankBlockEntity extends BlockEntity implements MenuProvider, Vessel
         tank.processBuckets();
         // the bottom block lets the whole column run downhill through its pipes
         if (level instanceof net.minecraft.server.level.ServerLevel server && tank.bottom() == tank) tank.gravity.tick(server, tank, tank.positions());
+        // and breathes: vapour out of a volatile liquid, unless nitrogen blankets it
+        if (level instanceof net.minecraft.server.level.ServerLevel server && tank.bottom() == tank && level.getGameTime() % 20 == 0) tank.breathe(server);
     }
 
     /** Liquid runs down into the tank below until that one is full. */

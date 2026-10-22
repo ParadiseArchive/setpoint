@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "north": "setpoint:block/diesel_generator_front_on",
+    "east": "setpoint:block/diesel_generator_side",
+    "west": "setpoint:block/diesel_generator_side",
+    "south": "setpoint:block/diesel_generator_back",
+    "up": "setpoint:block/diesel_generator_top",
+    "down": "setpoint:block/diesel_generator_side",
+    "particle": "setpoint:block/diesel_generator_side"
+  }
+}

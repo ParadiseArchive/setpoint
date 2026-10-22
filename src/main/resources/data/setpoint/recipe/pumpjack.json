@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "B": "minecraft:iron_block",
+    "P": "minecraft:piston",
+    "T": "setpoint:tank"
+  },
+  "pattern": [
+    "IBI",
+    " P ",
+    "ITI"
+  ],
+  "result": {
+    "id": "setpoint:pumpjack"
+  }
+}

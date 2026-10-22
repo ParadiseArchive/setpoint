@@ -109,6 +109,15 @@ public class Setpoint {
         event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.NITROGEN_GENERATOR_ENTITY.get(), (maker, side) -> maker.energy());
         event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.COMPRESSOR_ENTITY.get(), (compressor, side) -> compressor.energy());
         event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.FUEL_CELL_ENTITY.get(), (cell, side) -> cell.energy());
+        event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.PUMPJACK_ENTITY.get(), (pumpjack, side) -> pumpjack.energy());
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, SetpointContent.PUMPJACK_ENTITY.get(), (pumpjack, side) -> pumpjack.fluid());
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, SetpointContent.DISTILLATION_COLUMN_ENTITY.get(), (column, side) -> column.fluid());
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, SetpointContent.DIESEL_GENERATOR_ENTITY.get(), (generator, side) -> generator.fluid());
+        event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.DIESEL_GENERATOR_ENTITY.get(), (generator, side) -> generator.energy());
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, SetpointContent.COLUMN_PART_ENTITY.get(), (part, side) -> part.fluid());
+        // power can go into any block of the pumpjack: its parts hand it to the wellhead
+        event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.PUMPJACK_PART_ENTITY.get(), (part, side) ->
+                part.base() != null && part.getLevel() != null && part.getLevel().getBlockEntity(part.base()) instanceof io.hookdev.setpoint.block.entity.PumpjackBlockEntity pumpjack ? pumpjack.energy() : null);
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, SetpointContent.FUEL_CELL_ENTITY.get(), (cell, side) -> cell.fluid());
         event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.AMMONIA_REACTOR_ENTITY.get(), (reactor, side) -> reactor.energy());
         event.registerBlockEntity(Capabilities.Item.BLOCK, SetpointContent.FERTILIZER_MIXER_ENTITY.get(), (mixer, side) -> mixer.items());

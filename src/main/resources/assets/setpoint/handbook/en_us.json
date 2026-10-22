@@ -717,6 +717,74 @@
         },
         {
           "type": "h",
+          "text": "Oil"
+        },
+        {
+          "type": "p",
+          "text": "A **pumpjack** pumps crude oil out of the ground, anywhere. Place it with one block: that is the **wellhead**, where the crude oil comes out to a pipe, and the pumpjack stands four blocks long behind it. Give it power (30 FE/t) on any of its blocks and it nods: 10 mB of crude oil a tick, slowly and for ever."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:pumpjack",
+          "grid": [
+            "minecraft:iron_ingot",
+            "minecraft:iron_block",
+            "minecraft:iron_ingot",
+            "",
+            "minecraft:piston",
+            "",
+            "minecraft:iron_ingot",
+            "setpoint:tank",
+            "minecraft:iron_ingot"
+          ],
+          "count": 1
+        },
+        {
+          "type": "p",
+          "text": "The **distillation column** splits crude oil the way a refinery does: 5% LPG (a gas), 20% naphtha, 15% kerosene, 30% diesel and 30% residue. It is three wide, four deep and eleven high; place it with one block, the **feed** (crude oil in) in the middle of the front row. Every nozzle faces the front: **steam in** (from a boiler, through a gas pipe) on the left of the front row and **residue out** on the right; **diesel**, **kerosene** and **naphtha** out up the front of the column; **cooling water in** (left) and **LPG out** (right) at the top. Right-click a nozzle to see what it is. It takes up to 20 mB of crude oil a tick, and half as much steam and cooling water."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:distillation_column",
+          "grid": [
+            "minecraft:iron_block",
+            "setpoint:gas_pipe",
+            "minecraft:iron_block",
+            "setpoint:tank",
+            "setpoint:tank",
+            "setpoint:tank",
+            "minecraft:iron_block",
+            "minecraft:blast_furnace",
+            "minecraft:iron_block"
+          ],
+          "count": 1
+        },
+        {
+          "type": "p",
+          "text": "Crude oil and naphtha give off **vapour**: in an ordinary tank they slowly get less. Put a gas pipe with **nitrogen** on top of the tank to blanket them, or keep them in a floating roof tank, whose roof floats right on the liquid."
+        },
+        {
+          "type": "p",
+          "text": "The **diesel generator** burns your own diesel: 80 FE/t for 4 mB a tick, the strongest power in the mod."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:diesel_generator",
+          "grid": [
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "minecraft:piston",
+            "minecraft:furnace",
+            "minecraft:piston",
+            "minecraft:iron_ingot",
+            "minecraft:redstone",
+            "minecraft:iron_ingot"
+          ],
+          "count": 1
+        },
+        {
+          "type": "h",
           "text": "Floating roof tank"
         },
         {

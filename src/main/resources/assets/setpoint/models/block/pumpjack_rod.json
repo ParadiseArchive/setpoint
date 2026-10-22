@@ -1,0 +1,83 @@
+{
+  "parent": "minecraft:block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "frame": "setpoint:block/pumpjack_frame",
+    "beam": "setpoint:block/pumpjack_beam",
+    "yellow": "setpoint:block/pumpjack_yellow",
+    "blue": "setpoint:block/pumpjack_blue",
+    "valve": "setpoint:block/pumpjack_valve",
+    "rod": "setpoint:block/pumpjack_rod",
+    "particle": "setpoint:block/pumpjack_frame"
+  },
+  "elements": [
+    {
+      "from": [
+        7.5,
+        7.5,
+        8
+      ],
+      "to": [
+        8.5,
+        8.5,
+        24
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            16
+          ],
+          "texture": "#rod"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            16
+          ],
+          "texture": "#rod"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            16
+          ],
+          "texture": "#rod"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            16
+          ],
+          "texture": "#rod"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            16
+          ],
+          "texture": "#rod"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            16
+          ],
+          "texture": "#rod"
+        }
+      }
+    }
+  ]
+}

@@ -394,6 +394,58 @@ const gasSphere = () => {
   return parts;
 };
 render('gas_sphere', gasSphere(), 2);
+// the pumpjack, put together like PumpjackRenderer does (PUMPJACK_SHIFT in gen-assets.mjs), side on, mid-nod
+const PUMPJACK_SHIFT = { frame: [0, 0, 32], post: [0, -12, 32], beam_front: [0, 0, -12], beam_back: [0, 0, 12], crank: [0, 0, 0],
+  gearbox: [0, 0, 44], wellhead: [0, 0, 0], rod: [0, 8, 0] };
+const pumpjack = (crankDeg) => {
+  const parts = [];
+  const ry = (deg) => { const a = deg * Math.PI / 180; return ([x, y, z]) => [x * Math.cos(a) + z * Math.sin(a), y, -x * Math.sin(a) + z * Math.cos(a)]; };
+  const rx = (deg) => { const a = deg * Math.PI / 180; return ([x, y, z]) => [x, y * Math.cos(a) - z * Math.sin(a), y * Math.sin(a) + z * Math.cos(a)]; };
+  const mv = (dx, dy, dz) => ([x, y, z]) => [x + dx, y + dy, z + dz];
+  const sc = (kx, ky, kz) => ([x, y, z]) => [x * kx, y * ky, z * kz];
+  const piece = (name, frame) => {
+    const sh = PUMPJACK_SHIFT[name], steps = [ry(-90), ...frame, mv(-8 - sh[0], -sh[1], -8 - sh[2])];
+    parts.push({ model: 'pumpjack_' + name, xf: (p) => steps.reduceRight((q, step) => step(q), p) });
+  };
+  const phi = crankDeg * Math.PI / 180, tilt = -12 * Math.sin(phi), t = tilt * Math.PI / 180;
+  for (const name of ['frame', 'post', 'gearbox', 'wellhead']) piece(name, []);
+  for (const name of ['beam_front', 'beam_back']) piece(name, [mv(0, 40, -32), rx(-tilt)]);
+  const rod = (x1, y1, z1, x2, y2, z2) => {
+    const dx = x2 - x1, dy = y2 - y1, dz = z2 - z1, flat = Math.hypot(dx, dz), len = Math.hypot(flat, dy);
+    piece('rod', [mv(x1, y1, z1), ry(Math.atan2(dx, dz) * 180 / Math.PI), rx(-Math.atan2(dy, flat) * 180 / Math.PI), sc(1, 1, len / 16)]);
+  };
+  const pinZ = -48 + 8 * Math.cos(phi), pinY = 20 + 8 * Math.sin(phi), backZ = -32 - 20 * Math.cos(t), backY = 40 - 20 * Math.sin(t);
+  for (const x of [-7, 7]) { piece('crank', [mv(x, 20, -48), rx(90 - crankDeg)]); rod(x, pinY, pinZ, x, backY, backZ); }
+  rod(0, 12, 0, 0, 40 + 33 * Math.sin(t) - 10, 0);
+  return parts;
+};
+render('pumpjack', pumpjack(60), 3);
+// the distillation column, put together like DistillationColumnRenderer does (COLUMN_SHIFT in gen-assets.mjs)
+const COLUMN_SHIFT = { shell: [0, 0, 0], head: [0, 0, 0], ring: [0, 0, -8], reboiler: [0, 0, 0], condenser: [0, 0, 0], nozzle: [0, 8, 0] };
+const distillationColumn = () => {
+  const parts = [];
+  const ry = (deg) => { const a = deg * Math.PI / 180; return ([x, y, z]) => [x * Math.cos(a) + z * Math.sin(a), y, -x * Math.sin(a) + z * Math.cos(a)]; };
+  const mv = (dx, dy, dz) => ([x, y, z]) => [x + dx, y + dy, z + dz];
+  const piece = (model, shift, [x, y, z], frame = []) => {
+    const steps = [...frame, mv(x - 8 - shift[0], y - shift[1], z - 8 - shift[2])];
+    parts.push({ model: 'distillation_column_' + model, xf: (p) => steps.reduceRight((q, step) => step(q), p) });
+  };
+  for (let k = 0; k < 24; k++) {
+    const frame = [mv(0, 0, -32), ry(k * 15)];
+    for (let c = 0; c < 5; c++) piece('shell', COLUMN_SHIFT.shell, [0, c * 32, 0], frame);
+    for (const y of [64, 128]) piece('ring', COLUMN_SHIFT.ring, [0, y, 0], frame);
+  }
+  piece('head', COLUMN_SHIFT.head, [0, 160, -32]);
+  piece('condenser', COLUMN_SHIFT.condenser, [0, 160, -32]);
+  piece('reboiler', COLUMN_SHIFT.reboiler, [0, 0, 0]);
+  for (const [n, x, y, z] of [['feed', 0, 8, -4], ['steam', -16, 8, -4], ['residue', 16, 8, -4], ['diesel', 0, 56, -20], ['kerosene', 0, 88, -20],
+    ['naphtha', 0, 120, -20], ['water', -16, 152, -20], ['lpg', 16, 152, -20]]) piece('nozzle_' + n, COLUMN_SHIFT.nozzle, [x, y, z]);
+  return parts;
+};
+render('distillation_column', distillationColumn(), 2);
+render('diesel_generator', [{ model: 'diesel_generator_on', y: S }]);
+
+
 // factory blocks, one by one, and put together as a small platform: grating in the top of the blocks on I-beams,
 // handrails round its edges, stairs up to it, checker plate and hazard stripes on the ground, a lamp on a column
 // pallet racking: two bays of two levels, a loaded pallet on the upper beams and one on the ground

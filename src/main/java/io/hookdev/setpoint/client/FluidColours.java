@@ -18,6 +18,8 @@ public final class FluidColours {
     public static int of(Fluid fluid) {
         if (fluid.isSame(Fluids.EMPTY)) return UNKNOWN;
         if (fluid instanceof io.hookdev.setpoint.gas.GasFluid) return io.hookdev.setpoint.gas.Gases.colour(net.neoforged.neoforge.transfer.fluid.FluidResource.of(fluid));
+        var liquid = io.hookdev.setpoint.gas.Liquids.of(fluid);
+        if (liquid != null) return liquid.colour();
         if (fluid.isSame(Fluids.WATER)) return WATER;
         if (fluid.isSame(Fluids.LAVA)) return LAVA;
         MapColor map = fluid.defaultFluidState().createLegacyBlock().getMapColor(EmptyBlockGetter.INSTANCE, BlockPos.ZERO);

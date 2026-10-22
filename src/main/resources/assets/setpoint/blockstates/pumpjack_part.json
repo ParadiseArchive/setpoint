@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "kind=0": {
+      "model": "setpoint:block/pumpjack"
+    },
+    "kind=1": {
+      "model": "setpoint:block/pumpjack"
+    },
+    "kind=2": {
+      "model": "setpoint:block/pumpjack"
+    }
+  }
+}

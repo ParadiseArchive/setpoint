@@ -150,6 +150,22 @@ public final class SetpointContent {
             p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
     public static final DeferredBlock<io.hookdev.setpoint.block.NitrogenGeneratorBlock> NITROGEN_GENERATOR = BLOCKS.registerBlock("nitrogen_generator", io.hookdev.setpoint.block.NitrogenGeneratorBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
+    public static final DeferredBlock<io.hookdev.setpoint.block.PumpjackBlock> PUMPJACK = BLOCKS.registerBlock("pumpjack", io.hookdev.setpoint.block.PumpjackBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(4.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.PumpjackPartBlock> PUMPJACK_PART = BLOCKS.registerBlock("pumpjack_part", io.hookdev.setpoint.block.PumpjackPartBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(4.0f, 6.0f).sound(SoundType.METAL).noOcclusion().noLootTable());
+    /** Holds the pumpjack's models (frame, samson post, walking beam, cranks, gearbox, wellhead), for its renderer; never placed. */
+    public static final DeferredBlock<VehicleModelBlock> PUMPJACK_MODEL = BLOCKS.registerBlock("pumpjack_model", VehicleModelBlock::new,
+            p -> p.noCollision().noOcclusion().noLootTable());
+    public static final DeferredBlock<io.hookdev.setpoint.block.DistillationColumnBlock> DISTILLATION_COLUMN = BLOCKS.registerBlock("distillation_column", io.hookdev.setpoint.block.DistillationColumnBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(5.0f, 8.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.ColumnPartBlock> COLUMN_PART = BLOCKS.registerBlock("column_part", io.hookdev.setpoint.block.ColumnPartBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(5.0f, 8.0f).sound(SoundType.METAL).noOcclusion().noLootTable());
+    /** Holds the distillation column's models (shell, head, platform ring, reboiler, condenser, nozzles), for its renderer; never placed. */
+    public static final DeferredBlock<VehicleModelBlock> COLUMN_MODEL = BLOCKS.registerBlock("distillation_column_model", VehicleModelBlock::new,
+            p -> p.noCollision().noOcclusion().noLootTable());
+    public static final DeferredBlock<io.hookdev.setpoint.block.DieselGeneratorBlock> DIESEL_GENERATOR = BLOCKS.registerBlock("diesel_generator", io.hookdev.setpoint.block.DieselGeneratorBlock::new,
+            p -> p.mapColor(MapColor.COLOR_YELLOW).strength(3.0f, 6.0f).sound(SoundType.METAL));
     public static final DeferredBlock<io.hookdev.setpoint.block.FuelCellBlock> FUEL_CELL = BLOCKS.registerBlock("fuel_cell", io.hookdev.setpoint.block.FuelCellBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
     public static final DeferredBlock<io.hookdev.setpoint.block.AmmoniaReactorBlock> AMMONIA_REACTOR = BLOCKS.registerBlock("ammonia_reactor", io.hookdev.setpoint.block.AmmoniaReactorBlock::new,
@@ -269,6 +285,9 @@ public final class SetpointContent {
     public static final DeferredItem<BlockItem> ELECTROLYSER_ITEM = ITEMS.registerSimpleBlockItem(ELECTROLYSER);
     public static final DeferredItem<BlockItem> NITROGEN_GENERATOR_ITEM = ITEMS.registerSimpleBlockItem(NITROGEN_GENERATOR);
     public static final DeferredItem<BlockItem> COMPRESSOR_ITEM = ITEMS.registerSimpleBlockItem(COMPRESSOR);
+    public static final DeferredItem<BlockItem> DISTILLATION_COLUMN_ITEM = ITEMS.registerSimpleBlockItem(DISTILLATION_COLUMN, p -> p.stacksTo(1).rarity(Rarity.RARE));
+    public static final DeferredItem<BlockItem> DIESEL_GENERATOR_ITEM = ITEMS.registerSimpleBlockItem(DIESEL_GENERATOR);
+    public static final DeferredItem<BlockItem> PUMPJACK_ITEM = ITEMS.registerSimpleBlockItem(PUMPJACK, p -> p.stacksTo(1));
     public static final DeferredItem<BlockItem> FUEL_CELL_ITEM = ITEMS.registerSimpleBlockItem(FUEL_CELL);
     public static final DeferredItem<BlockItem> AMMONIA_REACTOR_ITEM = ITEMS.registerSimpleBlockItem(AMMONIA_REACTOR);
     public static final DeferredItem<BlockItem> FERTILIZER_MIXER_ITEM = ITEMS.registerSimpleBlockItem(FERTILIZER_MIXER);
@@ -378,6 +397,16 @@ public final class SetpointContent {
             () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.ElectrolyserBlockEntity::new, ELECTROLYSER.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.NitrogenGeneratorBlockEntity>> NITROGEN_GENERATOR_ENTITY = BLOCK_ENTITIES.register("nitrogen_generator",
             () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.NitrogenGeneratorBlockEntity::new, NITROGEN_GENERATOR.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.DistillationColumnBlockEntity>> DISTILLATION_COLUMN_ENTITY = BLOCK_ENTITIES.register("distillation_column",
+            () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.DistillationColumnBlockEntity::new, DISTILLATION_COLUMN.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.ColumnPartBlockEntity>> COLUMN_PART_ENTITY = BLOCK_ENTITIES.register("column_part",
+            () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.ColumnPartBlockEntity::new, COLUMN_PART.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.DieselGeneratorBlockEntity>> DIESEL_GENERATOR_ENTITY = BLOCK_ENTITIES.register("diesel_generator",
+            () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.DieselGeneratorBlockEntity::new, DIESEL_GENERATOR.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.PumpjackBlockEntity>> PUMPJACK_ENTITY = BLOCK_ENTITIES.register("pumpjack",
+            () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.PumpjackBlockEntity::new, PUMPJACK.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MultiblockPartBlockEntity>> PUMPJACK_PART_ENTITY = BLOCK_ENTITIES.register("pumpjack_part",
+            () -> new BlockEntityType<>((pos, state) -> new MultiblockPartBlockEntity(SetpointContent.PUMPJACK_PART_ENTITY.get(), pos, state), PUMPJACK_PART.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.FuelCellBlockEntity>> FUEL_CELL_ENTITY = BLOCK_ENTITIES.register("fuel_cell",
             () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.FuelCellBlockEntity::new, FUEL_CELL.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.AmmoniaReactorBlockEntity>> AMMONIA_REACTOR_ENTITY = BLOCK_ENTITIES.register("ammonia_reactor",
@@ -426,6 +455,9 @@ public final class SetpointContent {
                 output.accept(ELECTROLYSER_ITEM.get());
                 output.accept(NITROGEN_GENERATOR_ITEM.get());
                 output.accept(COMPRESSOR_ITEM.get());
+                output.accept(PUMPJACK_ITEM.get());
+                output.accept(DISTILLATION_COLUMN_ITEM.get());
+                output.accept(DIESEL_GENERATOR_ITEM.get());
                 output.accept(FUEL_CELL_ITEM.get());
                 output.accept(AMMONIA_REACTOR_ITEM.get());
                 output.accept(FERTILIZER_MIXER_ITEM.get());

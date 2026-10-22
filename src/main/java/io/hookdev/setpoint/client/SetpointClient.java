@@ -78,12 +78,17 @@ public class SetpointClient {
         modEventBus.addListener(SetpointClient::registerScreens);
         modEventBus.addListener(SetpointClient::registerBlockTints);
         modEventBus.addListener(SetpointClient::registerRenderers);
-        // gases look like a soft cloud in their own colour (in JEI and the like)
+        // gases look like a soft cloud in their own colour, process liquids like a rippled surface (in JEI and the like)
         modEventBus.addListener((net.neoforged.neoforge.client.event.RegisterFluidModelsEvent event) -> {
             var cloud = new net.minecraft.client.resources.model.sprite.Material(Setpoint.id("block/gas"));
             for (var gas : io.hookdev.setpoint.gas.Gases.ALL) {
                 event.register(new net.minecraft.client.renderer.block.FluidModel.Unbaked(cloud, cloud, null,
                         net.neoforged.neoforge.client.fluid.FluidTintSources.constant(gas.colour())), gas.fluid());
+            }
+            var surface = new net.minecraft.client.resources.model.sprite.Material(Setpoint.id("block/liquid"));
+            for (var liquid : io.hookdev.setpoint.gas.Liquids.ALL) {
+                event.register(new net.minecraft.client.renderer.block.FluidModel.Unbaked(surface, surface, null,
+                        net.neoforged.neoforge.client.fluid.FluidTintSources.constant(liquid.colour())), liquid.fluid());
             }
         });
         modEventBus.addListener((RegisterKeyMappingsEvent event) -> {
@@ -223,6 +228,8 @@ public class SetpointClient {
         event.registerBlockEntityRenderer(SetpointContent.PID_BOARD_ENTITY.get(), PidBoardRenderer::new);
         event.registerBlockEntityRenderer(SetpointContent.FLOATING_ROOF_TANK_ENTITY.get(), FloatingRoofTankRenderer::new);
         event.registerBlockEntityRenderer(SetpointContent.GAS_SPHERE_ENTITY.get(), GasSphereRenderer::new);
+        event.registerBlockEntityRenderer(SetpointContent.PUMPJACK_ENTITY.get(), PumpjackRenderer::new);
+        event.registerBlockEntityRenderer(SetpointContent.DISTILLATION_COLUMN_ENTITY.get(), DistillationColumnRenderer::new);
     }
 
     /** The liquid in a tank's sight glass takes the colour of the fluid in that block. */

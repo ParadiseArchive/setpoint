@@ -169,6 +169,11 @@ public final class PidCapture {
         if (be instanceof io.hookdev.setpoint.block.entity.NitrogenGeneratorBlockEntity generator) return new Found(PidDrawing.NITROGEN_GENERATOR, 0, generator.tag(), 5);
         if (be instanceof io.hookdev.setpoint.block.entity.GasCylinderBlockEntity cylinder) return new Found(PidDrawing.GAS_CYLINDER, 0, cylinder.tag(), 5);
         if (be instanceof io.hookdev.setpoint.block.entity.FuelCellBlockEntity cell) return new Found(PidDrawing.FUEL_CELL, 0, cell.tag(), 5);
+        if (block instanceof io.hookdev.setpoint.block.PumpjackPartBlock) return null; // the rest of a pumpjack: drawn once, at its wellhead
+        if (block instanceof io.hookdev.setpoint.block.ColumnPartBlock) return null; // the rest of a column: drawn once, at its feed
+        if (be instanceof io.hookdev.setpoint.block.entity.DistillationColumnBlockEntity column) return new Found(PidDrawing.COLUMN, 0, column.tag(), 5);
+        if (be instanceof io.hookdev.setpoint.block.entity.DieselGeneratorBlockEntity generator) return new Found(PidDrawing.GENERATOR, 0, generator.tag(), 4);
+        if (be instanceof io.hookdev.setpoint.block.entity.PumpjackBlockEntity pumpjack) return new Found(PidDrawing.PUMPJACK, 0, pumpjack.tag(), 5);
         if (be instanceof io.hookdev.setpoint.block.entity.AmmoniaReactorBlockEntity reactor) return new Found(PidDrawing.AMMONIA_REACTOR, 0, reactor.tag(), 5);
         if (be instanceof io.hookdev.setpoint.block.entity.FertilizerMixerBlockEntity mixer) return new Found(PidDrawing.FERTILIZER_MIXER, 0, mixer.tag(), 5);
         if (be instanceof io.hookdev.setpoint.block.entity.CompressorBlockEntity compressor) {

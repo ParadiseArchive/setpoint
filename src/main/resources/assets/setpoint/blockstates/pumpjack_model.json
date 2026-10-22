@@ -1,0 +1,52 @@
+{
+  "variants": {
+    "part=0": {
+      "model": "setpoint:block/pumpjack_frame"
+    },
+    "part=1": {
+      "model": "setpoint:block/pumpjack_post"
+    },
+    "part=2": {
+      "model": "setpoint:block/pumpjack_beam_front"
+    },
+    "part=3": {
+      "model": "setpoint:block/pumpjack_beam_back"
+    },
+    "part=4": {
+      "model": "setpoint:block/pumpjack_crank"
+    },
+    "part=5": {
+      "model": "setpoint:block/pumpjack_gearbox"
+    },
+    "part=6": {
+      "model": "setpoint:block/pumpjack_wellhead"
+    },
+    "part=7": {
+      "model": "setpoint:block/pumpjack_rod"
+    },
+    "part=8": {
+      "model": "setpoint:block/pumpjack_frame"
+    },
+    "part=9": {
+      "model": "setpoint:block/pumpjack_frame"
+    },
+    "part=10": {
+      "model": "setpoint:block/pumpjack_frame"
+    },
+    "part=11": {
+      "model": "setpoint:block/pumpjack_frame"
+    },
+    "part=12": {
+      "model": "setpoint:block/pumpjack_frame"
+    },
+    "part=13": {
+      "model": "setpoint:block/pumpjack_frame"
+    },
+    "part=14": {
+      "model": "setpoint:block/pumpjack_frame"
+    },
+    "part=15": {
+      "model": "setpoint:block/pumpjack_frame"
+    }
+  }
+}

@@ -1460,6 +1460,10 @@ const segment = (r) => +(r * Math.tan(Math.PI / 24)).toFixed(4);
 // =====================================================================================
 // Gas colours are the shoulder colours of real gas cylinders (EN 1089-3): hydrogen red, oxygen white, nitrogen black.
 const GAS = { hydrogen: '#c7322f', oxygen: '#f2f4f7', nitrogen: '#2c2e33', yellow: '#e2b13c', yellowDark: '#a87f22' };
+texture('liquid', (p) => { // a process liquid as recipe viewers show it: a rippled surface, tinted with its colour
+  p.rect(0, 0, 16, 16, '#cfcfcf');
+  for (let y = 1; y < 16; y += 4) for (let x = 0; x < 16; x += 6) p.rect((x + y) % 16, y, 3, 1, '#ededed');
+});
 texture('gas', (p) => { // a gas, as recipe viewers show it: a soft light cloud, tinted with the gas colour
   p.rect(0, 0, 16, 16, '#d8d8d8');
   for (const [x, y, w] of [[2, 3, 5], [9, 2, 4], [4, 8, 6], [11, 9, 3], [1, 12, 4], [8, 13, 5]]) { p.rect(x, y, w, 2, '#f4f4f4'); p.rect(x + 1, y + 2, w - 2, 1, '#e6e6e6'); }
@@ -1965,6 +1969,168 @@ recipe('checker_plate', ['I I', ' I ', 'I I'], { I: 'minecraft:iron_ingot' }, 's
 recipe('hazard_stripes', ['CYC', 'CKC', 'CYC'], { C: 'setpoint:checker_plate', Y: 'minecraft:yellow_dye', K: 'minecraft:black_dye' }, 'setpoint:hazard_stripes', 6);
 recipe('corrugated_steel', ['I I', 'I I', 'I I'], { I: 'minecraft:iron_ingot' }, 'setpoint:corrugated_steel', 12);
 recipe('industrial_lamp', [' I ', 'NGN'], { I: 'minecraft:iron_ingot', N: 'minecraft:iron_nugget', G: 'minecraft:glowstone' }, 'setpoint:industrial_lamp', 2);
+
+// =====================================================================================
+// Pumpjack: a nodding oil pump on a well, one wide, four long and three high
+// =====================================================================================
+// Built in pixels from the bottom middle of the wellhead (z towards the front, the pumpjack behind it); the walking
+// beam pieces from its pivot on the samson post, the crank from its axle. PUMPJACK_SHIFT moves each into a model's
+// bounds; PumpjackRenderer.SHIFT must match. The renderer makes it nod.
+texture('pumpjack_frame', (p) => { p.rect(0, 0, 16, 16, '#5a5f69'); p.rect(0, 0, 16, 1, '#7a808b'); p.rect(0, 15, 16, 1, '#42464e'); });
+texture('pumpjack_beam', (p) => { p.rect(0, 0, 16, 16, '#3b4048'); p.rect(0, 0, 16, 1, '#555b65'); p.rect(0, 15, 16, 1, '#2a2e34'); });
+texture('pumpjack_yellow', (p) => { p.rect(0, 0, 16, 16, '#e2b13c'); p.rect(0, 0, 16, 1, '#f2c862'); p.rect(0, 15, 16, 1, '#a87f22');
+  for (let i = 0; i < 16; i += 8) p.rect(i, 6, 4, 4, '#1f2125'); });
+texture('pumpjack_blue', (p) => { p.rect(0, 0, 16, 16, '#2f5fa8'); p.rect(0, 0, 16, 1, '#4b7cc6'); p.rect(0, 15, 16, 1, '#21467e'); });
+texture('pumpjack_valve', (p) => { p.rect(0, 0, 16, 16, '#c0392b'); p.rect(0, 0, 16, 1, '#e0574a'); });
+texture('pumpjack_rod', (p) => { p.rect(0, 0, 16, 16, '#c8ccd3'); p.rect(0, 0, 1, 16, '#eceef1'); });
+const PUMPJACK_SHIFT = { frame: [0, 0, 32], post: [0, -12, 32], beam_front: [0, 0, -12], beam_back: [0, 0, 12], crank: [0, 0, 0],
+  gearbox: [0, 0, 44], wellhead: [0, 0, 0], rod: [0, 8, 0] };
+{
+  const P = Object.fromEntries(Object.keys(PUMPJACK_SHIFT).map((k) => [k, []]));
+  const add = (part, from, to, t, stretch = false) => P[part].push({ from, to, t, stretch });
+  const mirror = (part, [x1, y1, z1], [x2, y2, z2], t) => { add(part, [x1, y1, z1], [x2, y2, z2], t); add(part, [-x2, y1, z1], [-x1, y2, z2], t); };
+  // the frame on the ground: two rails and three cross members
+  mirror('frame', [3, 0, -54], [6, 3, -8], 'frame');
+  for (const z of [-13, -30, -46]) add('frame', [-3, 0, z - 1], [3, 2, z + 1], 'frame');
+  // the samson post: an A-frame of four legs, the bearing block on top
+  for (const z of [-40, -26]) mirror('post', [4, 2, z], [6, 32, z + 2], 'frame');
+  mirror('post', [4, 30, -34], [6, 38, -30], 'frame');
+  add('post', [-6, 38, -34], [6, 42, -30], 'beam');
+  // the walking beam, from its pivot: forward to the horsehead, back to the equalizer
+  add('beam_front', [-1.5, -2, 0], [1.5, 2, 32], 'beam');
+  add('beam_front', [-2, -10, 30], [2, 5, 33], 'yellow');
+  add('beam_front', [-2, -9, 33], [2, 3, 35], 'yellow');
+  add('beam_front', [-2, -7, 35], [2, 1, 36], 'yellow');
+  add('beam_back', [-1.5, -2, -22], [1.5, 2, 0], 'beam');
+  add('beam_back', [-8, -1.5, -21], [8, 1.5, -19], 'beam');
+  // one crank, from its axle (the renderer draws two): the arm, its counterweight, the hub
+  add('crank', [-1, -3, -2], [1, 10, 2], 'beam');
+  add('crank', [-1.5, 6, -6], [1.5, 14, 6], 'yellow');
+  add('crank', [-1.5, -2, -2], [1.5, 2, 2], 'frame');
+  // the gearbox with the crank shaft through it, the motor in front of it
+  add('gearbox', [-4, 2, -54], [4, 22, -42], 'blue');
+  add('gearbox', [-8, 19, -49], [8, 21, -47], 'frame');
+  add('gearbox', [-3, 2, -42], [3, 9, -36], 'blue');
+  // the wellhead: casing, a christmas tree with two wing valves and their wheels, the stuffing box
+  add('wellhead', [-3, 0, -3], [3, 3, 3], 'frame');
+  add('wellhead', [-1.5, 3, -1.5], [1.5, 11, 1.5], 'frame');
+  add('wellhead', [-6, 6, -1], [6, 8, 1], 'frame');
+  for (const x of [-6.5, 6.5]) add('wellhead', [x - 0.5, 4, -2], [x + 0.5, 10, 2], 'valve');
+  add('wellhead', [-2, 11, -2], [2, 12, 2], 'beam');
+  add('rod', [-0.5, -0.5, 0], [0.5, 0.5, 16], 'rod', true);
+
+  const BUILD = (list, shift) => list.flatMap(({ from, to, t, stretch }) => {
+    const m = (p) => p.map((v, k) => +(v + 8 * (k !== 1) + shift[k]).toFixed(4));
+    if (stretch) return [box(m(from), m(to), Object.fromEntries(['north', 'south', 'east', 'west', 'up', 'down'].map((f) => [f, { uv: [0, 0, 1, 16], texture: '#' + t }])))];
+    return tiled(m(from), m(to), () => '#' + t);
+  });
+  const textures = { frame: tex('pumpjack_frame'), beam: tex('pumpjack_beam'), yellow: tex('pumpjack_yellow'), blue: tex('pumpjack_blue'),
+    valve: tex('pumpjack_valve'), rod: tex('pumpjack_rod'), particle: tex('pumpjack_frame') };
+  const parts = Object.keys(PUMPJACK_SHIFT);
+  for (const part of parts) M('pumpjack_' + part, { parent: 'minecraft:block/block', ambientocclusion: false, textures, elements: BUILD(P[part], PUMPJACK_SHIFT[part]) });
+  BS('pumpjack_model', { variants: Object.fromEntries(Array.from({ length: 16 }, (_, i) => [`part=${i}`, { model: 'setpoint:block/pumpjack_' + (parts[i] ?? 'frame') }])) });
+  M('pumpjack', { textures: { particle: tex('pumpjack_frame') } });
+  BS('pumpjack', { variants: Object.fromEntries(['north', 'east', 'south', 'west'].flatMap((f) => ['false', 'true'].map((r) => [`facing=${f},running=${r}`, { model: 'setpoint:block/pumpjack' }]))) });
+  BS('pumpjack_part', { variants: Object.fromEntries([0, 1, 2].map((k) => [`kind=${k}`, { model: 'setpoint:block/pumpjack' }])) });
+  // the item: the whole pumpjack at rest, shrunk to one block (in pumpjack pixels; the beam put back on its pivot)
+  const at = (list, dy, dz) => list.map((e) => ({ ...e, from: [e.from[0], e.from[1] + dy, e.from[2] + dz], to: [e.to[0], e.to[1] + dy, e.to[2] + dz] }));
+  const raw = (list) => list.flatMap(({ from, to, t }) => [box(from, to, Object.fromEntries(['north', 'south', 'east', 'west', 'up', 'down'].map((f) => [f, { uv: [0, 0, 16, 16], texture: '#' + t }])))]);
+  const whole = [...raw(P.frame), ...raw(P.post), ...at(raw(P.beam_front), 40, -32), ...at(raw(P.beam_back), 40, -32), ...raw(P.gearbox), ...raw(P.wellhead),
+    ...at(raw(P.crank), 20, -48).map((e) => ({ ...e, from: [e.from[0] + 7, e.from[1], e.from[2]], to: [e.to[0] + 7, e.to[1], e.to[2]] }))];
+  M('pumpjack_item', { parent: 'minecraft:block/block', textures, elements: shrunk(whole, [0, 24, -24], 16 / 64) });
+  item('pumpjack', 'setpoint:block/pumpjack_item');
+}
+recipe('pumpjack', ['IBI', ' P ', 'ITI'], { I: 'minecraft:iron_ingot', B: 'minecraft:iron_block', P: 'minecraft:piston', T: 'setpoint:tank' }, 'setpoint:pumpjack');
+
+// =====================================================================================
+// Distillation column, its reboiler and condenser; diesel generator
+// =====================================================================================
+// The column is drawn by its renderer from part models built in pixels from the bottom middle of the feed block (z to
+// the front; the column's middle 32 behind): a 15° plate of the round shell, the domed head, a platform ring segment,
+// the reboiler, the condenser, and a nozzle per stream with its colour band. COLUMN_SHIFT = DistillationColumnRenderer.SHIFT.
+texture('column_shell', (p) => { // insulation cladding: aluminium sheets with their overlaps
+  p.rect(0, 0, 16, 16, '#c7ccd3'); p.rect(0, 0, 16, 1, '#e4e7eb'); p.rect(0, 7, 16, 1, '#a9aeb6'); p.rect(0, 8, 16, 1, '#dde0e5');
+  p.rect(0, 15, 16, 1, '#a9aeb6');
+});
+texture('column_inner', (p) => p.rect(0, 0, 16, 16, '#6d727a'));
+texture('reboiler', (p) => { p.rect(0, 0, 16, 16, '#b9bec6'); for (let x = 0; x < 16; x += 4) p.rect(x, 0, 1, 16, '#9ea3ab'); p.rect(0, 0, 16, 1, '#dde0e5'); });
+texture('condenser', (p) => { p.rect(0, 0, 16, 16, '#7d8794'); for (let y = 2; y < 16; y += 4) p.rect(0, y, 16, 1, '#646d79'); p.rect(0, 0, 16, 1, '#a3abb6'); });
+const BANDS = { feed: '#2b241e', steam: '#d8dde3', residue: '#141212', diesel: '#c9962c', kerosene: '#c9ddea', naphtha: '#e6d9a6', water: '#3f8f4f', lpg: '#e07b22' };
+for (const [name, colour] of Object.entries(BANDS)) texture('band_' + name, (p) => { p.rect(0, 0, 16, 16, colour); p.rect(0, 0, 16, 1, '#ffffff33'.slice(0, 7)); });
+texture('diesel_generator_front', (p) => { // the radiator grille
+  plate(p, '#c9962c'); p.rect(2, 2, 12, 10, '#2a2c30'); for (let y = 3; y < 12; y += 2) p.rect(2, y, 12, 1, '#4a4e55');
+  p.rect(3, 13, 3, 2, C.ledOff); p.rect(10, 13, 3, 2, '#2a2c30');
+});
+texture('diesel_generator_front_on', (p) => {
+  plate(p, '#c9962c'); p.rect(2, 2, 12, 10, '#2a2c30'); for (let y = 3; y < 12; y += 2) p.rect(2, y, 12, 1, '#4a4e55');
+  p.rect(3, 13, 3, 2, C.cyan); p.rect(10, 13, 3, 2, '#2a2c30');
+});
+texture('diesel_generator_side', (p) => { // the engine block with its cylinders
+  plate(p, '#c9962c'); p.rect(2, 4, 12, 8, '#3b4048'); for (let x = 3; x < 14; x += 3) p.rect(x, 5, 2, 6, '#5a5f69');
+});
+texture('diesel_generator_top', (p) => { plate(p, '#c9962c'); p.rect(10, 2, 4, 4, '#2a2c30'); p.rect(11, 3, 2, 2, '#141414'); }); // the exhaust stack
+texture('diesel_generator_back', (p) => { plate(p, '#c9962c'); p.rect(4, 4, 8, 8, BANDS.diesel); p.rect(5, 5, 6, 6, C.steel1); p.rect(6, 6, 4, 4, C.outline); });
+const COLUMN_SHIFT = { shell: [0, 0, 0], head: [0, 0, 0], ring: [0, 0, -8], reboiler: [0, 0, 0], condenser: [0, 0, 0], nozzle: [0, 8, 0] };
+{
+  const all = (t, uv = [0, 0, 16, 16]) => Object.fromEntries(['north', 'south', 'east', 'west', 'up', 'down'].map((f) => [f, { uv, texture: '#' + t }]));
+  const sh = (part, list) => list.map((e) => ({ ...e, from: e.from.map((v, k) => +(v + 8 * (k !== 1) + COLUMN_SHIFT[part][k]).toFixed(4)),
+    to: e.to.map((v, k) => +(v + 8 * (k !== 1) + COLUMN_SHIFT[part][k]).toFixed(4)) }));
+  const w = segment(20), wr = segment(28), wl = segment(27.5);
+  const shell = [0, 16].map((y) => box([-w, y, 19], [w, y + 16, 20], { south: { uv: [0, 0, 5, 16], texture: '#shell' }, north: { uv: [0, 0, 5, 16], texture: '#inner' } }));
+  const disc = (r, y1, y2, t) => [box([-r, y1, -r * 0.42], [r, y2, r * 0.42], all(t)), box([-r * 0.42, y1, -r], [r * 0.42, y2, r], all(t))];
+  const head = [...disc(20, 0, 4, 'shell'), ...disc(16, 4, 7, 'shell'), ...disc(11, 7, 9, 'shell'), ...disc(5, 9, 10, 'shell'), box([-3, 10, -3], [3, 14, 3], all('steel'))];
+  const ring = [
+    box([-wr, -1, 20], [wr, 0, 28], { up: { uv: [0, 0, 16, 8], texture: '#grating' }, down: { uv: [0, 0, 16, 8], texture: '#grating' } }),
+    box([-0.5, 0, 27], [0.5, 12, 28], all('rail')),
+    box([-wl, 6, 27], [wl, 7, 28], all('rail')), box([-wl, 11, 27], [wl, 12, 28], all('rail')),
+  ];
+  const reboiler = [box([-22, 2, -7], [22, 12, 7], all('reboiler')), box([-22, 0.5, -5], [22, 13.5, 5], all('reboiler')),
+    box([-23, 3, -4], [-22, 11, 4], all('steel')), box([22, 3, -4], [23, 11, 4], all('steel')),
+    box([-17, 0, -6], [-14, 3, 6], all('steel')), box([14, 0, -6], [17, 3, 6], all('steel'))];
+  const condenser = [box([-19, 0, -1], [-17, 8, 1], all('steel')), box([17, 0, -1], [19, 8, 1], all('steel')),
+    box([-22, 9, -6], [22, 17, 6], all('condenser')), box([-22, 8, -4], [22, 18, 4], all('condenser')),
+    box([-24, 9, -5], [-22, 17, 5], all('steel')), box([22, 9, -5], [24, 17, 5], all('steel')),
+    box([-1.5, -6, -1.5], [1.5, 9, 1.5], all('steel'))]; // the vapour line down into the head
+  const textures = { shell: tex('column_shell'), inner: tex('column_inner'), steel: tex('frt_steel'), grating: tex('frt_grating'), rail: tex('sphere_rail'),
+    reboiler: tex('reboiler'), condenser: tex('condenser'), particle: tex('column_shell'),
+    ...Object.fromEntries(Object.keys(BANDS).map((n) => ['band_' + n, tex('band_' + n)])) };
+  M('distillation_column_shell', { parent: 'minecraft:block/block', ambientocclusion: false, textures, elements: sh('shell', shell) });
+  M('distillation_column_head', { parent: 'minecraft:block/block', ambientocclusion: false, textures, elements: sh('head', head) });
+  M('distillation_column_ring', { parent: 'minecraft:block/block', ambientocclusion: false, textures, elements: sh('ring', ring) });
+  M('distillation_column_reboiler', { parent: 'minecraft:block/block', ambientocclusion: false, textures, elements: sh('reboiler', reboiler) });
+  M('distillation_column_condenser', { parent: 'minecraft:block/block', ambientocclusion: false, textures, elements: sh('condenser', condenser) });
+  const nozzles = Object.keys(BANDS);
+  for (const n of nozzles) {
+    M('distillation_column_nozzle_' + n, { parent: 'minecraft:block/block', ambientocclusion: false, textures, elements: sh('nozzle', [
+      box([-2.5, -2.5, 0], [2.5, 2.5, 11], all('steel')), box([-3, -3, 5], [3, 3, 7], all('band_' + n)), box([-4, -4, 11], [4, 4, 12], all('steel')),
+    ]) });
+  }
+  const models = ['shell', 'head', 'ring', 'reboiler', 'condenser', ...nozzles.map((n) => 'nozzle_' + n)];
+  BS('distillation_column_model', { variants: Object.fromEntries(Array.from({ length: 16 }, (_, i) => [`part=${i}`, { model: 'setpoint:block/distillation_column_' + (models[i] ?? 'shell') }])) });
+  M('distillation_column', { textures: { particle: tex('column_shell') } });
+  // one model for every state (a multipart with no condition)
+  BS('distillation_column', { multipart: [{ apply: { model: 'setpoint:block/distillation_column' } }] });
+  BS('column_part', { multipart: [{ apply: { model: 'setpoint:block/distillation_column' } }] });
+  // the item: the column as a stack of discs on its front row, with the condenser on top, shrunk to one block
+  const whole = [];
+  for (let y = 0; y < 160; y += 16) whole.push(...disc(20, y, y + 16, 'shell').map((e) => ({ ...e, from: [e.from[0], e.from[1], e.from[2] - 32], to: [e.to[0], e.to[1], e.to[2] - 32] })));
+  whole.push(...head.map((e) => ({ ...e, from: [e.from[0], e.from[1] + 160, e.from[2] - 32], to: [e.to[0], e.to[1] + 160, e.to[2] - 32] })));
+  whole.push(...condenser.map((e) => ({ ...e, from: [e.from[0], e.from[1] + 160, e.from[2] - 32], to: [e.to[0], e.to[1] + 160, e.to[2] - 32] })));
+  whole.push(...reboiler);
+  M('distillation_column_item', { parent: 'minecraft:block/block', textures, elements: shrunk(whole, [0, 88, -24], 16 / 184) });
+  item('distillation_column', 'setpoint:block/distillation_column_item');
+
+  for (const on of [false, true]) {
+    M('diesel_generator' + (on ? '_on' : ''), { parent: 'minecraft:block/cube', textures: {
+      north: tex('diesel_generator_front' + (on ? '_on' : '')), east: tex('diesel_generator_side'), west: tex('diesel_generator_side'),
+      south: tex('diesel_generator_back'), up: tex('diesel_generator_top'), down: tex('diesel_generator_side'), particle: tex('diesel_generator_side') } });
+  }
+  BS('diesel_generator', { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => [false, true].map((run) =>
+    [`facing=${f},running=${run}`, { model: 'setpoint:block/diesel_generator' + (run ? '_on' : ''), ...(y ? { y } : {}) }]))) });
+  item('diesel_generator', 'setpoint:block/diesel_generator_on');
+}
+recipe('distillation_column', ['IPI', 'TTT', 'IFI'], { I: 'minecraft:iron_block', P: 'setpoint:gas_pipe', T: 'setpoint:tank', F: 'minecraft:blast_furnace' }, 'setpoint:distillation_column');
+recipe('diesel_generator', ['III', 'PFP', 'IRI'], { I: 'minecraft:iron_ingot', P: 'minecraft:piston', F: 'minecraft:furnace', R: 'minecraft:redstone' }, 'setpoint:diesel_generator');
 recipe('floating_roof_tank', ['IBI', 'BTB', 'IBI'], { I: 'setpoint:hookonium_ingot', B: 'setpoint:hookonium_block', T: 'setpoint:tank' }, 'setpoint:floating_roof_tank');
 recipe('ibc', ['BBB', 'BCB', 'SSS'], { B: 'minecraft:iron_bars', C: 'minecraft:cauldron', S: 'minecraft:oak_slab' }, 'setpoint:ibc');
 
@@ -2161,7 +2327,7 @@ const lootOre = (name, drop) => json(join(DATA, 'loot_table/blocks', name + '.js
 });
 const MACHINES = ['pipe', 'tank', 'centrifugal_pump', 'creative_generator', 'level_transmitter', 'control_valve', 'controller',
   'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine', 'dcs_console', 'hand_valve', 'water_intake', 'flow_transmitter',
-  'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve', 'pid_board', 'pallet', 'gas_pipe', 'electrolyser', 'nitrogen_generator', 'compressor', 'fuel_cell', 'ammonia_reactor', 'fertilizer_mixer'];
+  'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve', 'pid_board', 'pallet', 'gas_pipe', 'electrolyser', 'nitrogen_generator', 'compressor', 'fuel_cell', 'ammonia_reactor', 'fertilizer_mixer', 'pumpjack', 'distillation_column', 'diesel_generator'];
 for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) lootSelf(name);
 // factory blocks: each drops itself; a handrail drops one for every side it rails
 const FACTORY = ['rack_upright', 'rack_beam', 'grating', 'grating_stairs', 'caged_ladder', 'steel_beam', 'checker_plate', 'hazard_stripes', 'corrugated_steel', 'industrial_lamp'];
@@ -2179,7 +2345,7 @@ lootOre('hookonium_ore', 'setpoint:raw_hookonium');
 lootOre('deepslate_hookonium_ore', 'setpoint:raw_hookonium');
 const HOOKONIUM_BLOCKS = ['hookonium_ore', 'deepslate_hookonium_ore', 'hookonium_block', 'raw_hookonium_block'].map((n) => 'setpoint:' + n);
 const tag = (path, values) => json(join(ROOT, 'data', path + '.json'), { values });
-tag('minecraft/tags/block/mineable/pickaxe', [...MACHINES.map((n) => 'setpoint:' + n), 'setpoint:drum', 'setpoint:ibc', 'setpoint:floating_roof_tank', 'setpoint:roof_tank_part', 'setpoint:gas_cylinder', 'setpoint:gas_sphere', 'setpoint:gas_sphere_part', ...FACTORY.map((n) => 'setpoint:' + n), 'setpoint:handrail', ...HOOKONIUM_BLOCKS]);
+tag('minecraft/tags/block/mineable/pickaxe', [...MACHINES.map((n) => 'setpoint:' + n), 'setpoint:drum', 'setpoint:ibc', 'setpoint:floating_roof_tank', 'setpoint:roof_tank_part', 'setpoint:gas_cylinder', 'setpoint:gas_sphere', 'setpoint:gas_sphere_part', 'setpoint:pumpjack_part', 'setpoint:column_part', ...FACTORY.map((n) => 'setpoint:' + n), 'setpoint:handrail', ...HOOKONIUM_BLOCKS]);
 tag('minecraft/tags/block/climbable', ['setpoint:caged_ladder']);
 tag('minecraft/tags/block/stairs', ['setpoint:grating_stairs']);
 tag('minecraft/tags/item/stairs', ['setpoint:grating_stairs']);
