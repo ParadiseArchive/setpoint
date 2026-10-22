@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": "minecraft:calcite"
+  },
+  "pattern": [
+    "CCC",
+    "CCC"
+  ],
+  "result": {
+    "count": 6,
+    "id": "setpoint:ceiling_panel"
+  }
+}

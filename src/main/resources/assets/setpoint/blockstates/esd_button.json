@@ -1,0 +1,56 @@
+{
+  "variants": {
+    "facing=up,pressed=false": {
+      "model": "setpoint:block/esd_button"
+    },
+    "facing=up,pressed=true": {
+      "model": "setpoint:block/esd_button_pressed"
+    },
+    "facing=down,pressed=false": {
+      "model": "setpoint:block/esd_button",
+      "x": 180
+    },
+    "facing=down,pressed=true": {
+      "model": "setpoint:block/esd_button_pressed",
+      "x": 180
+    },
+    "facing=north,pressed=false": {
+      "model": "setpoint:block/esd_button",
+      "x": 90
+    },
+    "facing=north,pressed=true": {
+      "model": "setpoint:block/esd_button_pressed",
+      "x": 90
+    },
+    "facing=south,pressed=false": {
+      "model": "setpoint:block/esd_button",
+      "x": 90,
+      "y": 180
+    },
+    "facing=south,pressed=true": {
+      "model": "setpoint:block/esd_button_pressed",
+      "x": 90,
+      "y": 180
+    },
+    "facing=east,pressed=false": {
+      "model": "setpoint:block/esd_button",
+      "x": 90,
+      "y": 90
+    },
+    "facing=east,pressed=true": {
+      "model": "setpoint:block/esd_button_pressed",
+      "x": 90,
+      "y": 90
+    },
+    "facing=west,pressed=false": {
+      "model": "setpoint:block/esd_button",
+      "x": 90,
+      "y": 270
+    },
+    "facing=west,pressed=true": {
+      "model": "setpoint:block/esd_button_pressed",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

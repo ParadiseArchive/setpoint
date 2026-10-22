@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "G": "minecraft:orange_stained_glass",
+    "L": "minecraft:redstone_lamp",
+    "I": "minecraft:iron_ingot",
+    "N": "minecraft:note_block"
+  },
+  "pattern": [
+    " G ",
+    "GLG",
+    "INI"
+  ],
+  "result": {
+    "id": "setpoint:alarm_beacon"
+  }
+}

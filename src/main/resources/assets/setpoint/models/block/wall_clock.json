@@ -1,0 +1,92 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "face": "setpoint:block/clock_face",
+    "rim": "setpoint:block/clock_rim",
+    "particle": "setpoint:block/clock_rim"
+  },
+  "elements": [
+    {
+      "from": [
+        2,
+        2,
+        15
+      ],
+      "to": [
+        14,
+        14,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ],
+          "texture": "#face"
+        },
+        "south": {
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ],
+          "texture": "#rim"
+        }
+      }
+    },
+    {
+      "from": [
+        3.5,
+        3.5,
+        15.5
+      ],
+      "to": [
+        12.5,
+        12.5,
+        16
+      ],
+      "faces": {
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            9
+          ],
+          "texture": "#rim"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            9
+          ],
+          "texture": "#rim"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            9,
+            1
+          ],
+          "texture": "#rim"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            9,
+            1
+          ],
+          "texture": "#rim"
+        }
+      }
+    }
+  ]
+}

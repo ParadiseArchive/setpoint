@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "R": "minecraft:red_dye",
+    "B": "minecraft:stone_button",
+    "Y": "minecraft:yellow_dye",
+    "I": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    "RBR",
+    "YIY"
+  ],
+  "result": {
+    "id": "setpoint:esd_button"
+  }
+}

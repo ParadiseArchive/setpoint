@@ -1,0 +1,79 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "sign": "setpoint:block/exit_sign_down",
+    "frame": "setpoint:block/ceiling_panel",
+    "particle": "setpoint:block/exit_sign_down"
+  },
+  "elements": [
+    {
+      "from": [
+        1,
+        4,
+        14
+      ],
+      "to": [
+        15,
+        12,
+        16
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            1,
+            4,
+            15,
+            12
+          ],
+          "texture": "#sign"
+        },
+        "south": {
+          "uv": [
+            1,
+            4,
+            15,
+            12
+          ],
+          "texture": "#frame"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            2,
+            8
+          ],
+          "texture": "#frame"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            2,
+            8
+          ],
+          "texture": "#frame"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            14,
+            2
+          ],
+          "texture": "#frame"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            14,
+            2
+          ],
+          "texture": "#frame"
+        }
+      },
+      "light_emission": 15
+    }
+  ]
+}

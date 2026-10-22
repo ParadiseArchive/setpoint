@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "setpoint:block/ceiling_panel"
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "setpoint:ceiling_panel",
+    "minecraft:glowstone"
+  ],
+  "result": {
+    "count": 1,
+    "id": "setpoint:ceiling_light"
+  }
+}

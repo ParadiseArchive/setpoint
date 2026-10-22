@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "G": "minecraft:glass",
+    "B": "minecraft:iron_bars"
+  },
+  "pattern": [
+    "GGG",
+    "GBG",
+    "GGG"
+  ],
+  "result": {
+    "count": 8,
+    "id": "setpoint:wired_glass"
+  }
+}

@@ -83,7 +83,8 @@ public class CompressorBlockEntity extends BlockEntity implements NamedEquipment
         GasVessel to = from == null ? null : emptiest(level, from.gas());
         suction = from == null ? 0 : from.pressure();
         discharge = to == null ? 0 : to.pressure();
-        if (suctionLine.isEmpty() || dischargeLine.isEmpty()) status = "NO LINE";
+        if (io.hookdev.setpoint.control.Esd.tripped(level, pos)) status = "ESD";
+        else if (suctionLine.isEmpty() || dischargeLine.isEmpty()) status = "NO LINE";
         else if (from == null || CompressorModel.flow(from.pressure()) == 0) status = "NO GAS";
         else if (to == null) status = "FULL";
         else {

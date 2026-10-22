@@ -73,7 +73,8 @@ public class FertilizerMixerBlockEntity extends BlockEntity implements NamedEqui
         int out = items.getAmountAsInt(OUTPUT);
         GasVessel source = ammonia.fullest(level, pos, GasMakerBlock.left(state), Gases.AMMONIA.resource());
         int perTick = AMMONIA_PER_BATCH / TICKS_PER_BATCH;
-        if (items.getAmountAsInt(INPUT) == 0) status = "NO BONE MEAL";
+        if (io.hookdev.setpoint.control.Esd.tripped(level, pos)) status = "ESD";
+        else if (items.getAmountAsInt(INPUT) == 0) status = "NO BONE MEAL";
         else if (out + FERTILIZER_PER_BATCH > SetpointContent.FERTILIZER.get().getDefaultMaxStackSize()) status = "FULL";
         else if (source == null || source.amount() < perTick) status = "NO AMMONIA";
         else {

@@ -72,7 +72,8 @@ public class DieselGeneratorBlockEntity extends BlockEntity implements Vessel, N
     public static void serverTick(Level level, BlockPos pos, BlockState state, DieselGeneratorBlockEntity generator) {
         ServerLevel server = (ServerLevel) level;
         boolean running = false;
-        if (generator.energy.getAmountAsInt() + POWER > ENERGY_CAPACITY) generator.status = "FULL";
+        if (io.hookdev.setpoint.control.Esd.tripped(level, pos)) generator.status = "ESD";
+        else if (generator.energy.getAmountAsInt() + POWER > ENERGY_CAPACITY) generator.status = "FULL";
         else if (generator.amount() < DIESEL_PER_TICK) generator.status = "NO DIESEL";
         else {
             int left = generator.amount() - DIESEL_PER_TICK;

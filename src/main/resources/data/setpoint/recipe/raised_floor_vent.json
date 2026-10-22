@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "setpoint:raised_floor",
+    "minecraft:iron_bars"
+  ],
+  "result": {
+    "count": 1,
+    "id": "setpoint:raised_floor_vent"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "P": "minecraft:glass_pane",
+    "R": "minecraft:redstone",
+    "Q": "minecraft:quartz",
+    "I": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    "PPP",
+    "RQR",
+    "III"
+  ],
+  "result": {
+    "count": 3,
+    "id": "setpoint:overview_screen"
+  }
+}

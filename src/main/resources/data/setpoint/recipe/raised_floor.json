@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": "minecraft:light_gray_concrete",
+    "I": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    "CCC",
+    "I I"
+  ],
+  "result": {
+    "count": 6,
+    "id": "setpoint:raised_floor"
+  }
+}

@@ -18,6 +18,10 @@ public final class ClientHooks {
         PidBoardTextures.remove(pos);
     }
 
+    public static void overviewRemoved(BlockPos pos) {
+        OverviewScreenTextures.remove(pos);
+    }
+
     public static void openHandbook() {
         Minecraft.getInstance().gui.setScreen(new HandbookScreen(Handbook.load()));
     }

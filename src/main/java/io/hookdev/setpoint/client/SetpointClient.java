@@ -104,6 +104,7 @@ public class SetpointClient {
             forks();
         });
         NeoForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingOut event) -> PidBoardTextures.clear());
+        NeoForge.EVENT_BUS.addListener((ClientPlayerNetworkEvent.LoggingOut event) -> OverviewScreenTextures.clear());
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post event) -> BoardLook.tick());
         modEventBus.addListener(SetpointClient::registerPayloadHandlers);
         NeoForge.EVENT_BUS.addListener(SetpointClient::tooltip);
@@ -225,7 +226,10 @@ public class SetpointClient {
     private static void registerRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(SetpointContent.PALLET_TRUCK_ENTITY.get(), PalletTruckRenderer::new);
         event.registerEntityRenderer(SetpointContent.FORKLIFT_ENTITY.get(), ForkliftRenderer::new);
+        event.registerEntityRenderer(SetpointContent.SEAT_ENTITY.get(), net.minecraft.client.renderer.entity.NoopRenderer::new);
         event.registerBlockEntityRenderer(SetpointContent.PID_BOARD_ENTITY.get(), PidBoardRenderer::new);
+        event.registerBlockEntityRenderer(SetpointContent.OVERVIEW_SCREEN_ENTITY.get(), OverviewScreenRenderer::new);
+        event.registerBlockEntityRenderer(SetpointContent.WALL_CLOCK_ENTITY.get(), WallClockRenderer::new);
         event.registerBlockEntityRenderer(SetpointContent.FLOATING_ROOF_TANK_ENTITY.get(), FloatingRoofTankRenderer::new);
         event.registerBlockEntityRenderer(SetpointContent.GAS_SPHERE_ENTITY.get(), GasSphereRenderer::new);
         event.registerBlockEntityRenderer(SetpointContent.PUMPJACK_ENTITY.get(), PumpjackRenderer::new);

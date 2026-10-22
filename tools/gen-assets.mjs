@@ -34,13 +34,13 @@ function chunk(type, data) {
   const crc = Buffer.alloc(4); crc.writeUInt32BE(crc32(body));
   return Buffer.concat([len, body, crc]);
 }
-function png(pixels) { // pixels: 16 rows of 16 '#rrggbb' or null (transparent)
+function png(pixels) { // pixels: 16 rows of 16 '#rrggbb' (or '#rrggbbaa', see-through) or null (transparent)
   const raw = Buffer.alloc(16 * (1 + 16 * 4));
   pixels.forEach((row, y) => row.forEach((hex, x) => {
     const o = y * (1 + 64) + 1 + x * 4;
     if (!hex) return;
     raw[o] = parseInt(hex.slice(1, 3), 16); raw[o + 1] = parseInt(hex.slice(3, 5), 16);
-    raw[o + 2] = parseInt(hex.slice(5, 7), 16); raw[o + 3] = 255;
+    raw[o + 2] = parseInt(hex.slice(5, 7), 16); raw[o + 3] = hex.length > 7 ? parseInt(hex.slice(7, 9), 16) : 255;
   }));
   const ihdr = Buffer.alloc(13);
   ihdr.writeUInt32BE(16, 0); ihdr.writeUInt32BE(16, 4); ihdr[8] = 8; ihdr[9] = 6;
@@ -705,7 +705,7 @@ function animated(name, frametime, frames) {
   px.forEach((row, y) => row.forEach((hex, x) => {
     if (!hex) return;
     const o = y * (1 + 64) + 1 + x * 4;
-    raw[o] = parseInt(hex.slice(1, 3), 16); raw[o + 1] = parseInt(hex.slice(3, 5), 16); raw[o + 2] = parseInt(hex.slice(5, 7), 16); raw[o + 3] = 255;
+    raw[o] = parseInt(hex.slice(1, 3), 16); raw[o + 1] = parseInt(hex.slice(3, 5), 16); raw[o + 2] = parseInt(hex.slice(5, 7), 16); raw[o + 3] = hex.length > 7 ? parseInt(hex.slice(7, 9), 16) : 255;
   }));
   const ihdr = Buffer.alloc(13);
   ihdr.writeUInt32BE(16, 0); ihdr.writeUInt32BE(px.length, 4); ihdr[8] = 8; ihdr[9] = 6;
@@ -768,6 +768,7 @@ json(join(ASSETS, 'sounds.json'), {
     subtitle: 'subtitles.setpoint.entity.forklift.horn',
     sounds: [{ name: 'setpoint:vehicle/horn_low', volume: 1.0 }], // the same, lower (tools/make-horn.mjs low)
   },
+  'block.alarm_beacon.horn': { subtitle: 'subtitles.setpoint.block.alarm_beacon.horn', sounds: [{ name: 'setpoint:block/alarm_horn', volume: 1.0 }] }, // tools/make-alarm.mjs
   'block.safety_valve.lift': {
     subtitle: 'subtitles.setpoint.block.safety_valve.lift',
     sounds: [{ name: 'minecraft:random/fizz', pitch: 0.6, volume: 0.6 }, { name: 'minecraft:random/fizz', pitch: 0.5, volume: 0.6 }],
@@ -2311,6 +2312,400 @@ for (const name of ['blank_pid', 'pid']) {
 shapeless('blank_pid', ['minecraft:paper', 'minecraft:blue_dye'], 'setpoint:blank_pid', 1);
 
 // =====================================================================================
+// Control room: overview screens, alarm beacon, ESD button, radios, desks, screens, chair, floor, ceiling, clock,
+// filing cabinet, printer, coffee, exit sign, blast door and wired glass
+// =====================================================================================
+const CR = { bezel: '#2a2e36', screen: '#0b0e14', bar: '#1e222a', back: '#24272d', laminate: '#c9cdd3', laminateHi: '#dadde2', laminateLo: '#b3b8bf',
+  edge: '#3e434b', panel: '#8b919a', panelLo: '#737981', key: '#1e2024', keyHi: '#4a4e56', amber: '#ffb547', amberLo: '#d98a1e', amberDull: '#a8742a',
+  yellow: '#f2c12e', yellowLo: '#b8901c', red: '#d6262b', redHi: '#ff6b6e', redLo: '#8e1418', green: '#11a04a', greenLo: '#0b6b32', white: '#f4f6f8' };
+const sprite = (p, rows, ox, oy, colour) => rows.forEach((row, y) => [...row].forEach((ch, x) => { if (ch === '#') p.set(ox + x, oy + y, colour); }));
+const mirror = (rows) => rows.map((r) => [...r].reverse().join(''));
+const crAll = (t, uv = [0, 0, 16, 16], extra = {}) => Object.fromEntries(['north', 'south', 'east', 'west', 'up', 'down'].map((f) => [f, { uv, texture: t, ...extra }]));
+
+// ---------- overview screen: a dark panel; the renderer paints the live page over its front ----------
+texture('overview_screen_front', (p) => {
+  p.rect(0, 0, 16, 16, CR.bezel); p.rect(1, 1, 14, 14, CR.screen); p.rect(1, 1, 14, 2, CR.bar); p.rect(2, 1, 5, 1, '#7c869d');
+  for (const [x, y, c] of [[2, 4, C.cyan], [6, 4, C.cyan], [10, 4, C.amber], [2, 8, C.cyan], [6, 8, C.magenta], [10, 8, C.cyan], [2, 12, C.cyan], [6, 12, C.cyan]]) {
+    p.rect(x, y, 4, 3, '#161b24'); p.rect(x, y, 1, 3, c); p.rect(x + 1, y + 1, 2, 1, '#d9deea');
+  }
+});
+texture('screen_back', (p) => { p.rect(0, 0, 16, 16, CR.back); p.rect(0, 0, 16, 1, '#33373f'); for (let y = 4; y < 13; y += 2) p.rect(4, y, 8, 1, '#1b1e23'); });
+M('overview_screen', { parent: 'minecraft:block/block', textures: { front: tex('overview_screen_front'), back: tex('screen_back'), particle: tex('screen_back') }, elements: [
+  box([0, 0, 14], [16, 16, 16], { north: { uv: [0, 0, 16, 16], texture: '#front' }, south: { uv: [0, 0, 16, 16], texture: '#back', cullface: 'south' },
+    east: { uv: [14, 0, 16, 16], texture: '#back' }, west: { uv: [0, 0, 2, 16], texture: '#back' }, up: { uv: [0, 14, 16, 16], texture: '#back' }, down: { uv: [0, 14, 16, 16], texture: '#back' } }),
+] });
+BS('overview_screen', { variants: Object.fromEntries(Object.entries(yaw).map(([f, y]) => [`facing=${f}`, { model: 'setpoint:block/overview_screen', ...(y ? { y } : {}) }])) });
+item('overview_screen', 'setpoint:block/overview_screen');
+
+// ---------- alarm beacon: an amber dome on a dark base, pointing up; the blockstate turns it like the lamp ----------
+texture('beacon_base', (p) => { p.rect(0, 0, 16, 16, '#2f333a'); p.rect(0, 0, 16, 1, '#454a53'); for (const [x, y] of [[2, 2], [13, 2], [2, 13], [13, 13]]) p.set(x, y, '#6d737d'); });
+const dome = (p, band) => {
+  p.rect(0, 0, 16, 16, band === null ? CR.amberDull : CR.amberLo);
+  p.rect(2, 0, 12, 16, band === null ? '#b98236' : CR.amber);
+  for (let y = 0; y < 16; y += 4) p.rect(0, y, 16, 1, band === null ? '#93652a' : '#e89a2a'); // the ribs of the lens
+  if (band !== null) for (let k = 0; k < 4; k++) p.rect((band + k) % 16, 0, 1, 16, k === 1 || k === 2 ? '#fff4c2' : '#ffd27a'); // the mirror's beam sweeping round
+  else p.rect(4, 2, 2, 5, '#d9a75e');
+};
+texture('beacon_dome', (p) => dome(p, null));
+animated('beacon_dome_on', 1, Array.from({ length: 16 }, (_, f) => (p) => dome(p, f)));
+for (const on of [false, true]) {
+  const glow = on ? { light_emission: 15 } : {};
+  M('alarm_beacon' + (on ? '_on' : ''), { parent: 'minecraft:block/block', ambientocclusion: false,
+    textures: { base: tex('beacon_base'), dome: tex(on ? 'beacon_dome_on' : 'beacon_dome'), particle: tex('beacon_base') }, elements: [
+      box([4, 0, 4], [12, 2, 12], crAll('#base')),
+      { ...box([5, 2, 5], [11, 9, 11], crAll('#dome', [0, 0, 16, 16])), ...glow },
+      { ...box([6, 9, 6], [10, 10, 10], crAll('#dome', [4, 4, 12, 12])), ...glow },
+    ] });
+}
+const sixWay = { up: {}, down: { x: 180 }, north: { x: 90 }, south: { x: 90, y: 180 }, east: { x: 90, y: 90 }, west: { x: 90, y: 270 } };
+BS('alarm_beacon', { variants: Object.fromEntries(Object.entries(sixWay).flatMap(([f, rot]) => ['false', 'true'].flatMap((alarm) => ['false', 'true'].map((silenced) =>
+  [`alarm=${alarm},facing=${f},silenced=${silenced}`, { model: 'setpoint:block/alarm_beacon' + (alarm === 'true' ? '_on' : ''), ...rot }])))) });
+item('alarm_beacon', 'setpoint:block/alarm_beacon');
+
+// ---------- ESD button: a red mushroom in a yellow box, pointing up; pressed in, the mushroom sits low ----------
+texture('esd_box', (p) => { p.rect(0, 0, 16, 16, CR.yellow); p.rect(0, 15, 16, 1, CR.yellowLo); p.rect(15, 0, 1, 16, CR.yellowLo); p.rect(0, 0, 16, 1, '#f8d769'); });
+texture('esd_face', (p) => { // the top of the box: a black ring round the button, the words in two black bars
+  p.rect(0, 0, 16, 16, CR.yellow);
+  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) { const d = Math.hypot(x - 7.5, y - 7.5); if (d > 4.2 && d < 5.6) p.set(x, y, '#1f1f1f'); }
+  p.rect(4, 1, 8, 1, '#1f1f1f'); p.rect(4, 14, 8, 1, '#1f1f1f');
+});
+texture('esd_red', (p) => { p.rect(0, 0, 16, 16, CR.red); p.rect(0, 12, 16, 4, CR.redLo); p.rect(3, 3, 4, 3, CR.redHi); });
+for (const pressed of [false, true]) {
+  const top = pressed ? 6.5 : 9;
+  M('esd_button' + (pressed ? '_pressed' : ''), { parent: 'minecraft:block/block', textures: { box: tex('esd_box'), face: tex('esd_face'), red: tex('esd_red'), particle: tex('esd_box') }, elements: [
+    box([3, 0, 3], [13, 5, 13], { ...crAll('#box', [3, 11, 13, 16]), up: { uv: [3, 3, 13, 13], texture: '#face' }, down: { uv: [3, 3, 13, 13], texture: '#box', cullface: 'down' } }),
+    box([7, 5, 7], [9, top - 2, 9], crAll('#red', [6, 12, 8, 14])),
+    box([5, top - 2, 5], [11, top, 11], crAll('#red')),
+  ] });
+}
+BS('esd_button', { variants: Object.fromEntries(Object.entries(sixWay).flatMap(([f, rot]) => ['false', 'true'].map((pressed) =>
+  [`facing=${f},pressed=${pressed}`, { model: 'setpoint:block/esd_button' + (pressed === 'true' ? '_pressed' : ''), ...rot }]))) });
+item('esd_button', 'setpoint:block/esd_button');
+
+// ---------- radio charger: three radios standing in a charging rack ----------
+texture('radio_body', (p) => {
+  p.rect(0, 0, 16, 16, '#1f2124'); p.rect(0, 0, 16, 3, '#e8731c'); p.rect(0, 3, 16, 1, '#a9500f');
+  for (let y = 6; y < 12; y += 2) for (let x = 3; x < 13; x += 2) p.set(x, y, '#3a3d42'); // speaker grille
+  p.rect(5, 13, 6, 2, '#5f9c6b'); // display
+});
+texture('radio_rack', (p) => { p.rect(0, 0, 16, 16, '#2b2e33'); p.rect(0, 0, 16, 1, '#40444b'); for (const x of [3, 7, 11]) { p.set(x, 8, '#38e36a'); p.set(x + 1, 8, '#38e36a'); } });
+M('radio_charger', { parent: 'minecraft:block/block', textures: { rack: tex('radio_rack'), radio: tex('radio_body'), antenna: tex('beacon_base'), particle: tex('radio_rack') }, elements: [
+  box([2, 0, 5], [14, 3, 11], { ...crAll('#rack', [2, 5, 14, 11]), north: { uv: [2, 5, 14, 11], texture: '#rack' }, down: { uv: [2, 5, 14, 11], texture: '#rack', cullface: 'down' } }),
+  ...[3, 6.75, 10.5].flatMap((x) => [
+    box([x, 3, 6.5], [x + 2.5, 9, 9], { north: { uv: [3, 0, 13, 16], texture: '#radio' }, south: { uv: [3, 0, 13, 16], texture: '#radio' }, east: { uv: [0, 0, 4, 16], texture: '#radio' },
+      west: { uv: [0, 0, 4, 16], texture: '#radio' }, up: { uv: [0, 0, 4, 3], texture: '#radio' } }),
+    box([x + 0.5, 9, 7.25], [x + 1.25, 12, 8], crAll('#antenna', [0, 0, 1, 3])),
+  ]),
+] });
+BS('radio_charger', { variants: Object.fromEntries(Object.entries(yaw).map(([f, y]) => [`facing=${f}`, { model: 'setpoint:block/radio_charger', ...(y ? { y } : {}) }])) });
+item('radio_charger', 'setpoint:block/radio_charger');
+
+// ---------- desks: a laminate top, a panel at the back, keyboard and mouse; side panels where no desk joins ----------
+texture('desk_top', (p) => {
+  p.rect(0, 0, 16, 16, CR.laminate);
+  for (const [x, y] of [[3, 2], [11, 5], [6, 9], [13, 12], [2, 13], [8, 14]]) p.set(x, y, CR.laminateHi);
+  for (const [x, y] of [[9, 3], [4, 6], [12, 10], [7, 12]]) p.set(x, y, CR.laminateLo);
+});
+texture('desk_edge', (p) => { p.rect(0, 0, 16, 16, CR.edge); p.rect(0, 0, 16, 1, '#5a5f68'); });
+texture('desk_panel', (p) => { p.rect(0, 0, 16, 16, CR.panel); p.rect(0, 0, 16, 1, '#a4aab2'); p.rect(0, 15, 16, 1, CR.panelLo); for (let x = 3; x < 13; x += 2) p.rect(x, 4, 1, 4, CR.panelLo); });
+texture('keyboard', (p) => { p.rect(0, 0, 16, 16, CR.key); for (let y = 1; y < 16; y += 3) for (let x = 1; x < 16; x += 2) p.set(x, y, CR.keyHi); });
+const deskTex = { top: tex('desk_top'), edge: tex('desk_edge'), panel: tex('desk_panel'), key: tex('keyboard'), particle: tex('desk_panel') };
+const DESK_TOP = 16; // ControlDeskBlock.TOP: a full block, so what you put on it stands on it
+const deskTop = box([0, DESK_TOP - 2, 0], [16, DESK_TOP, 16], { up: { uv: [0, 0, 16, 16], texture: '#top' }, down: { uv: [0, 0, 16, 16], texture: '#panel' },
+  north: { uv: [0, 3, 16, 5], texture: '#edge' }, south: { uv: [0, 3, 16, 5], texture: '#edge' }, east: { uv: [0, 3, 16, 5], texture: '#edge' }, west: { uv: [0, 3, 16, 5], texture: '#edge' } });
+const backPanel = box([0, 0, 14], [16, 14, 15.5], crAll('#panel', [0, 2, 16, 16]));
+const keyboard = [box([3, 16, 2], [11, 16.5, 5], crAll('#key', [0, 0, 8, 3])), box([12, 16, 2.5], [13.5, 16.75, 4.5], crAll('#edge', [0, 0, 2, 2]))];
+const sideLeft = box([14.5, 0, 0.5], [16, 14, 15.5], crAll('#panel', [0, 2, 15, 16]));   // the operator's left: east, for a desk facing north
+const sideRight = box([0, 0, 0.5], [1.5, 14, 15.5], crAll('#panel', [0, 2, 15, 16]));
+M('control_desk', { parent: 'minecraft:block/block', textures: deskTex, elements: [deskTop, backPanel, ...keyboard] });
+M('control_desk_side_left', { textures: deskTex, elements: [sideLeft] });
+M('control_desk_side_right', { textures: deskTex, elements: [sideRight] });
+M('control_desk_item', { parent: 'minecraft:block/block', textures: deskTex, elements: [deskTop, backPanel, ...keyboard, sideLeft, sideRight] });
+BS('control_desk', { multipart: Object.entries(yaw).flatMap(([f, y]) => [
+  { when: { facing: f }, apply: { model: 'setpoint:block/control_desk', ...(y ? { y } : {}) } },
+  { when: { facing: f, left: 'false' }, apply: { model: 'setpoint:block/control_desk_side_left', ...(y ? { y } : {}) } },
+  { when: { facing: f, right: 'false' }, apply: { model: 'setpoint:block/control_desk_side_right', ...(y ? { y } : {}) } },
+]) });
+item('control_desk', 'setpoint:block/control_desk_item');
+M('desk_corner', { parent: 'minecraft:block/block', textures: deskTex, elements: [deskTop, backPanel, box([0, 0, 0.5], [1.5, 14, 14], crAll('#panel', [0, 2, 14, 16]))] });
+BS('desk_corner', { variants: Object.fromEntries(Object.entries(yaw).map(([f, y]) => [`facing=${f}`, { model: 'setpoint:block/desk_corner', ...(y ? { y } : {}) }])) });
+item('desk_corner', 'setpoint:block/desk_corner');
+
+// ---------- operator screens: three monitors on one stand, each with its own moving DCS picture ----------
+const dcsScreen = (draw) => (p) => { p.rect(0, 0, 16, 16, '#10141c'); p.rect(1, 3, 14, 1, '#1e222a'); draw(p); };
+animated('monitor_mimic', 10, Array.from({ length: 8 }, (_, f) => dcsScreen((p) => { // a tank filling and emptying, a pump, a valve
+  const level = [3, 4, 5, 6, 6, 5, 4, 3][f];
+  p.rect(2, 5, 4, 7, '#7c869d'); p.rect(3, 6, 2, 5, '#10141c'); p.rect(3, 11 - level + 1, 2, level - 1, C.cyan);
+  p.rect(6, 10, 7, 1, C.cyan); p.rect(8, 9, 2, 3, C.cyan); p.set(8, 9, '#10141c'); p.rect(12, 6, 1, 5, C.cyan);
+  p.set(11, 9, '#d9deea'); p.set(13, 9, '#d9deea'); p.set(12, 8, f % 4 < 2 ? C.amber : '#d9deea');
+})));
+animated('monitor_trend', 10, Array.from({ length: 8 }, (_, f) => dcsScreen((p) => { // PV wandering round SP, scrolling left
+  for (let x = 1; x < 15; x += 3) for (let y = 5; y < 13; y += 3) p.set(x, y, '#1c2431');
+  p.rect(1, 8, 14, 1, '#7a2b4b');
+  for (let x = 1; x < 15; x++) p.set(x, Math.round(8 + 2.4 * Math.sin((x + f * 2) / 2.2)), C.cyan);
+})));
+animated('monitor_alarms', 10, Array.from({ length: 2 }, (_, f) => dcsScreen((p) => { // the alarm list, the newest one flashing
+  p.rect(2, 5, 11, 1, f === 0 ? C.magenta : '#d9deea'); p.rect(2, 7, 9, 1, C.amber); p.rect(2, 9, 10, 1, '#d9deea'); p.rect(2, 11, 7, 1, '#7c869d');
+})));
+texture('monitor_back', (p) => { p.rect(0, 0, 16, 16, '#18191c'); p.rect(0, 0, 16, 1, '#2a2c30'); });
+{
+  const monitor = (x0, x1, screen, turn) => ({
+    ...box([x0, 3, 9], [x1, 10, 9.75], { north: { uv: [1, 3, 15, 13], texture: '#' + screen }, south: { uv: [0, 0, 16, 16], texture: '#back' },
+      east: { uv: [0, 0, 1, 7], texture: '#back' }, west: { uv: [0, 0, 1, 7], texture: '#back' }, up: { uv: [0, 0, 16, 1], texture: '#back' }, down: { uv: [0, 0, 16, 1], texture: '#back' } }),
+    light_emission: 12,
+    ...(turn ? { rotation: { origin: [turn < 0 ? x1 : x0, 3, 9.375], x: 0, y: turn, z: 0 } } : {}), // turned in towards the operator
+  });
+  M('desk_screens', { parent: 'minecraft:block/block', ambientocclusion: false,
+    textures: { mimic: tex('monitor_mimic'), trend: tex('monitor_trend'), alarms: tex('monitor_alarms'), back: tex('monitor_back'), particle: tex('monitor_back') }, elements: [
+      box([3, 0, 9], [13, 0.5, 12], crAll('#back')), box([7.5, 0.5, 10], [8.5, 3.5, 11], crAll('#back')), box([2, 3.5, 10], [14, 4.5, 10.75], crAll('#back')),
+      monitor(5, 11, 'trend', 0), monitor(-0.5, 5, 'mimic', -22.5), monitor(11, 16.5, 'alarms', 22.5),
+    ] });
+}
+BS('desk_screens', { variants: Object.fromEntries(Object.entries(yaw).map(([f, y]) => [`facing=${f}`, { model: 'setpoint:block/desk_screens', ...(y ? { y } : {}) }])) });
+item('desk_screens', 'setpoint:block/desk_screens');
+
+// ---------- 24-hour chair: five-star base, gas lift, cushion, armrests, a high back with a headrest (the back to the north) ----------
+texture('chair_fabric', (p) => { for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) p.set(x, y, (x + y) % 2 === 0 ? '#1d1f24' : '#272a30'); p.rect(0, 0, 16, 1, '#33363d'); });
+texture('chair_frame', (p) => { p.rect(0, 0, 16, 16, '#26282d'); p.rect(0, 0, 16, 1, '#3a3d44'); });
+texture('chair_chrome', (p) => { p.rect(0, 0, 16, 16, '#9aa1ab'); p.rect(0, 0, 16, 2, '#c9ced5'); p.rect(0, 12, 16, 4, '#6f757e'); });
+{
+  const ct = { fabric: tex('chair_fabric'), frame: tex('chair_frame'), chrome: tex('chair_chrome'), particle: tex('chair_fabric') };
+  const s = (from, to, t) => box(from, to, crAll('#' + t));
+  M('office_chair', { parent: 'minecraft:block/block', textures: ct, elements: [
+    s([1.5, 0.5, 7.25], [14.5, 1.5, 8.75], 'frame'), s([7.25, 0.5, 1.5], [8.75, 1.5, 14.5], 'frame'),               // the star
+    ...[[1.5, 7.5], [13.5, 7.5], [7.5, 1.5], [7.5, 13.5]].map(([x, z]) => s([x, 0, z], [x + 1, 0.5, z + 1], 'chrome')),  // castors
+    s([7.25, 1.5, 7.25], [8.75, 8.5, 8.75], 'chrome'),                                                                // gas lift
+    s([3, 8.5, 3], [13, 11, 13], 'fabric'),                                                                          // cushion (OfficeChairBlock.SEAT_HEIGHT)
+    s([2.5, 11, 6], [3.5, 13.5, 7], 'frame'), s([12.5, 11, 6], [13.5, 13.5, 7], 'frame'),                             // armrest posts
+    s([2, 13.5, 5], [4, 14.5, 11], 'frame'), s([12, 13.5, 5], [14, 14.5, 11], 'frame'),                               // armrests
+    s([7, 8.5, 2], [9, 12.5, 3.5], 'frame'),                                                                          // back spine
+    s([3.5, 12, 1.5], [12.5, 24, 3.5], 'fabric'),                                                                    // high back
+    s([5, 24.5, 1.75], [11, 27.5, 3.75], 'fabric'), s([7.5, 24, 2.25], [8.5, 24.5, 3.25], 'chrome'),                  // headrest
+  ] });
+}
+BS('office_chair', { variants: Object.fromEntries(Object.entries(yaw).map(([fa, y]) => [`facing=${fa}`, { model: 'setpoint:block/office_chair', ...(y ? { y } : {}) }])) });
+item('office_chair', 'setpoint:block/office_chair');
+
+// ---------- raised floor, ceiling ----------
+texture('raised_floor', (p) => {
+  p.rect(0, 0, 16, 16, '#b4b9c0'); p.rect(0, 0, 16, 1, '#cfd3d8'); p.rect(0, 0, 1, 16, '#cfd3d8'); p.rect(0, 15, 16, 1, '#7d838c'); p.rect(15, 0, 1, 16, '#7d838c');
+  for (const [x, y] of [[4, 3], [11, 6], [6, 10], [12, 12], [3, 13]]) p.set(x, y, '#a6abb3');
+});
+texture('raised_floor_vent', (p) => {
+  p.rect(0, 0, 16, 16, '#b4b9c0'); p.rect(0, 0, 16, 1, '#cfd3d8'); p.rect(0, 0, 1, 16, '#cfd3d8'); p.rect(0, 15, 16, 1, '#7d838c'); p.rect(15, 0, 1, 16, '#7d838c');
+  for (let y = 3; y < 13; y += 3) for (let x = 3; x < 13; x += 3) p.rect(x, y, 2, 2, '#3a3f46');
+});
+texture('raised_floor_side', (p) => { p.rect(0, 0, 16, 16, '#3b4048'); p.rect(0, 0, 16, 2, '#b4b9c0'); p.rect(0, 2, 16, 1, '#7d838c'); p.rect(7, 3, 2, 13, '#8a9099'); p.rect(5, 14, 6, 2, '#8a9099'); });
+texture('ceiling_panel', (p) => {
+  p.rect(0, 0, 16, 16, '#e9eaec'); p.rect(0, 15, 16, 1, '#b9bdc3'); p.rect(15, 0, 1, 16, '#b9bdc3');
+  for (const [x, y] of [[2, 3], [7, 2], [12, 4], [4, 8], [10, 9], [13, 12], [3, 12], [8, 13], [6, 6]]) p.set(x, y, '#c8cbd0');
+});
+texture('ceiling_light', (p) => {
+  p.rect(0, 0, 16, 16, '#d5d8dc'); p.rect(2, 2, 12, 12, '#fffef4');
+  for (let k = 4; k < 14; k += 3) { p.rect(2, k, 12, 1, '#e6e3d3'); p.rect(k, 2, 1, 12, '#e6e3d3'); }
+});
+for (const name of ['raised_floor', 'raised_floor_vent']) {
+  M(name, { parent: 'minecraft:block/cube_bottom_top', textures: { top: tex(name), bottom: tex('raised_floor_side'), side: tex('raised_floor_side') } });
+  BS(name, { variants: { '': { model: 'setpoint:block/' + name } } });
+  item(name, 'setpoint:block/' + name);
+}
+M('ceiling_panel', { parent: 'minecraft:block/cube_all', textures: { all: tex('ceiling_panel') } });
+BS('ceiling_panel', { variants: { '': { model: 'setpoint:block/ceiling_panel' } } });
+item('ceiling_panel', 'setpoint:block/ceiling_panel');
+M('ceiling_light', { parent: 'minecraft:block/cube_bottom_top', textures: { top: tex('ceiling_panel'), bottom: tex('ceiling_light'), side: tex('ceiling_panel') } });
+BS('ceiling_light', { variants: { '': { model: 'setpoint:block/ceiling_light' } } });
+item('ceiling_light', 'setpoint:block/ceiling_light');
+
+// ---------- wall clock: a round white face (its corners see-through); the renderer turns the hands ----------
+texture('clock_face', (p) => {
+  for (let y = 2; y < 14; y++) for (let x = 2; x < 14; x++) {
+    const d = Math.hypot(x - 7.5, y - 7.5);
+    if (d < 5.2) p.set(x, y, '#f4f6f8'); else if (d < 6.3) p.set(x, y, '#23262e');
+  }
+  for (const [x, y] of [[7, 3], [8, 3], [12, 7], [12, 8], [7, 12], [8, 12], [3, 7], [3, 8]]) p.set(x, y, '#23262e'); // 12, 3, 6, 9
+  for (const [x, y] of [[10, 4], [11, 5], [11, 10], [10, 11], [5, 11], [4, 10], [4, 5], [5, 4]]) p.set(x, y, '#8a9099');
+});
+texture('clock_rim', (p) => p.rect(0, 0, 16, 16, '#23262e'));
+texture('clock_hand', (p) => p.rect(0, 0, 16, 16, '#141519'));
+M('wall_clock', { parent: 'minecraft:block/block', textures: { face: tex('clock_face'), rim: tex('clock_rim'), particle: tex('clock_rim') }, elements: [
+  box([2, 2, 15], [14, 14, 16], { north: { uv: [2, 2, 14, 14], texture: '#face' }, south: { uv: [2, 2, 14, 14], texture: '#rim' } }),
+  box([3.5, 3.5, 15.5], [12.5, 12.5, 16], { east: { uv: [0, 0, 1, 9], texture: '#rim' }, west: { uv: [0, 0, 1, 9], texture: '#rim' }, up: { uv: [0, 0, 9, 1], texture: '#rim' }, down: { uv: [0, 0, 9, 1], texture: '#rim' } }),
+] });
+// the hands (parts of the control-room model block), drawn on a face looking south, pointing up from the middle
+const handFaces = crAll('#hand', [0, 0, 1, 1]);
+const hourHand = [box([7.5, 8, 0], [8.5, 11.5, 0.5], handFaces), box([7.25, 7.25, 0], [8.75, 8.75, 0.6], handFaces)];
+const minuteHand = [box([7.6, 8, 0], [8.4, 13, 0.5], handFaces)];
+M('control_room_hour_hand', { parent: 'minecraft:block/block', textures: { hand: tex('clock_hand'), particle: tex('clock_hand') }, elements: hourHand });
+M('control_room_minute_hand', { parent: 'minecraft:block/block', textures: { hand: tex('clock_hand'), particle: tex('clock_hand') }, elements: minuteHand });
+BS('control_room_model', { variants: Object.fromEntries(Array.from({ length: 16 }, (_, i) => [`part=${i}`, { model: 'setpoint:block/control_room_' + (i === 1 ? 'minute_hand' : 'hour_hand') }])) });
+// in the inventory: a flat clock at ten past ten, as on every clock in a shop
+texture('wall_clock', (p) => {
+  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
+    const d = Math.hypot(x - 7.5, y - 7.5);
+    if (d < 6.4) p.set(x, y, '#f4f6f8'); else if (d < 7.6) p.set(x, y, '#23262e');
+  }
+  for (const [x, y] of [[7, 2], [8, 2], [13, 7], [13, 8], [7, 13], [8, 13], [2, 7], [2, 8]]) p.set(x, y, '#23262e');
+  for (const [x, y] of [[7, 7], [6, 6], [5, 5], [8, 7], [9, 6], [10, 5], [11, 4]]) p.set(x, y, '#141519'); // the hands, on 10 and 2
+  p.set(8, 8, '#c7322f');
+}, 'item');
+json(join(ASSETS, 'models/item', 'wall_clock.json'), { parent: 'minecraft:item/generated', textures: { layer0: 'setpoint:item/wall_clock' } });
+BS('wall_clock', { variants: Object.fromEntries(Object.entries(yaw).map(([f, y]) => [`facing=${f}`, { model: 'setpoint:block/wall_clock', ...(y ? { y } : {}) }])) });
+item('wall_clock', 'setpoint:item/wall_clock');
+
+// ---------- filing cabinet, printer, coffee machine ----------
+texture('cabinet_front', (p) => {
+  p.rect(0, 0, 16, 16, '#8e959f');
+  for (let d = 0; d < 4; d++) {
+    const y = d * 4; p.rect(0, y, 16, 1, '#6c727b'); p.rect(1, y + 1, 14, 1, '#a3aab3');
+    p.rect(6, y + 2, 4, 1, '#d0d4da'); p.rect(2, y + 1, 3, 2, '#e9eaec'); p.set(2, y + 2, '#b9bdc3');
+  }
+});
+texture('cabinet_side', (p) => { p.rect(0, 0, 16, 16, '#868d97'); p.rect(0, 0, 16, 1, '#9da4ad'); p.rect(15, 0, 1, 16, '#6c727b'); });
+M('filing_cabinet', { parent: 'minecraft:block/orientable', textures: { front: tex('cabinet_front'), side: tex('cabinet_side'), top: tex('cabinet_side') } });
+BS('filing_cabinet', { variants: Object.fromEntries(Object.entries(yaw).map(([f, y]) => [`facing=${f}`, { model: 'setpoint:block/filing_cabinet', ...(y ? { y } : {}) }])) });
+item('filing_cabinet', 'setpoint:block/filing_cabinet');
+
+texture('printer_body', (p) => { p.rect(0, 0, 16, 16, '#d9dce0'); p.rect(0, 0, 16, 1, '#eceef0'); p.rect(0, 15, 16, 1, '#a9adb3'); });
+texture('printer_front', (p) => {
+  p.rect(0, 0, 16, 16, '#d9dce0'); p.rect(0, 0, 16, 1, '#eceef0');
+  p.rect(2, 5, 12, 2, '#2a2d33'); p.rect(3, 5, 10, 1, '#f4f6f8');           // the paper coming out
+  p.rect(11, 9, 3, 2, '#2f6d4a'); p.set(12, 9, '#7ee0a3'); p.set(3, 10, C.cyan); p.set(5, 10, '#6f757e'); p.set(7, 10, '#6f757e');
+});
+texture('printer_top', (p) => { p.rect(0, 0, 16, 16, '#d9dce0'); p.rect(2, 3, 12, 6, '#f4f6f8'); p.rect(2, 3, 12, 1, '#c9ccd1'); p.rect(2, 11, 12, 2, '#2a2d33'); });
+M('printer', { parent: 'minecraft:block/block', textures: { body: tex('printer_body'), front: tex('printer_front'), top: tex('printer_top'), particle: tex('printer_body') }, elements: [
+  box([1, 0, 3], [15, 7, 13], { north: { uv: [1, 4, 15, 11], texture: '#front' }, south: { uv: [1, 9, 15, 16], texture: '#body' }, east: { uv: [3, 9, 13, 16], texture: '#body' },
+    west: { uv: [3, 9, 13, 16], texture: '#body' }, up: { uv: [1, 1, 15, 15], texture: '#top' }, down: { uv: [1, 3, 15, 13], texture: '#body', cullface: 'down' } }),
+  box([3, 7, 8], [13, 8, 12], crAll('#body', [3, 0, 13, 1])),                // the paper feed at the back
+  box([3, 2, 1.5], [13, 2.5, 3], crAll('#top', [2, 3, 12, 5])),              // the output tray
+] });
+BS('printer', { variants: Object.fromEntries(Object.entries(yaw).map(([f, y]) => [`facing=${f}`, { model: 'setpoint:block/printer', ...(y ? { y } : {}) }])) });
+item('printer', 'setpoint:block/printer');
+
+texture('coffee_front', (p) => {
+  p.rect(0, 0, 16, 16, '#1b1b1d'); p.rect(0, 0, 16, 1, '#2c2c30');
+  p.rect(3, 2, 10, 3, '#0e2a33'); p.rect(4, 3, 5, 1, C.cyan);                 // the display
+  p.rect(4, 6, 8, 7, '#2c2c30'); p.rect(7, 6, 2, 2, '#9aa1ab');               // the alcove and the spout
+  p.rect(12, 3, 1, 1, '#38e36a');
+});
+texture('coffee_side', (p) => { p.rect(0, 0, 16, 16, '#1b1b1d'); p.rect(0, 0, 16, 1, '#2c2c30'); p.rect(0, 10, 16, 1, '#9aa1ab'); });
+texture('coffee_top', (p) => { p.rect(0, 0, 16, 16, '#1b1b1d'); p.rect(4, 4, 6, 6, '#3a2a1e'); p.rect(5, 5, 4, 4, '#5a3f2a'); });
+texture('coffee_cup', (p) => { p.rect(0, 0, 16, 16, '#f4f6f8'); p.rect(0, 0, 16, 4, '#4a2c17'); });
+M('coffee_machine', { parent: 'minecraft:block/block', textures: { front: tex('coffee_front'), side: tex('coffee_side'), top: tex('coffee_top'), cup: tex('coffee_cup'), steel: tex('chair_chrome'), particle: tex('coffee_side') }, elements: [
+  box([3, 0, 4], [13, 14, 14], { north: { uv: [3, 2, 13, 16], texture: '#front' }, south: { uv: [3, 2, 13, 16], texture: '#side' }, east: { uv: [2, 2, 12, 16], texture: '#side' },
+    west: { uv: [2, 2, 12, 16], texture: '#side' }, up: { uv: [3, 3, 13, 13], texture: '#top' }, down: { uv: [3, 3, 13, 13], texture: '#side', cullface: 'down' } }),
+  box([4.5, 0, 2], [11.5, 1, 4], crAll('#steel')),                            // the drip tray
+  box([6.5, 1, 2.5], [9.5, 4, 4], { ...crAll('#cup', [0, 0, 3, 3]), up: { uv: [0, 0, 3, 2], texture: '#cup' } }), // a full cup
+] });
+BS('coffee_machine', { variants: Object.fromEntries(Object.entries(yaw).map(([f, y]) => [`facing=${f}`, { model: 'setpoint:block/coffee_machine', ...(y ? { y } : {}) }])) });
+item('coffee_machine', 'setpoint:block/coffee_machine');
+
+// ---------- emergency exit sign (ISO 7010 style): the running man, the door, an arrow ----------
+const RUNNER = ['....#.', '..###.', '.#.#.#', '...##.', '..#..#', '.#....'];
+const ARROW_LEFT = ['..#', '.##', '###', '.##', '..#'], ARROW_DOWN = ['..#..', '..#..', '#.#.#', '.###.', '..#..'];
+const door = (p, x) => { p.rect(x, 5, 3, 6, CR.white); p.rect(x + 1, 6, 1, 4, CR.green); };
+const SIGNS = {
+  none: (p) => { sprite(p, RUNNER, 4, 5, CR.white); door(p, 11); },
+  left: (p) => { sprite(p, ARROW_LEFT, 2, 6, CR.white); sprite(p, mirror(RUNNER), 5, 5, CR.white); door(p, 11); },
+  right: (p) => { door(p, 2); sprite(p, RUNNER, 5, 5, CR.white); sprite(p, mirror(ARROW_LEFT), 11, 6, CR.white); },
+  down: (p) => { sprite(p, ARROW_DOWN, 1, 6, CR.white); sprite(p, RUNNER, 6, 5, CR.white); door(p, 12); },
+};
+for (const [arrow, draw] of Object.entries(SIGNS)) {
+  texture('exit_sign_' + arrow, (p) => { p.rect(0, 0, 16, 16, '#d5d8dc'); p.rect(1, 4, 14, 8, CR.green); p.rect(1, 4, 14, 1, CR.greenLo); p.rect(1, 11, 14, 1, CR.greenLo); draw(p); });
+  M('exit_sign_' + arrow, { parent: 'minecraft:block/block', textures: { sign: tex('exit_sign_' + arrow), frame: tex('ceiling_panel'), particle: tex('exit_sign_' + arrow) }, elements: [
+    { ...box([1, 4, 14], [15, 12, 16], { north: { uv: [1, 4, 15, 12], texture: '#sign' }, south: { uv: [1, 4, 15, 12], texture: '#frame' }, east: { uv: [0, 0, 2, 8], texture: '#frame' },
+      west: { uv: [0, 0, 2, 8], texture: '#frame' }, up: { uv: [0, 0, 14, 2], texture: '#frame' }, down: { uv: [0, 0, 14, 2], texture: '#frame' } }), light_emission: 15 },
+  ] });
+}
+BS('exit_sign', { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => Object.keys(SIGNS).map((arrow) =>
+  [`arrow=${arrow},facing=${f}`, { model: 'setpoint:block/exit_sign_' + arrow, ...(y ? { y } : {}) }]))) });
+item('exit_sign', 'setpoint:block/exit_sign_left');
+
+// ---------- blast door: heavy steel, a small wired window, a warning plate; the vanilla door models ----------
+const blastPlate = (p) => {
+  p.rect(0, 0, 16, 16, '#6b7480'); p.rect(0, 0, 2, 16, '#4b525c'); p.rect(14, 0, 2, 16, '#4b525c');
+  for (const x of [1, 14]) for (let y = 2; y < 16; y += 4) p.set(x, y, '#9aa2ad');
+};
+texture('blast_door_top', (p) => {
+  blastPlate(p); p.rect(0, 0, 16, 2, '#4b525c');
+  p.rect(5, 4, 6, 5, '#23303d'); p.rect(5, 4, 6, 1, '#4b525c'); for (const x of [6, 8]) p.rect(x + 1, 5, 1, 4, '#5b6168'); p.rect(5, 6, 6, 1, '#5b6168'); p.set(6, 5, '#7fa3c2');
+  p.rect(5, 11, 6, 2, CR.yellow); p.rect(6, 11, 4, 1, '#1f1f1f');            // KEEP CLOSED plate
+});
+texture('blast_door_bottom', (p) => {
+  blastPlate(p); p.rect(0, 14, 16, 2, '#4b525c');
+  p.rect(3, 1, 10, 1, '#4b525c'); p.rect(3, 2, 10, 1, '#c9ced5');            // the push bar
+  for (let x = 2; x < 14; x++) p.set(x, 11 + ((x >> 1) % 2), (x >> 1) % 2 ? '#e2b13c' : '#1f2125'); // hazard band
+  p.rect(2, 13, 12, 1, '#8a929c');
+});
+texture('blast_door', (p) => { // the item: the door as you see it from the front
+  p.rect(4, 0, 8, 16, '#6b7480'); p.rect(4, 0, 1, 16, '#4b525c'); p.rect(11, 0, 1, 16, '#4b525c'); p.rect(4, 0, 8, 1, '#4b525c'); p.rect(4, 15, 8, 1, '#4b525c');
+  p.rect(6, 2, 4, 3, '#23303d'); p.set(7, 3, '#7fa3c2'); p.rect(6, 6, 4, 1, CR.yellow); p.rect(5, 9, 6, 1, '#c9ced5'); p.rect(5, 13, 6, 1, '#e2b13c');
+}, 'item');
+for (const half of ['bottom', 'top']) for (const hinge of ['left', 'right']) for (const open of ['', '_open']) {
+  M(`blast_door_${half}_${hinge}${open}`, { parent: `minecraft:block/door_${half}_${hinge}${open}`, textures: { bottom: tex('blast_door_bottom'), top: tex('blast_door_top') } });
+}
+{
+  const doorState = {};
+  const facings = { east: 0, south: 90, west: 180, north: 270 };
+  for (const [f, y0] of Object.entries(facings)) for (const half of ['lower', 'upper']) for (const hinge of ['left', 'right']) for (const open of [false, true]) {
+    const y = (y0 + (open ? (hinge === 'left' ? 90 : 270) : 0)) % 360; // the same turns vanilla gives the iron door
+    doorState[`facing=${f},half=${half},hinge=${hinge},open=${open}`] = { model: `setpoint:block/blast_door_${half === 'lower' ? 'bottom' : 'top'}_${hinge}${open ? '_open' : ''}`, ...(y ? { y } : {}) };
+  }
+  BS('blast_door', { variants: doorState });
+}
+json(join(ASSETS, 'models/item', 'blast_door.json'), { parent: 'minecraft:item/generated', textures: { layer0: 'setpoint:item/blast_door' } });
+item('blast_door', 'setpoint:item/blast_door');
+
+// ---------- wired glass: lightly tinted glass with a square steel mesh cast in; a pane like glass panes ----------
+texture('wired_glass', (p) => {
+  p.rect(0, 0, 16, 16, '#cfe3ec40');
+  for (let k = 1; k < 16; k += 4) { p.rect(0, k, 16, 1, '#5b6168d0'); p.rect(k, 0, 1, 16, '#5b6168d0'); }
+  for (const [x, y] of [[3, 6], [4, 5], [5, 4], [11, 12], [12, 11]]) p.set(x, y, '#ffffff70');
+});
+texture('wired_glass_pane_top', (p) => { p.rect(0, 0, 16, 16, '#9fb3bd90'); for (let k = 1; k < 16; k += 4) p.rect(k, 0, 1, 16, '#5b6168d0'); });
+const glassSprite = (name) => ({ force_translucent: true, sprite: tex(name) });
+M('wired_glass', { parent: 'minecraft:block/cube_all', textures: { all: glassSprite('wired_glass') } });
+BS('wired_glass', { variants: { '': { model: 'setpoint:block/wired_glass' } } });
+item('wired_glass', 'setpoint:block/wired_glass');
+for (const part of ['post', 'side', 'side_alt', 'noside', 'noside_alt']) {
+  M('wired_glass_pane_' + part, { parent: 'minecraft:block/template_glass_pane_' + part,
+    textures: { pane: glassSprite('wired_glass'), ...(part.startsWith('noside') ? {} : { edge: glassSprite('wired_glass_pane_top') }) } });
+}
+BS('wired_glass_pane', { multipart: [
+  { apply: { model: 'setpoint:block/wired_glass_pane_post' } },
+  { when: { north: 'true' }, apply: { model: 'setpoint:block/wired_glass_pane_side' } },
+  { when: { east: 'true' }, apply: { model: 'setpoint:block/wired_glass_pane_side', y: 90 } },
+  { when: { south: 'true' }, apply: { model: 'setpoint:block/wired_glass_pane_side_alt' } },
+  { when: { west: 'true' }, apply: { model: 'setpoint:block/wired_glass_pane_side_alt', y: 90 } },
+  { when: { north: 'false' }, apply: { model: 'setpoint:block/wired_glass_pane_noside' } },
+  { when: { east: 'false' }, apply: { model: 'setpoint:block/wired_glass_pane_noside_alt' } },
+  { when: { south: 'false' }, apply: { model: 'setpoint:block/wired_glass_pane_noside_alt', y: 90 } },
+  { when: { west: 'false' }, apply: { model: 'setpoint:block/wired_glass_pane_noside', y: 270 } },
+] });
+json(join(ASSETS, 'models/item', 'wired_glass_pane.json'), { parent: 'minecraft:item/generated', textures: { layer0: 'setpoint:block/wired_glass' } });
+item('wired_glass_pane', 'setpoint:item/wired_glass_pane');
+
+recipe('overview_screen', ['PPP', 'RQR', 'III'], { P: 'minecraft:glass_pane', R: 'minecraft:redstone', Q: 'minecraft:quartz', I: 'minecraft:iron_ingot' }, 'setpoint:overview_screen', 3);
+recipe('alarm_beacon', [' G ', 'GLG', 'INI'], { G: 'minecraft:orange_stained_glass', L: 'minecraft:redstone_lamp', I: 'minecraft:iron_ingot', N: 'minecraft:note_block' }, 'setpoint:alarm_beacon');
+recipe('esd_button', ['RBR', 'YIY'], { R: 'minecraft:red_dye', B: 'minecraft:stone_button', Y: 'minecraft:yellow_dye', I: 'minecraft:iron_ingot' }, 'setpoint:esd_button');
+recipe('radio_charger', ['L L', 'CRC', 'III'], { L: 'minecraft:lightning_rod', C: 'minecraft:copper_ingot', R: 'minecraft:redstone', I: 'minecraft:iron_ingot' }, 'setpoint:radio_charger');
+recipe('control_desk', ['SSS', 'I I', 'I I'], { S: 'minecraft:smooth_stone_slab', I: 'minecraft:iron_ingot' }, 'setpoint:control_desk', 3);
+recipe('desk_corner', ['SSS', 'SI ', 'SI '], { S: 'minecraft:smooth_stone_slab', I: 'minecraft:iron_ingot' }, 'setpoint:desk_corner');
+recipe('desk_screens', ['PPP', 'RIR', ' I '], { P: 'minecraft:glass_pane', R: 'minecraft:redstone', I: 'minecraft:iron_ingot' }, 'setpoint:desk_screens');
+recipe('office_chair', ['W  ', 'WWW', 'III'], { W: 'minecraft:black_wool', I: 'minecraft:iron_ingot' }, 'setpoint:office_chair');
+recipe('raised_floor', ['CCC', 'I I'], { C: 'minecraft:light_gray_concrete', I: 'minecraft:iron_ingot' }, 'setpoint:raised_floor', 6);
+shapeless('raised_floor_vent', ['setpoint:raised_floor', 'minecraft:iron_bars'], 'setpoint:raised_floor_vent', 1);
+recipe('ceiling_panel', ['CCC', 'CCC'], { C: 'minecraft:calcite' }, 'setpoint:ceiling_panel', 6);
+shapeless('ceiling_light', ['setpoint:ceiling_panel', 'minecraft:glowstone'], 'setpoint:ceiling_light', 1);
+recipe('wall_clock', [' N ', 'NCN', ' N '], { N: 'minecraft:iron_nugget', C: 'minecraft:clock' }, 'setpoint:wall_clock');
+recipe('filing_cabinet', ['III', 'IBI', 'III'], { I: 'minecraft:iron_ingot', B: 'minecraft:barrel' }, 'setpoint:filing_cabinet');
+recipe('printer', ['IPI', 'IRI'], { I: 'minecraft:iron_ingot', P: 'minecraft:paper', R: 'minecraft:redstone' }, 'setpoint:printer');
+recipe('coffee_machine', ['IBI', 'IFI'], { I: 'minecraft:iron_ingot', B: 'minecraft:cocoa_beans', F: 'minecraft:furnace' }, 'setpoint:coffee_machine');
+recipe('exit_sign', ['GGG', 'GLG'], { G: 'minecraft:green_stained_glass_pane', L: 'minecraft:glowstone_dust' }, 'setpoint:exit_sign', 2);
+recipe('blast_door', ['IW', 'IO', 'II'], { I: 'minecraft:iron_ingot', W: 'setpoint:wired_glass', O: 'minecraft:obsidian' }, 'setpoint:blast_door');
+recipe('wired_glass', ['GGG', 'GBG', 'GGG'], { G: 'minecraft:glass', B: 'minecraft:iron_bars' }, 'setpoint:wired_glass', 8);
+recipe('wired_glass_pane', ['GGG', 'GGG'], { G: 'setpoint:wired_glass' }, 'setpoint:wired_glass_pane', 16);
+
+// =====================================================================================
 // Loot tables and tool tags for every block
 // =====================================================================================
 const lootSelf = (name) => json(join(DATA, 'loot_table/blocks', name + '.json'), {
@@ -2332,6 +2727,13 @@ for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) loot
 // factory blocks: each drops itself; a handrail drops one for every side it rails
 const FACTORY = ['rack_upright', 'rack_beam', 'grating', 'grating_stairs', 'caged_ladder', 'steel_beam', 'checker_plate', 'hazard_stripes', 'corrugated_steel', 'industrial_lamp'];
 for (const name of FACTORY) lootSelf(name);
+// control room: each drops itself (the filing cabinet also what it holds); the blast door only from its lower half
+const CONTROL_ROOM = ['overview_screen', 'alarm_beacon', 'esd_button', 'radio_charger', 'control_desk', 'desk_corner', 'desk_screens', 'office_chair',
+  'raised_floor', 'raised_floor_vent', 'ceiling_panel', 'ceiling_light', 'wall_clock', 'filing_cabinet', 'printer', 'coffee_machine', 'exit_sign', 'wired_glass', 'wired_glass_pane'];
+for (const name of CONTROL_ROOM) lootSelf(name);
+json(join(DATA, 'loot_table/blocks', 'blast_door.json'), { type: 'minecraft:block', random_sequence: 'setpoint:blocks/blast_door',
+  pools: [{ rolls: 1, conditions: [{ condition: 'minecraft:survives_explosion' }], entries: [{ type: 'minecraft:item', name: 'setpoint:blast_door',
+    condition: { type: 'minecraft:match_block', blocks: 'setpoint:blast_door', state: { half: 'lower' } } }] }] });
 json(join(DATA, 'loot_table/blocks', 'handrail.json'), { type: 'minecraft:block', random_sequence: 'setpoint:blocks/handrail',
   pools: ['north', 'east', 'south', 'west'].map((edge) => ({ rolls: 1, entries: [{ type: 'minecraft:item', name: 'setpoint:handrail',
     condition: { type: 'minecraft:match_block', blocks: 'setpoint:handrail', state: { [edge]: 'true' } } }] })).concat([{ rolls: 1,
@@ -2345,7 +2747,9 @@ lootOre('hookonium_ore', 'setpoint:raw_hookonium');
 lootOre('deepslate_hookonium_ore', 'setpoint:raw_hookonium');
 const HOOKONIUM_BLOCKS = ['hookonium_ore', 'deepslate_hookonium_ore', 'hookonium_block', 'raw_hookonium_block'].map((n) => 'setpoint:' + n);
 const tag = (path, values) => json(join(ROOT, 'data', path + '.json'), { values });
-tag('minecraft/tags/block/mineable/pickaxe', [...MACHINES.map((n) => 'setpoint:' + n), 'setpoint:drum', 'setpoint:ibc', 'setpoint:floating_roof_tank', 'setpoint:roof_tank_part', 'setpoint:gas_cylinder', 'setpoint:gas_sphere', 'setpoint:gas_sphere_part', 'setpoint:pumpjack_part', 'setpoint:column_part', ...FACTORY.map((n) => 'setpoint:' + n), 'setpoint:handrail', ...HOOKONIUM_BLOCKS]);
+tag('minecraft/tags/block/mineable/pickaxe', [...MACHINES.map((n) => 'setpoint:' + n), 'setpoint:drum', 'setpoint:ibc', 'setpoint:floating_roof_tank', 'setpoint:roof_tank_part', 'setpoint:gas_cylinder', 'setpoint:gas_sphere', 'setpoint:gas_sphere_part', 'setpoint:pumpjack_part', 'setpoint:column_part', ...FACTORY.map((n) => 'setpoint:' + n), 'setpoint:handrail', ...CONTROL_ROOM.filter((n) => n !== 'office_chair').map((n) => 'setpoint:' + n), 'setpoint:blast_door', ...HOOKONIUM_BLOCKS]);
+tag('minecraft/tags/block/doors', ['setpoint:blast_door']);
+tag('minecraft/tags/item/doors', ['setpoint:blast_door']);
 tag('minecraft/tags/block/climbable', ['setpoint:caged_ladder']);
 tag('minecraft/tags/block/stairs', ['setpoint:grating_stairs']);
 tag('minecraft/tags/item/stairs', ['setpoint:grating_stairs']);

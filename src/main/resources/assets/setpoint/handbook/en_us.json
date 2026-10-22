@@ -1501,6 +1501,178 @@
         {
           "type": "p",
           "text": "**NEW**: not acknowledged yet. **ACK**: acknowledged, the problem is still there. **RTN**: the problem went away before anyone looked; acknowledge to clear it."
+        },
+        {
+          "type": "h",
+          "text": "Overview screens"
+        },
+        {
+          "type": "p",
+          "text": "A video wall for the control room. Screens side by side and below each other make one wall, up to 8 by 6, that shows what the nearest console (within 32 blocks) sees. Right-click to switch page: **PLANT OVERVIEW** (a tile per tag), **ALARMS** (the alarm list) or **TRENDS** (the controllers first)."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:overview_screen",
+          "grid": [
+            "minecraft:glass_pane",
+            "minecraft:glass_pane",
+            "minecraft:glass_pane",
+            "minecraft:redstone",
+            "minecraft:quartz",
+            "minecraft:redstone",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot"
+          ],
+          "count": 3
+        },
+        {
+          "type": "h",
+          "text": "Alarm beacon"
+        },
+        {
+          "type": "p",
+          "text": "An amber rotating light with a horn. It turns and sounds while a console within 32 blocks has an alarm nobody acknowledged. ACK on the console stops it; right-click the beacon to silence only the horn."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:alarm_beacon",
+          "grid": [
+            "",
+            "minecraft:orange_stained_glass",
+            "",
+            "minecraft:orange_stained_glass",
+            "minecraft:redstone_lamp",
+            "minecraft:orange_stained_glass",
+            "minecraft:iron_ingot",
+            "minecraft:note_block",
+            "minecraft:iron_ingot"
+          ],
+          "count": 1
+        },
+        {
+          "type": "h",
+          "text": "Emergency stop"
+        },
+        {
+          "type": "p",
+          "text": "The **ESD** button. Push it in (right-click) and every pump, compressor, generator, boiler, turbine and machine within 32 blocks stops at once and stays stopped; the console shows them as **ESD** with an alarm. Pull it out (right-click again) to let the plant start. It gives a redstone signal while pressed."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:esd_button",
+          "grid": [
+            "minecraft:red_dye",
+            "minecraft:stone_button",
+            "minecraft:red_dye",
+            "minecraft:yellow_dye",
+            "minecraft:iron_ingot",
+            "minecraft:yellow_dye",
+            "",
+            "",
+            ""
+          ],
+          "count": 1
+        },
+        {
+          "type": "h",
+          "text": "Radios"
+        },
+        {
+          "type": "p",
+          "text": "Pick a radio from the charger (right-click) and the field operator calls in from the plant: how many units run, and what needs a look, worst first."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:radio_charger",
+          "grid": [
+            "minecraft:lightning_rod",
+            "",
+            "minecraft:lightning_rod",
+            "minecraft:copper_ingot",
+            "minecraft:redstone",
+            "minecraft:copper_ingot",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot"
+          ],
+          "count": 1
+        },
+        {
+          "type": "h",
+          "text": "Furniture"
+        },
+        {
+          "type": "p",
+          "text": "**Control desks** join into one long desk; a **corner** turns the row. **Operator screens** stand on a desk. The **24-hour chair**: right-click to sit, sneak to get up. Put it down with its back to you, and you look at the desk."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:control_desk",
+          "grid": [
+            "minecraft:smooth_stone_slab",
+            "minecraft:smooth_stone_slab",
+            "minecraft:smooth_stone_slab",
+            "minecraft:iron_ingot",
+            "",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "",
+            "minecraft:iron_ingot"
+          ],
+          "count": 3
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:office_chair",
+          "grid": [
+            "minecraft:black_wool",
+            "",
+            "",
+            "minecraft:black_wool",
+            "minecraft:black_wool",
+            "minecraft:black_wool",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot"
+          ],
+          "count": 1
+        },
+        {
+          "type": "p",
+          "text": "To finish the room: a **raised floor** (with **vent** tiles), **ceiling panels** and **ceiling lights**, a **wall clock** with the time of day, a **filing cabinet** that holds as much as a barrel, a **printer**, a **coffee machine** (a cup gives a minute of speed and haste), a lit **exit sign** (right-click to turn its arrow), a **blast door** and **wired glass** for windows onto the plant."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:blast_door",
+          "grid": [
+            "minecraft:iron_ingot",
+            "setpoint:wired_glass",
+            "",
+            "minecraft:iron_ingot",
+            "minecraft:obsidian",
+            "",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            ""
+          ],
+          "count": 1
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:wired_glass",
+          "grid": [
+            "minecraft:glass",
+            "minecraft:glass",
+            "minecraft:glass",
+            "minecraft:glass",
+            "minecraft:iron_bars",
+            "minecraft:glass",
+            "minecraft:glass",
+            "minecraft:glass",
+            "minecraft:glass"
+          ],
+          "count": 8
         }
       ]
     },

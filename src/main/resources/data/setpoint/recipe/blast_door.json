@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "W": "setpoint:wired_glass",
+    "O": "minecraft:obsidian"
+  },
+  "pattern": [
+    "IW",
+    "IO",
+    "II"
+  ],
+  "result": {
+    "id": "setpoint:blast_door"
+  }
+}

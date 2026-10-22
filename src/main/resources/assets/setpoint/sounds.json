@@ -110,6 +110,15 @@
       }
     ]
   },
+  "block.alarm_beacon.horn": {
+    "subtitle": "subtitles.setpoint.block.alarm_beacon.horn",
+    "sounds": [
+      {
+        "name": "setpoint:block/alarm_horn",
+        "volume": 1
+      }
+    ]
+  },
   "block.safety_valve.lift": {
     "subtitle": "subtitles.setpoint.block.safety_valve.lift",
     "sounds": [

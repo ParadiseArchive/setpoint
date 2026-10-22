@@ -87,6 +87,11 @@ public final class SetpointGameTests {
     private static final Map<String, Integer> MAX_TICKS = new LinkedHashMap<>();
     /** Tests that need more room than the bench: they get the big bench (10 x 8 x 10). */
     private static final java.util.Set<String> BIG = new java.util.HashSet<>();
+    /**
+     * Tests that run in a batch of their own: an emergency stop reaches 32 blocks, and alarm beacons and overview screens
+     * listen to every console that far, so other tests must not be near them.
+     */
+    private static final java.util.Set<String> ALONE = new java.util.HashSet<>();
 
     static {
         test("pump_moves_water", SetpointGameTests::pumpMovesWater, 200);
@@ -166,6 +171,12 @@ public final class SetpointGameTests {
         BIG.add("the_column_splits_crude_oil");
         test("diesel_makes_power", SetpointGameTests::dieselMakesPower, 40);
         test("nitrogen_blankets_naphtha", SetpointGameTests::nitrogenBlanketsNaphtha, 100);
+        test("esd_stops_and_restarts_the_plant", SetpointGameTests::esdStopsAndRestartsThePlant, 60);
+        ALONE.add("esd_stops_and_restarts_the_plant");
+        test("control_room_follows_the_console", SetpointGameTests::controlRoomFollowsTheConsole, 200);
+        ALONE.add("control_room_follows_the_console");
+        test("a_chair_seats_a_player", SetpointGameTests::aChairSeatsAPlayer, 40);
+        test("desks_join", SetpointGameTests::desksJoin, 20);
     }
 
     private static void test(String name, Consumer<GameTestHelper> function, int maxTicks) {
@@ -187,8 +198,10 @@ public final class SetpointGameTests {
     private static void registerTests(RegisterGameTestsEvent event) {
         Holder<TestEnvironmentDefinition<?>> environment = event.registerEnvironment(Setpoint.id("default"));
         for (var function : FUNCTIONS.getEntries()) {
+            String name = function.getId().getPath();
+            Holder<TestEnvironmentDefinition<?>> batch = ALONE.contains(name) ? event.registerEnvironment(Setpoint.id("alone/" + name)) : environment;
             event.registerTest(function.getId(), new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, function.getId()),
-                    new TestData<>(environment, Setpoint.id(BIG.contains(function.getId().getPath()) ? "big_bench" : "bench"), MAX_TICKS.get(function.getId().getPath()), 0, true)));
+                    new TestData<>(batch, Setpoint.id(BIG.contains(function.getId().getPath()) ? "big_bench" : "bench"), MAX_TICKS.get(function.getId().getPath()), 0, true)));
         }
     }
 
@@ -791,7 +804,8 @@ public final class SetpointGameTests {
                     || block.get() == SetpointContent.PUMPJACK_PART.get() || block.get() == SetpointContent.COLUMN_PART.get()) continue; // parts: their base drops
             if (block.get() == SetpointContent.PALLET_TRUCK_MODEL.get() || block.get() == SetpointContent.FORKLIFT_MODEL.get()
                     || block.get() == SetpointContent.FLOATING_ROOF_TANK_MODEL.get() || block.get() == SetpointContent.GAS_SPHERE_MODEL.get()
-                    || block.get() == SetpointContent.PUMPJACK_MODEL.get() || block.get() == SetpointContent.COLUMN_MODEL.get()) continue; // only hold models
+                    || block.get() == SetpointContent.PUMPJACK_MODEL.get() || block.get() == SetpointContent.COLUMN_MODEL.get()
+                    || block.get() == SetpointContent.CONTROL_ROOM_MODEL.get()) continue; // only hold models
             BlockState state = block.get() == SetpointContent.HANDRAIL.get() // a handrail is as many as the sides it rails: one here
                     ? block.get().defaultBlockState().setValue(io.hookdev.setpoint.block.HandrailBlock.EDGES.get(Direction.NORTH), true) : block.get().defaultBlockState();
             var drops = Block.getDrops(state, helper.getLevel(), pos, null, null, new ItemStack(Items.DIAMOND_PICKAXE));
@@ -822,6 +836,95 @@ public final class SetpointGameTests {
                 helper.succeed();
             });
         });
+    }
+
+    /** An ESD button stops a running generator (the console sees ESD and an alarm); pulled out again, it runs. */
+    private static void esdStopsAndRestartsThePlant(GameTestHelper helper) {
+        BlockPos gen = new BlockPos(3, 1, 1), button = new BlockPos(1, 1, 1);
+        helper.setBlock(gen, SetpointContent.DIESEL_GENERATOR.get());
+        var generator = helper.getBlockEntity(gen, io.hookdev.setpoint.block.entity.DieselGeneratorBlockEntity.class);
+        generator.fluid().set(0, io.hookdev.setpoint.gas.Liquids.DIESEL.resource(), 1_000);
+        helper.setBlock(button, SetpointContent.ESD_BUTTON.get().defaultBlockState().setValue(io.hookdev.setpoint.block.EsdButtonBlock.FACING, Direction.UP));
+        helper.useBlock(button);
+        helper.assertBlockProperty(button, io.hookdev.setpoint.block.EsdButtonBlock.PRESSED, true);
+        helper.runAfterDelay(2, () -> {
+            int diesel = generator.amount();
+            helper.runAfterDelay(10, () -> {
+                helper.assertTrue(generator.status().equals("ESD"), "the generator should stand still on the ESD, is " + generator.status());
+                helper.assertTrue(generator.amount() == diesel, "it should burn nothing while tripped");
+                var reading = io.hookdev.setpoint.console.PlantScanner.scan(helper.getLevel(), helper.absolutePos(gen)).stream().filter(r -> r.tag().equals(generator.tag())).findFirst().orElseThrow();
+                helper.assertTrue(reading.status().equals("ESD") && reading.alarms().contains("ESD TRIP"), "the console should show ESD with an alarm, got " + reading);
+                helper.assertTrue(helper.getLevel().getSignal(helper.absolutePos(button), Direction.UP) == 15, "a pressed ESD gives a redstone signal");
+                helper.useBlock(button); // pull it out
+                helper.runAfterDelay(5, () -> {
+                    helper.assertTrue(generator.status().equals("RUNNING"), "after the reset it should run again, is " + generator.status());
+                    helper.succeed();
+                });
+            });
+        });
+    }
+
+    /** A pump running dry: the alarm beacon turns, the overview screens show it, the radio calls it in; ACK calms the beacon. */
+    private static void controlRoomFollowsTheConsole(GameTestHelper helper) {
+        buildLine(helper, false); // source tank left empty
+        BlockPos consolePos = new BlockPos(3, 1, 2), beacon = new BlockPos(6, 1, 3);
+        helper.setBlock(consolePos, SetpointContent.CONSOLE.get());
+        ConsoleBlockEntity console = helper.getBlockEntity(consolePos, ConsoleBlockEntity.class);
+        helper.setBlock(beacon, SetpointContent.ALARM_BEACON.get());
+        BlockState screen = SetpointContent.OVERVIEW_SCREEN.get().defaultBlockState().setValue(io.hookdev.setpoint.block.OverviewScreenBlock.FACING, Direction.NORTH);
+        helper.setBlock(new BlockPos(1, 1, 4), screen);
+        helper.setBlock(new BlockPos(2, 1, 4), screen);
+        helper.runAfterDelay(80, () -> {
+            helper.assertBlockProperty(beacon, io.hookdev.setpoint.block.AlarmBeaconBlock.ALARM, true);
+            BlockPos topLeft = io.hookdev.setpoint.block.OverviewScreenBlock.topLeft(helper.getLevel(), helper.absolutePos(new BlockPos(1, 1, 4)), Direction.NORTH);
+            int[] size = io.hookdev.setpoint.block.OverviewScreenBlock.size(helper.getLevel(), topLeft, Direction.NORTH);
+            helper.assertTrue(size[0] == 2 && size[1] == 1, "two screens side by side make one wall, got " + size[0] + " x " + size[1]);
+            var wall = (io.hookdev.setpoint.block.entity.OverviewScreenBlockEntity) helper.getLevel().getBlockEntity(topLeft);
+            wall.read(helper.getLevel());
+            var data = wall.data();
+            helper.assertTrue(data.linked() && data.tiles().stream().anyMatch(t -> t.kind().equals("PUMP")), "the wall should show the pump, has " + data.tiles());
+            helper.assertTrue(data.unacked() > 0 && data.alarms().stream().anyMatch(a -> a.message().equals("DRY RUN")), "the wall should list the alarm");
+            var report = io.hookdev.setpoint.block.RadioChargerBlock.report(io.hookdev.setpoint.console.PlantScanner.scan(helper.getLevel(), helper.absolutePos(consolePos)));
+            helper.assertTrue(report.size() >= 2 && report.stream().anyMatch(c -> c.getString().contains("DRY RUN")), "the radio should call in the dry pump, got " + report);
+            console.acknowledge();
+            helper.runAfterDelay(25, () -> {
+                helper.assertBlockProperty(beacon, io.hookdev.setpoint.block.AlarmBeaconBlock.ALARM, false);
+                helper.succeed();
+            });
+        });
+    }
+
+    /** Right-click a chair to sit on it; get up and the seat goes. */
+    private static void aChairSeatsAPlayer(GameTestHelper helper) {
+        BlockPos chair = new BlockPos(2, 1, 2);
+        helper.setBlock(chair, SetpointContent.OFFICE_CHAIR.get());
+        var player = helper.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        player.setPos(helper.absoluteVec(new net.minecraft.world.phys.Vec3(2.5, 1, 4.5)));
+        helper.useBlock(chair, player);
+        helper.assertTrue(player.getVehicle() instanceof io.hookdev.setpoint.entity.SeatEntity, "the player should sit on the chair");
+        var box = new net.minecraft.world.phys.AABB(helper.absolutePos(chair));
+        helper.runAfterDelay(5, () -> {
+            player.stopRiding();
+            helper.runAfterDelay(3, () -> {
+                helper.assertTrue(helper.getLevel().getEntitiesOfClass(io.hookdev.setpoint.entity.SeatEntity.class, box).isEmpty(), "the seat should go when nobody sits on it");
+                helper.succeed();
+            });
+        });
+    }
+
+    /** Two desks side by side join (no side panel between them); take one away and the other closes its side again. */
+    private static void desksJoin(GameTestHelper helper) {
+        BlockState desk = SetpointContent.CONTROL_DESK.get().defaultBlockState().setValue(io.hookdev.setpoint.block.ControlDeskBlock.FACING, Direction.NORTH);
+        helper.setBlock(new BlockPos(1, 1, 1), desk);
+        BlockPos second = helper.absolutePos(new BlockPos(2, 1, 1));
+        helper.getLevel().setBlockAndUpdate(second, Block.updateFromNeighbourShapes(desk, helper.getLevel(), second));
+        // facing north the operator sits on the north side and looks south: east is on their left
+        helper.assertBlockProperty(new BlockPos(1, 1, 1), io.hookdev.setpoint.block.ControlDeskBlock.LEFT, true);
+        helper.assertBlockProperty(new BlockPos(1, 1, 1), io.hookdev.setpoint.block.ControlDeskBlock.RIGHT, false);
+        helper.assertBlockProperty(new BlockPos(2, 1, 1), io.hookdev.setpoint.block.ControlDeskBlock.RIGHT, true);
+        helper.setBlock(new BlockPos(1, 1, 1), net.minecraft.world.level.block.Blocks.AIR);
+        helper.assertBlockProperty(new BlockPos(2, 1, 1), io.hookdev.setpoint.block.ControlDeskBlock.RIGHT, false);
+        helper.succeed();
     }
 
     /** A comparator reads tanks and boiler drums: 0 empty, 15 full. */

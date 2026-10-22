@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "setpoint:block/ceiling_panel",
+    "bottom": "setpoint:block/ceiling_light",
+    "side": "setpoint:block/ceiling_panel"
+  }
+}

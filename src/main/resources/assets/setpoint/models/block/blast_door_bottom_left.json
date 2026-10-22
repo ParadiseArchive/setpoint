@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/door_bottom_left",
+  "textures": {
+    "bottom": "setpoint:block/blast_door_bottom",
+    "top": "setpoint:block/blast_door_top"
+  }
+}

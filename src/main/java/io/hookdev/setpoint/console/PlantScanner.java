@@ -22,6 +22,7 @@ import io.hookdev.setpoint.block.entity.SafetyValveBlockEntity;
 import io.hookdev.setpoint.block.entity.SteamTurbineBlockEntity;
 import io.hookdev.setpoint.block.entity.TankBlockEntity;
 import io.hookdev.setpoint.block.entity.WaterIntakeBlockEntity;
+import io.hookdev.setpoint.control.Esd;
 import io.hookdev.setpoint.control.PidController;
 import io.hookdev.setpoint.physics.BoilerModel;
 import io.hookdev.setpoint.physics.PumpModel;
@@ -54,11 +55,19 @@ public final class PlantScanner {
                 if (Math.abs(pos.getX() - centre.getX()) > RANGE || Math.abs(pos.getY() - centre.getY()) > RANGE
                         || Math.abs(pos.getZ() - centre.getZ()) > RANGE) continue;
                 Reading reading = read(be);
+                if (reading != null && Esd.stops(be) && Esd.tripped(level, pos)) reading = tripped(reading);
                 if (reading != null && seen.add(reading.tag())) readings.add(reading);
             }
         }
         readings.sort(Comparator.comparingInt((Reading r) -> KIND_ORDER.indexOf(r.kind())).thenComparing(Reading::tag));
         return readings;
+    }
+
+    /** Stopped by an emergency shutdown: the console shows it as such, with an alarm. */
+    private static Reading tripped(Reading r) {
+        List<String> alarms = new ArrayList<>(r.alarms());
+        alarms.add("ESD TRIP");
+        return new Reading(r.pos(), r.tag(), r.kind(), "ESD", Reading.ALARM, r.value(), r.series(), r.trend(), alarms);
     }
 
     private static String pct(double v) {

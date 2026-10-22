@@ -1,0 +1,218 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "front": "setpoint:block/coffee_front",
+    "side": "setpoint:block/coffee_side",
+    "top": "setpoint:block/coffee_top",
+    "cup": "setpoint:block/coffee_cup",
+    "steel": "setpoint:block/chair_chrome",
+    "particle": "setpoint:block/coffee_side"
+  },
+  "elements": [
+    {
+      "from": [
+        3,
+        0,
+        4
+      ],
+      "to": [
+        13,
+        14,
+        14
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3,
+            2,
+            13,
+            16
+          ],
+          "texture": "#front"
+        },
+        "south": {
+          "uv": [
+            3,
+            2,
+            13,
+            16
+          ],
+          "texture": "#side"
+        },
+        "east": {
+          "uv": [
+            2,
+            2,
+            12,
+            16
+          ],
+          "texture": "#side"
+        },
+        "west": {
+          "uv": [
+            2,
+            2,
+            12,
+            16
+          ],
+          "texture": "#side"
+        },
+        "up": {
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ],
+          "texture": "#top"
+        },
+        "down": {
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ],
+          "texture": "#side",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "from": [
+        4.5,
+        0,
+        2
+      ],
+      "to": [
+        11.5,
+        1,
+        4
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#steel"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#steel"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#steel"
+        }
+      }
+    },
+    {
+      "from": [
+        6.5,
+        1,
+        2.5
+      ],
+      "to": [
+        9.5,
+        4,
+        4
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#cup"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#cup"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#cup"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#cup"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            3,
+            2
+          ],
+          "texture": "#cup"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            3,
+            3
+          ],
+          "texture": "#cup"
+        }
+      }
+    }
+  ]
+}

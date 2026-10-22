@@ -82,7 +82,8 @@ public class PumpjackBlockEntity extends BlockEntity implements Vessel, NamedEqu
     public static void serverTick(Level level, BlockPos pos, BlockState state, PumpjackBlockEntity pumpjack) {
         ServerLevel server = (ServerLevel) level;
         boolean running = false;
-        if (pumpjack.amount() + CRUDE_PER_TICK > CRUDE_CAPACITY) pumpjack.status = "FULL";
+        if (io.hookdev.setpoint.control.Esd.tripped(level, pos)) pumpjack.status = "ESD";
+        else if (pumpjack.amount() + CRUDE_PER_TICK > CRUDE_CAPACITY) pumpjack.status = "FULL";
         else if (pumpjack.energy.getAmountAsInt() < POWER) pumpjack.status = "NO POWER";
         else {
             pumpjack.energy.set(pumpjack.energy.getAmountAsInt() - POWER);

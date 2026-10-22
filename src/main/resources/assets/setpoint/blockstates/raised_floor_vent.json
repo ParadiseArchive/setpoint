@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "setpoint:block/raised_floor_vent"
+    }
+  }
+}

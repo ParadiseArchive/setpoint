@@ -59,6 +59,9 @@ public class ConsoleBlockEntity extends BlockEntity implements MenuProvider {
     public List<Reading> readings() { return readings; }
     public AlarmList alarms() { return alarms; }
 
+    /** The last five minutes of a tag, or null when the console has none. */
+    public @Nullable TrendBuffer trend(String tag) { return trends.get(tag); }
+
     /** The P&ID in the console, or an empty stack. */
     public ItemStack pid() { return pid; }
 
@@ -144,7 +147,7 @@ public class ConsoleBlockEntity extends BlockEntity implements MenuProvider {
     }
 
     /** Minecraft clock time (hh:mm) of a game tick, like the timestamps on a real alarm list. */
-    private String clock(long gameTime) {
+    public String clock(long gameTime) {
         if (level == null) return "--:--";
         long dayTime = level.getOverworldClockTime() - (level.getGameTime() - gameTime);
         long t = Math.floorMod(dayTime, 24_000L);

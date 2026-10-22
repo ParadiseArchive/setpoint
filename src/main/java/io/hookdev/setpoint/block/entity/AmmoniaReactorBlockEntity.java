@@ -95,7 +95,8 @@ public class AmmoniaReactorBlockEntity extends BlockEntity implements NamedEquip
         GasVessel h2 = hydrogen.fullest(level, pos, GasMakerBlock.right(state), Gases.HYDROGEN.resource());
         feed = n2 == null || h2 == null ? 0 : Math.min(n2.pressure(), h2.pressure());
         int unit = (int) Math.floor(NITROGEN_PER_TICK * Math.min(1, feed / FULL_PRESSURE));
-        if (n2 == null) status = "NO NITROGEN";
+        if (io.hookdev.setpoint.control.Esd.tripped(level, pos)) status = "ESD";
+        else if (n2 == null) status = "NO NITROGEN";
         else if (h2 == null) status = "NO HYDROGEN";
         else if (unit == 0 || n2.amount() < unit || h2.amount() < 3 * unit) status = "LOW PRESSURE";
         else if (ammonia.room() < 2 * unit) status = "FULL";

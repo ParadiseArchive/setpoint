@@ -1,0 +1,108 @@
+{
+  "variants": {
+    "alarm=false,facing=up,silenced=false": {
+      "model": "setpoint:block/alarm_beacon"
+    },
+    "alarm=false,facing=up,silenced=true": {
+      "model": "setpoint:block/alarm_beacon"
+    },
+    "alarm=true,facing=up,silenced=false": {
+      "model": "setpoint:block/alarm_beacon_on"
+    },
+    "alarm=true,facing=up,silenced=true": {
+      "model": "setpoint:block/alarm_beacon_on"
+    },
+    "alarm=false,facing=down,silenced=false": {
+      "model": "setpoint:block/alarm_beacon",
+      "x": 180
+    },
+    "alarm=false,facing=down,silenced=true": {
+      "model": "setpoint:block/alarm_beacon",
+      "x": 180
+    },
+    "alarm=true,facing=down,silenced=false": {
+      "model": "setpoint:block/alarm_beacon_on",
+      "x": 180
+    },
+    "alarm=true,facing=down,silenced=true": {
+      "model": "setpoint:block/alarm_beacon_on",
+      "x": 180
+    },
+    "alarm=false,facing=north,silenced=false": {
+      "model": "setpoint:block/alarm_beacon",
+      "x": 90
+    },
+    "alarm=false,facing=north,silenced=true": {
+      "model": "setpoint:block/alarm_beacon",
+      "x": 90
+    },
+    "alarm=true,facing=north,silenced=false": {
+      "model": "setpoint:block/alarm_beacon_on",
+      "x": 90
+    },
+    "alarm=true,facing=north,silenced=true": {
+      "model": "setpoint:block/alarm_beacon_on",
+      "x": 90
+    },
+    "alarm=false,facing=south,silenced=false": {
+      "model": "setpoint:block/alarm_beacon",
+      "x": 90,
+      "y": 180
+    },
+    "alarm=false,facing=south,silenced=true": {
+      "model": "setpoint:block/alarm_beacon",
+      "x": 90,
+      "y": 180
+    },
+    "alarm=true,facing=south,silenced=false": {
+      "model": "setpoint:block/alarm_beacon_on",
+      "x": 90,
+      "y": 180
+    },
+    "alarm=true,facing=south,silenced=true": {
+      "model": "setpoint:block/alarm_beacon_on",
+      "x": 90,
+      "y": 180
+    },
+    "alarm=false,facing=east,silenced=false": {
+      "model": "setpoint:block/alarm_beacon",
+      "x": 90,
+      "y": 90
+    },
+    "alarm=false,facing=east,silenced=true": {
+      "model": "setpoint:block/alarm_beacon",
+      "x": 90,
+      "y": 90
+    },
+    "alarm=true,facing=east,silenced=false": {
+      "model": "setpoint:block/alarm_beacon_on",
+      "x": 90,
+      "y": 90
+    },
+    "alarm=true,facing=east,silenced=true": {
+      "model": "setpoint:block/alarm_beacon_on",
+      "x": 90,
+      "y": 90
+    },
+    "alarm=false,facing=west,silenced=false": {
+      "model": "setpoint:block/alarm_beacon",
+      "x": 90,
+      "y": 270
+    },
+    "alarm=false,facing=west,silenced=true": {
+      "model": "setpoint:block/alarm_beacon",
+      "x": 90,
+      "y": 270
+    },
+    "alarm=true,facing=west,silenced=false": {
+      "model": "setpoint:block/alarm_beacon_on",
+      "x": 90,
+      "y": 270
+    },
+    "alarm=true,facing=west,silenced=true": {
+      "model": "setpoint:block/alarm_beacon_on",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

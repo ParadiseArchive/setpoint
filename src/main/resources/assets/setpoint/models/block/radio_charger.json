@@ -1,0 +1,461 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "rack": "setpoint:block/radio_rack",
+    "radio": "setpoint:block/radio_body",
+    "antenna": "setpoint:block/beacon_base",
+    "particle": "setpoint:block/radio_rack"
+  },
+  "elements": [
+    {
+      "from": [
+        2,
+        0,
+        5
+      ],
+      "to": [
+        14,
+        3,
+        11
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            5,
+            14,
+            11
+          ],
+          "texture": "#rack"
+        },
+        "south": {
+          "uv": [
+            2,
+            5,
+            14,
+            11
+          ],
+          "texture": "#rack"
+        },
+        "east": {
+          "uv": [
+            2,
+            5,
+            14,
+            11
+          ],
+          "texture": "#rack"
+        },
+        "west": {
+          "uv": [
+            2,
+            5,
+            14,
+            11
+          ],
+          "texture": "#rack"
+        },
+        "up": {
+          "uv": [
+            2,
+            5,
+            14,
+            11
+          ],
+          "texture": "#rack"
+        },
+        "down": {
+          "uv": [
+            2,
+            5,
+            14,
+            11
+          ],
+          "texture": "#rack",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "from": [
+        3,
+        3,
+        6.5
+      ],
+      "to": [
+        5.5,
+        9,
+        9
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3,
+            0,
+            13,
+            16
+          ],
+          "texture": "#radio"
+        },
+        "south": {
+          "uv": [
+            3,
+            0,
+            13,
+            16
+          ],
+          "texture": "#radio"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            16
+          ],
+          "texture": "#radio"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            16
+          ],
+          "texture": "#radio"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            3
+          ],
+          "texture": "#radio"
+        }
+      }
+    },
+    {
+      "from": [
+        3.5,
+        9,
+        7.25
+      ],
+      "to": [
+        4.25,
+        12,
+        8
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            3
+          ],
+          "texture": "#antenna"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            3
+          ],
+          "texture": "#antenna"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            3
+          ],
+          "texture": "#antenna"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            3
+          ],
+          "texture": "#antenna"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            3
+          ],
+          "texture": "#antenna"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            3
+          ],
+          "texture": "#antenna"
+        }
+      }
+    },
+    {
+      "from": [
+        6.75,
+        3,
+        6.5
+      ],
+      "to": [
+        9.25,
+        9,
+        9
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3,
+            0,
+            13,
+            16
+          ],
+          "texture": "#radio"
+        },
+        "south": {
+          "uv": [
+            3,
+            0,
+            13,
+            16
+          ],
+          "texture": "#radio"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            16
+          ],
+          "texture": "#radio"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            16
+          ],
+          "texture": "#radio"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            3
+          ],
+          "texture": "#radio"
+        }
+      }
+    },
+    {
+      "from": [
+        7.25,
+        9,
+        7.25
+      ],
+      "to": [
+        8,
+        12,
+        8
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            3
+          ],
+          "texture": "#antenna"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            3
+          ],
+          "texture": "#antenna"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            3
+          ],
+          "texture": "#antenna"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            3
+          ],
+          "texture": "#antenna"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            3
+          ],
+          "texture": "#antenna"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            3
+          ],
+          "texture": "#antenna"
+        }
+      }
+    },
+    {
+      "from": [
+        10.5,
+        3,
+        6.5
+      ],
+      "to": [
+        13,
+        9,
+        9
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3,
+            0,
+            13,
+            16
+          ],
+          "texture": "#radio"
+        },
+        "south": {
+          "uv": [
+            3,
+            0,
+            13,
+            16
+          ],
+          "texture": "#radio"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            4,
+            16
+          ],
+          "texture": "#radio"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            4,
+            16
+          ],
+          "texture": "#radio"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            4,
+            3
+          ],
+          "texture": "#radio"
+        }
+      }
+    },
+    {
+      "from": [
+        11,
+        9,
+        7.25
+      ],
+      "to": [
+        11.75,
+        12,
+        8
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            1,
+            3
+          ],
+          "texture": "#antenna"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            1,
+            3
+          ],
+          "texture": "#antenna"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            1,
+            3
+          ],
+          "texture": "#antenna"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            1,
+            3
+          ],
+          "texture": "#antenna"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            1,
+            3
+          ],
+          "texture": "#antenna"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            1,
+            3
+          ],
+          "texture": "#antenna"
+        }
+      }
+    }
+  ]
+}

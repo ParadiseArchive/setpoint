@@ -69,7 +69,7 @@ public class SteamTurbineBlockEntity extends BlockEntity implements NamedEquipme
     private void tick(ServerLevel level, BlockPos pos, BlockState state) {
         int room = ENERGY_CAPACITY - energy.getAmountAsInt();
         // Only take as much steam as the buffer can turn into power.
-        int wanted = (int) Math.min(TurbineModel.MAX_STEAM, Math.floor(room / TurbineModel.FE_PER_MB));
+        int wanted = io.hookdev.setpoint.control.Esd.tripped(level, pos) ? 0 : (int) Math.min(TurbineModel.MAX_STEAM, Math.floor(room / TurbineModel.FE_PER_MB)); // an ESD shuts the trip valve
         steamUsed = 0;
         for (Direction direction : Direction.values()) {
             if (steamUsed >= wanted) break;

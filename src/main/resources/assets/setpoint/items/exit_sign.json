@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "setpoint:block/exit_sign_left"
+  }
+}

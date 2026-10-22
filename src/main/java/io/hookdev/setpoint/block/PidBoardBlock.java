@@ -1,6 +1,5 @@
 package io.hookdev.setpoint.block;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -56,7 +55,7 @@ public class PidBoardBlock extends BaseEntityBlock {
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
     public static final int LIGHT = 10;
     /** The largest panel one drawing covers, in blocks. */
-    public static final int MAX_WIDTH = 8, MAX_HEIGHT = 6;
+    public static final int MAX_WIDTH = WallPanel.MAX_WIDTH, MAX_HEIGHT = WallPanel.MAX_HEIGHT;
     private static final Map<Direction, VoxelShape> SHAPES = Map.of(
             Direction.NORTH, Block.box(0, 0, 15, 16, 16, 16), Direction.SOUTH, Block.box(0, 0, 0, 16, 16, 1),
             Direction.EAST, Block.box(0, 0, 0, 1, 16, 16), Direction.WEST, Block.box(15, 0, 0, 16, 16, 16));
@@ -74,35 +73,17 @@ public class PidBoardBlock extends BaseEntityBlock {
 
     /** To the right of a board, as you stand in front of it. */
     public static Direction right(Direction facing) {
-        return facing.getCounterClockWise();
-    }
-
-    private static boolean isBoard(BlockGetter level, BlockPos pos, Direction facing) {
-        BlockState state = level.getBlockState(pos);
-        return state.getBlock() instanceof PidBoardBlock && state.getValue(FACING) == facing;
+        return WallPanel.right(facing);
     }
 
     /** The top-left board of the panel this board belongs to. */
     public static BlockPos topLeft(BlockGetter level, BlockPos pos, Direction facing) {
-        BlockPos at = pos;
-        for (int i = 0; i < MAX_HEIGHT && isBoard(level, at.above(), facing); i++) at = at.above();
-        Direction left = right(facing).getOpposite();
-        for (int i = 0; i < MAX_WIDTH && isBoard(level, at.relative(left), facing); i++) at = at.relative(left);
-        return at;
+        return WallPanel.topLeft(level, pos, SetpointContent.PID_BOARD.get(), facing);
     }
 
     /** Width and height of the panel that starts at this top-left board, in blocks. */
     public static int[] size(BlockGetter level, BlockPos topLeft, Direction facing) {
-        Direction right = right(facing);
-        int width = 1;
-        while (width < MAX_WIDTH && isBoard(level, topLeft.relative(right, width), facing)) width++;
-        int height = 1;
-        rows:
-        while (height < MAX_HEIGHT) {
-            for (int x = 0; x < width; x++) if (!isBoard(level, topLeft.below(height).relative(right, x), facing)) break rows;
-            height++;
-        }
-        return new int[]{width, height};
+        return WallPanel.size(level, topLeft, SetpointContent.PID_BOARD.get(), facing);
     }
 
     @Override
@@ -168,10 +149,7 @@ public class PidBoardBlock extends BaseEntityBlock {
 
     /** Every board of the panel, for the comparators next to them. */
     public static List<BlockPos> panel(BlockGetter level, BlockPos topLeft, Direction facing) {
-        int[] size = size(level, topLeft, facing);
-        List<BlockPos> boards = new ArrayList<>();
-        for (int x = 0; x < size[0]; x++) for (int y = 0; y < size[1]; y++) boards.add(topLeft.relative(right(facing), x).below(y));
-        return boards;
+        return WallPanel.blocks(level, topLeft, SetpointContent.PID_BOARD.get(), facing);
     }
 
     @Override

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "B": "minecraft:cocoa_beans",
+    "F": "minecraft:furnace"
+  },
+  "pattern": [
+    "IBI",
+    "IFI"
+  ],
+  "result": {
+    "id": "setpoint:coffee_machine"
+  }
+}

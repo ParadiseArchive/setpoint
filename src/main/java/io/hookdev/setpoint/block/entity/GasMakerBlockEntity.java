@@ -94,7 +94,7 @@ public abstract class GasMakerBlockEntity extends BlockEntity implements NamedEq
     }
 
     private void tick(ServerLevel level, BlockPos pos, BlockState state) {
-        String blocked = energy.getAmountAsInt() < energyPerTick() ? "NO POWER" : product.room() < productPerTick() ? "FULL" : missing();
+        String blocked = io.hookdev.setpoint.control.Esd.tripped(level, pos) ? "ESD" : energy.getAmountAsInt() < energyPerTick() ? "NO POWER" : product.room() < productPerTick() ? "FULL" : missing();
         made = 0;
         if (blocked == null) {
             energy.set(energy.getAmountAsInt() - energyPerTick());

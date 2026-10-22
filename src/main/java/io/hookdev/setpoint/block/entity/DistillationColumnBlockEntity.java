@@ -141,7 +141,8 @@ public class DistillationColumnBlockEntity extends BlockEntity implements Vessel
             if (products.get(product).getAmountAsInt(0) + Math.ceil(want * product.share) + 1 > PRODUCT_CAPACITY) full = product.name();
         }
         if (lpg.room() < Math.ceil(want * LPG_SHARE * LPG_GAS_PER_MB) + 1) full = "LPG";
-        if (crude == 0) status = "NO FEED";
+        if (io.hookdev.setpoint.control.Esd.tripped(level, worldPosition)) status = "ESD";
+        else if (crude == 0) status = "NO FEED";
         else if (steamSource == null || steamSource.amount() < Math.ceil(want * STEAM_PER_CRUDE)) status = "NO STEAM";
         else if (water.getAmountAsInt(0) < Math.ceil(want * WATER_PER_CRUDE)) status = "NO COOLING";
         else if (full != null) status = "FULL " + full;

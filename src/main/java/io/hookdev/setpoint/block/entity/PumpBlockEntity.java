@@ -112,7 +112,7 @@ public class PumpBlockEntity extends BlockEntity implements NamedEquipment {
                 hasSource ? density(source.resource()) : 1, hasSource ? viscosity(source.resource()) : 1));
 
         // by default it runs by itself and a redstone signal is the stop button; or it runs only while it gets a signal
-        commanded = runOnSignal == level.hasNeighborSignal(pos) && !remoteStop;
+        commanded = runOnSignal == level.hasNeighborSignal(pos) && !remoteStop && !io.hookdev.setpoint.control.Esd.tripped(level, pos);
         powered = energy.getAmountAsInt() >= result.power();
         boolean running = commanded && powered;
         if (running) {

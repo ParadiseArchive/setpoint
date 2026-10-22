@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "S": "minecraft:smooth_stone_slab",
+    "I": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    "SSS",
+    "SI ",
+    "SI "
+  ],
+  "result": {
+    "id": "setpoint:desk_corner"
+  }
+}

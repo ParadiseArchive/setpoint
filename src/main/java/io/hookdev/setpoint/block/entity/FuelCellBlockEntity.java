@@ -80,7 +80,8 @@ public class FuelCellBlockEntity extends BlockEntity implements NamedEquipment, 
         boolean running = false;
         var h2 = hydrogen.fullest(level, pos, GasMakerBlock.left(state), Gases.HYDROGEN.resource());
         var o2 = oxygen.fullest(level, pos, GasMakerBlock.right(state), Gases.OXYGEN.resource());
-        if (energy.getAmountAsInt() + POWER > ENERGY_CAPACITY) status = "FULL";
+        if (io.hookdev.setpoint.control.Esd.tripped(level, pos)) status = "ESD";
+        else if (energy.getAmountAsInt() + POWER > ENERGY_CAPACITY) status = "FULL";
         else if (h2 == null || h2.amount() < HYDROGEN_PER_TICK) status = "NO HYDROGEN";
         else if (o2 == null || o2.amount() < OXYGEN_PER_TICK) status = "NO OXYGEN";
         else {

@@ -172,12 +172,13 @@ function render(file, parts, scale = 4, pad = 2, outline = true) {
     for (const e of model(name)) {
       for (const [face, f] of Object.entries(e.faces)) {
         const q = faceQuad(face, e.from, e.to);
-        const turn = (p) => { // an element turned about its origin, about x and then y
+        const turn = (p) => { // an element turned about its origin, about x, then y, then z
           if (!e.rotation) return p;
           const [ox, oy, oz] = e.rotation.origin;
           let [x, y, z] = [p[0] - ox, p[1] - oy, p[2] - oz];
           if (e.rotation.x) { const a = e.rotation.x * Math.PI / 180; [y, z] = [Math.cos(a) * y - Math.sin(a) * z, Math.sin(a) * y + Math.cos(a) * z]; }
           if (e.rotation.y) { const a = e.rotation.y * Math.PI / 180; [x, z] = [Math.cos(a) * x + Math.sin(a) * z, -Math.sin(a) * x + Math.cos(a) * z]; }
+          if (e.rotation.z) { const a = e.rotation.z * Math.PI / 180; [x, y] = [Math.cos(a) * x - Math.sin(a) * y, Math.sin(a) * x + Math.cos(a) * y]; }
           return [x + ox, y + oy, z + oz];
         };
         const place = (p) => xf(rotY(turn(p), y)).map((v, i) => v + at[i] * 16);
@@ -475,6 +476,38 @@ render('factory_platform', [ // beams, then grating and handrails sharing the bl
   { model: 'industrial_lamp', at: [2, 1, 0] },
 ], 3);
 
+// control room: the pieces one by one, and a small control room put together
+render('overview_screen', [{ model: 'overview_screen', y: S }], 6);
+render('alarm_beacon', [{ model: 'alarm_beacon_on' }], 8);
+render('esd_button', [{ model: 'esd_button' }], 8);
+render('radio_charger', [{ model: 'radio_charger', y: S }], 8);
+render('control_desk', [{ model: 'control_desk_item', y: S }], 6);
+render('desk_corner', [{ model: 'desk_corner', y: S }], 6);
+render('desk_screens', [{ model: 'desk_screens', y: S }], 6);
+render('office_chair', [{ model: 'office_chair' }], 6); // the cushion towards the camera
+for (const name of ['raised_floor', 'raised_floor_vent', 'ceiling_panel', 'ceiling_light', 'wired_glass']) render(name, [{ model: name }], 6);
+render('filing_cabinet', [{ model: 'filing_cabinet', y: S }], 6);
+render('printer', [{ model: 'printer', y: S }], 8);
+render('coffee_machine', [{ model: 'coffee_machine', y: S }], 8);
+render('exit_sign', [{ model: 'exit_sign_left', y: S }], 8);
+render('blast_door', [{ model: 'blast_door_bottom_left' }, { model: 'blast_door_top_left', at: [0, 1, 0] }], 6);
+render('control_room', [ // a raised floor, a back wall with the door, a window and the video wall, a row of desks with their screens
+  ...[0, 1, 2, 3, 4, 5].flatMap((x) => [0, 1, 2, 3].map((z) => ({ model: x === 4 && z === 3 ? 'raised_floor_vent' : 'raised_floor', at: [x, -1, z] }))),
+  ...[0, 1, 2, 3, 4, 5].flatMap((x) => [0, 1, 2].filter((y) => !(x === 0 && y < 2) && !(x >= 4 && y === 1)).map((y) => ({ model: 'ceiling_panel', at: [x, y, -1] }))),
+  { model: 'blast_door_bottom_left', y: 270, at: [0, 0, -1] }, { model: 'blast_door_top_left', y: 270, at: [0, 1, -1] }, // facing north: it hangs in the room side of the wall
+  { model: 'wired_glass', at: [4, 1, -1] }, { model: 'wired_glass', at: [5, 1, -1] },
+  ...[1, 2, 3].flatMap((x) => [1, 2].map((y) => ({ model: 'overview_screen', y: S, at: [x, y, 0] }))),
+  { model: 'exit_sign_left', y: S, at: [0, 2, 0] }, { model: 'wall_clock', y: S, at: [4, 2, 0] },
+  { model: 'control_desk', y: S, at: [1, 0, 1] }, { model: 'control_desk_side_left', y: S, at: [1, 0, 1] },
+  { model: 'control_desk', y: S, at: [2, 0, 1] },
+  { model: 'control_desk', y: S, at: [3, 0, 1] }, { model: 'control_desk_side_right', y: S, at: [3, 0, 1] },
+  { model: 'desk_screens', y: S, at: [1, 1, 1] }, { model: 'desk_screens', y: S, at: [2, 1, 1] }, { model: 'esd_button', at: [3, 1, 1] },
+  { model: 'office_chair', y: S, at: [1, 0, 2] }, { model: 'office_chair', y: S, at: [2, 0, 2] },
+  { model: 'filing_cabinet', y: S, at: [5, 0, 0] }, { model: 'alarm_beacon_on', at: [5, 1, 0] },
+  { model: 'filing_cabinet', y: S, at: [5, 0, 1] }, { model: 'coffee_machine', y: S, at: [5, 1, 1] },
+  { model: 'radio_charger', y: W_, at: [5, 0, 3] },
+], 3);
+
 render('floating_roof_tank', floatingRoofTank(52), 2);
 render('floating_roof_tank_full', floatingRoofTank(88), 2);
 render('floating_roof_tank_low', floatingRoofTank(14), 2);
@@ -544,7 +577,9 @@ const SCREEN_ITEMS = ['minecraft:coal', 'minecraft:bucket', 'minecraft:water_buc
 function icon(id) {
   const [ns, name] = split(id);
   const definition = JSON.parse(asset(ns, 'items/' + name + '.json').toString('utf8'));
-  const modelId = definition.model.model;
+  // a plain model, or the first one inside a select or range (the clock, the compass): the picture you mostly see
+  const first = (m) => (m.type === 'minecraft:model' ? m.model : first(m.cases?.[0]?.model ?? m.entries?.[0]?.model ?? m.fallback ?? m.on_false ?? m.models?.[0]));
+  const modelId = first(definition.model);
   const m = loadModel(modelId);
   const file = 'items/' + ns + '/' + name;
   if (m.generated) {

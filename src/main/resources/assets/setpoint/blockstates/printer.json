@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "setpoint:block/printer"
+    },
+    "facing=east": {
+      "model": "setpoint:block/printer",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "setpoint:block/printer",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "setpoint:block/printer",
+      "y": 270
+    }
+  }
+}

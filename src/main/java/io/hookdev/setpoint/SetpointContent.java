@@ -138,6 +138,8 @@ public final class SetpointContent {
     /** The pallet truck's horn. */
     public static final DeferredHolder<SoundEvent, SoundEvent> PALLET_TRUCK_HORN = SOUNDS.register("entity.pallet_truck.horn", SoundEvent::createVariableRangeEvent);
     public static final DeferredHolder<SoundEvent, SoundEvent> FORKLIFT_HORN = SOUNDS.register("entity.forklift.horn", SoundEvent::createVariableRangeEvent);
+    /** The control room's alarm horn: a two-tone call from the alarm beacon (tools/make-alarm.mjs). */
+    public static final DeferredHolder<SoundEvent, SoundEvent> ALARM_HORN = SOUNDS.register("block.alarm_beacon.horn", SoundEvent::createVariableRangeEvent);
     /** The hiss of a safety valve blowing off steam. */
     public static final DeferredHolder<SoundEvent, SoundEvent> SAFETY_VALVE_LIFT = SOUNDS.register("block.safety_valve.lift",
             SoundEvent::createVariableRangeEvent);
@@ -204,6 +206,61 @@ public final class SetpointContent {
     public static final DeferredBlock<Block> CORRUGATED_STEEL = BLOCKS.registerSimpleBlock("corrugated_steel", p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
     public static final DeferredBlock<io.hookdev.setpoint.block.IndustrialLampBlock> INDUSTRIAL_LAMP = BLOCKS.registerBlock("industrial_lamp", io.hookdev.setpoint.block.IndustrialLampBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(1.0f, 3.0f).sound(SoundType.METAL).noOcclusion().lightLevel(state -> 15));
+    // ---------- control room: screens, alarms, the emergency stop, and the furniture of a real control room ----------
+    public static final DeferredBlock<io.hookdev.setpoint.block.OverviewScreenBlock> OVERVIEW_SCREEN = BLOCKS.registerBlock("overview_screen", io.hookdev.setpoint.block.OverviewScreenBlock::new,
+            p -> p.mapColor(MapColor.COLOR_BLACK).strength(1.5f, 6.0f).sound(SoundType.METAL).noOcclusion().lightLevel(state -> io.hookdev.setpoint.block.OverviewScreenBlock.LIGHT));
+    public static final DeferredBlock<io.hookdev.setpoint.block.AlarmBeaconBlock> ALARM_BEACON = BLOCKS.registerBlock("alarm_beacon", io.hookdev.setpoint.block.AlarmBeaconBlock::new,
+            p -> p.mapColor(MapColor.COLOR_ORANGE).strength(1.0f, 3.0f).sound(SoundType.METAL).noOcclusion()
+                    .lightLevel(state -> state.getValue(io.hookdev.setpoint.block.AlarmBeaconBlock.ALARM) ? io.hookdev.setpoint.block.AlarmBeaconBlock.LIGHT : 0));
+    public static final DeferredBlock<io.hookdev.setpoint.block.EsdButtonBlock> ESD_BUTTON = BLOCKS.registerBlock("esd_button", io.hookdev.setpoint.block.EsdButtonBlock::new,
+            p -> p.mapColor(MapColor.COLOR_YELLOW).strength(1.5f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.RadioChargerBlock> RADIO_CHARGER = BLOCKS.registerBlock("radio_charger",
+            p -> new io.hookdev.setpoint.block.RadioChargerBlock(p, Block.box(2, 0, 5, 14, 9, 11)), p -> p.mapColor(MapColor.COLOR_BLACK).strength(1.0f, 3.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.ControlDeskBlock> CONTROL_DESK = BLOCKS.registerBlock("control_desk", io.hookdev.setpoint.block.ControlDeskBlock::new,
+            p -> p.mapColor(MapColor.COLOR_GRAY).strength(2.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.DeskCornerBlock> DESK_CORNER = BLOCKS.registerBlock("desk_corner", io.hookdev.setpoint.block.DeskCornerBlock::new,
+            p -> p.mapColor(MapColor.COLOR_GRAY).strength(2.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    /** Three operator screens on one stand, for a desk. */
+    public static final DeferredBlock<io.hookdev.setpoint.block.FurnitureBlock> DESK_SCREENS = BLOCKS.registerBlock("desk_screens",
+            p -> new io.hookdev.setpoint.block.FurnitureBlock(p, Block.box(0, 0, 6, 16, 11, 12)), p -> p.mapColor(MapColor.COLOR_BLACK).strength(1.0f, 3.0f).sound(SoundType.METAL).noOcclusion().lightLevel(state -> 6));
+    public static final DeferredBlock<io.hookdev.setpoint.block.OfficeChairBlock> OFFICE_CHAIR = BLOCKS.registerBlock("office_chair",
+            p -> new io.hookdev.setpoint.block.OfficeChairBlock(p, net.minecraft.world.phys.shapes.Shapes.or(Block.box(2, 0, 2, 14, 11, 14), Block.box(3, 11, 1, 13, 28, 4))),
+            p -> p.mapColor(MapColor.COLOR_BLACK).strength(1.0f, 3.0f).sound(SoundType.WOOL).noOcclusion());
+    public static final DeferredBlock<Block> RAISED_FLOOR = BLOCKS.registerSimpleBlock("raised_floor", p -> p.mapColor(MapColor.COLOR_LIGHT_GRAY).strength(2.0f, 6.0f).sound(SoundType.METAL));
+    public static final DeferredBlock<Block> RAISED_FLOOR_VENT = BLOCKS.registerSimpleBlock("raised_floor_vent", p -> p.mapColor(MapColor.COLOR_LIGHT_GRAY).strength(2.0f, 6.0f).sound(SoundType.METAL));
+    public static final DeferredBlock<Block> CEILING_PANEL = BLOCKS.registerSimpleBlock("ceiling_panel", p -> p.mapColor(MapColor.SNOW).strength(0.8f, 1.0f).sound(SoundType.STONE));
+    public static final DeferredBlock<Block> CEILING_LIGHT = BLOCKS.registerSimpleBlock("ceiling_light", p -> p.mapColor(MapColor.SNOW).strength(0.8f, 1.0f).sound(SoundType.GLASS).lightLevel(state -> 15));
+    public static final DeferredBlock<io.hookdev.setpoint.block.WallClockBlock> WALL_CLOCK = BLOCKS.registerBlock("wall_clock", io.hookdev.setpoint.block.WallClockBlock::new,
+            p -> p.mapColor(MapColor.SNOW).strength(0.8f, 1.0f).sound(SoundType.METAL).noOcclusion().noCollision());
+    public static final DeferredBlock<io.hookdev.setpoint.block.FilingCabinetBlock> FILING_CABINET = BLOCKS.registerBlock("filing_cabinet", io.hookdev.setpoint.block.FilingCabinetBlock::new,
+            p -> p.mapColor(MapColor.COLOR_GRAY).strength(2.5f, 6.0f).sound(SoundType.METAL));
+    public static final DeferredBlock<io.hookdev.setpoint.block.FurnitureBlock> PRINTER = BLOCKS.registerBlock("printer",
+            p -> new io.hookdev.setpoint.block.FurnitureBlock(p, Block.box(1, 0, 3, 15, 8, 13)), p -> p.mapColor(MapColor.SNOW).strength(1.0f, 3.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.CoffeeMachineBlock> COFFEE_MACHINE = BLOCKS.registerBlock("coffee_machine",
+            p -> new io.hookdev.setpoint.block.CoffeeMachineBlock(p, Block.box(3, 0, 3, 13, 14, 14)), p -> p.mapColor(MapColor.COLOR_BLACK).strength(1.0f, 3.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.ExitSignBlock> EXIT_SIGN = BLOCKS.registerBlock("exit_sign", io.hookdev.setpoint.block.ExitSignBlock::new,
+            p -> p.mapColor(MapColor.COLOR_GREEN).strength(0.8f, 1.0f).sound(SoundType.METAL).noOcclusion().noCollision().lightLevel(state -> io.hookdev.setpoint.block.ExitSignBlock.LIGHT));
+    /** A blast-resistant control-room door: opens by hand like a wooden door, shrugs off explosions like obsidian. */
+    public static final net.minecraft.world.level.block.state.properties.BlockSetType BLAST_DOOR_TYPE = net.minecraft.world.level.block.state.properties.BlockSetType.register(
+            new net.minecraft.world.level.block.state.properties.BlockSetType("setpoint_blast_door", true, false, false,
+                    net.minecraft.world.level.block.state.properties.BlockSetType.PressurePlateSensitivity.EVERYTHING, SoundType.IRON,
+                    net.minecraft.sounds.SoundEvents.IRON_DOOR_CLOSE, net.minecraft.sounds.SoundEvents.IRON_DOOR_OPEN,
+                    net.minecraft.sounds.SoundEvents.IRON_TRAPDOOR_CLOSE, net.minecraft.sounds.SoundEvents.IRON_TRAPDOOR_OPEN,
+                    net.minecraft.sounds.SoundEvents.METAL_PRESSURE_PLATE_CLICK_OFF, net.minecraft.sounds.SoundEvents.METAL_PRESSURE_PLATE_CLICK_ON,
+                    net.minecraft.sounds.SoundEvents.STONE_BUTTON_CLICK_OFF, net.minecraft.sounds.SoundEvents.STONE_BUTTON_CLICK_ON));
+    public static final DeferredBlock<net.minecraft.world.level.block.DoorBlock> BLAST_DOOR = BLOCKS.registerBlock("blast_door",
+            p -> new net.minecraft.world.level.block.DoorBlock(BLAST_DOOR_TYPE, p),
+            p -> p.mapColor(MapColor.METAL).strength(5.0f, 1200.0f).sound(SoundType.IRON).noOcclusion().requiresCorrectToolForDrops()
+                    .pushReaction(net.minecraft.world.level.material.PushReaction.POPPED));
+    /** Wired glass: glass with a steel mesh cast in, for control-room windows onto the plant. Much tougher than glass. */
+    public static final DeferredBlock<net.minecraft.world.level.block.TransparentBlock> WIRED_GLASS = BLOCKS.registerBlock("wired_glass",
+            net.minecraft.world.level.block.TransparentBlock::new, p -> p.mapColor(MapColor.NONE).strength(1.5f, 12.0f).sound(SoundType.GLASS).noOcclusion()
+                    .isValidSpawn((s, l, at, type) -> false).isRedstoneConductor((s, l, at) -> false).isSuffocating((s, l, at) -> false));
+    public static final DeferredBlock<net.minecraft.world.level.block.IronBarsBlock> WIRED_GLASS_PANE = BLOCKS.registerBlock("wired_glass_pane",
+            net.minecraft.world.level.block.IronBarsBlock::new, p -> p.mapColor(MapColor.NONE).strength(1.2f, 12.0f).sound(SoundType.GLASS).noOcclusion());
+    /** Holds the parts a control-room renderer moves (the clock's hands), for its renderer; never placed. */
+    public static final DeferredBlock<VehicleModelBlock> CONTROL_ROOM_MODEL = BLOCKS.registerBlock("control_room_model", VehicleModelBlock::new,
+            p -> p.noCollision().noOcclusion().noLootTable());
     public static final DeferredBlock<TankBlock> TANK = BLOCKS.registerBlock("tank", TankBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
     public static final DeferredBlock<PumpBlock> PUMP = BLOCKS.registerBlock("centrifugal_pump", PumpBlock::new,
@@ -305,6 +362,27 @@ public final class SetpointContent {
     public static final DeferredItem<BlockItem> HAZARD_STRIPES_ITEM = ITEMS.registerSimpleBlockItem(HAZARD_STRIPES);
     public static final DeferredItem<BlockItem> CORRUGATED_STEEL_ITEM = ITEMS.registerSimpleBlockItem(CORRUGATED_STEEL);
     public static final DeferredItem<BlockItem> INDUSTRIAL_LAMP_ITEM = ITEMS.registerSimpleBlockItem(INDUSTRIAL_LAMP);
+    public static final DeferredItem<BlockItem> OVERVIEW_SCREEN_ITEM = ITEMS.registerSimpleBlockItem(OVERVIEW_SCREEN);
+    public static final DeferredItem<BlockItem> ALARM_BEACON_ITEM = ITEMS.registerSimpleBlockItem(ALARM_BEACON);
+    public static final DeferredItem<BlockItem> ESD_BUTTON_ITEM = ITEMS.registerSimpleBlockItem(ESD_BUTTON);
+    public static final DeferredItem<BlockItem> RADIO_CHARGER_ITEM = ITEMS.registerSimpleBlockItem(RADIO_CHARGER);
+    public static final DeferredItem<BlockItem> CONTROL_DESK_ITEM = ITEMS.registerSimpleBlockItem(CONTROL_DESK);
+    public static final DeferredItem<BlockItem> DESK_CORNER_ITEM = ITEMS.registerSimpleBlockItem(DESK_CORNER);
+    public static final DeferredItem<BlockItem> DESK_SCREENS_ITEM = ITEMS.registerSimpleBlockItem(DESK_SCREENS);
+    public static final DeferredItem<BlockItem> OFFICE_CHAIR_ITEM = ITEMS.registerSimpleBlockItem(OFFICE_CHAIR);
+    public static final DeferredItem<BlockItem> RAISED_FLOOR_ITEM = ITEMS.registerSimpleBlockItem(RAISED_FLOOR);
+    public static final DeferredItem<BlockItem> RAISED_FLOOR_VENT_ITEM = ITEMS.registerSimpleBlockItem(RAISED_FLOOR_VENT);
+    public static final DeferredItem<BlockItem> CEILING_PANEL_ITEM = ITEMS.registerSimpleBlockItem(CEILING_PANEL);
+    public static final DeferredItem<BlockItem> CEILING_LIGHT_ITEM = ITEMS.registerSimpleBlockItem(CEILING_LIGHT);
+    public static final DeferredItem<BlockItem> WALL_CLOCK_ITEM = ITEMS.registerSimpleBlockItem(WALL_CLOCK);
+    public static final DeferredItem<BlockItem> FILING_CABINET_ITEM = ITEMS.registerSimpleBlockItem(FILING_CABINET);
+    public static final DeferredItem<BlockItem> PRINTER_ITEM = ITEMS.registerSimpleBlockItem(PRINTER);
+    public static final DeferredItem<BlockItem> COFFEE_MACHINE_ITEM = ITEMS.registerSimpleBlockItem(COFFEE_MACHINE);
+    public static final DeferredItem<BlockItem> EXIT_SIGN_ITEM = ITEMS.registerSimpleBlockItem(EXIT_SIGN);
+    public static final DeferredItem<net.minecraft.world.item.DoubleHighBlockItem> BLAST_DOOR_ITEM = ITEMS.registerItem("blast_door",
+            p -> new net.minecraft.world.item.DoubleHighBlockItem(BLAST_DOOR.get(), p), p -> p.useBlockDescriptionPrefix());
+    public static final DeferredItem<BlockItem> WIRED_GLASS_ITEM = ITEMS.registerSimpleBlockItem(WIRED_GLASS);
+    public static final DeferredItem<BlockItem> WIRED_GLASS_PANE_ITEM = ITEMS.registerSimpleBlockItem(WIRED_GLASS_PANE);
     public static final DeferredItem<BlockItem> TANK_ITEM = ITEMS.registerSimpleBlockItem(TANK);
     public static final DeferredItem<BlockItem> PUMP_ITEM = ITEMS.registerSimpleBlockItem(PUMP);
     public static final DeferredItem<BlockItem> CREATIVE_GENERATOR_ITEM = ITEMS.registerSimpleBlockItem(CREATIVE_GENERATOR);
@@ -351,6 +429,10 @@ public final class SetpointContent {
     public static final DeferredHolder<EntityType<?>, EntityType<ForkliftEntity>> FORKLIFT_ENTITY = ENTITIES.register("forklift",
             id -> EntityType.Builder.<ForkliftEntity>of(ForkliftEntity::new, MobCategory.MISC).sized(1.5f, 2.1f)
                     .clientTrackingRange(10).updateInterval(1).build(ResourceKey.create(Registries.ENTITY_TYPE, id)));
+    /** The invisible seat of an office chair. */
+    public static final DeferredHolder<EntityType<?>, EntityType<io.hookdev.setpoint.entity.SeatEntity>> SEAT_ENTITY = ENTITIES.register("seat",
+            id -> EntityType.Builder.<io.hookdev.setpoint.entity.SeatEntity>of(io.hookdev.setpoint.entity.SeatEntity::new, MobCategory.MISC)
+                    .noSummon().clientTrackingRange(10).updateInterval(20).build(ResourceKey.create(Registries.ENTITY_TYPE, id)));
     public static final DeferredItem<HandbookItem> HANDBOOK = ITEMS.registerItem("handbook", HandbookItem::new, p -> p.stacksTo(1));
     public static final DeferredItem<FieldCommunicatorItem> FIELD_COMMUNICATOR = ITEMS.registerItem("field_communicator", FieldCommunicatorItem::new,
             p -> p.stacksTo(1));
@@ -427,6 +509,16 @@ public final class SetpointContent {
             () -> new BlockEntityType<>(WaterIntakeBlockEntity::new, WATER_INTAKE.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ConsoleBlockEntity>> CONSOLE_ENTITY = BLOCK_ENTITIES.register("dcs_console",
             () -> new BlockEntityType<>(ConsoleBlockEntity::new, CONSOLE.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.OverviewScreenBlockEntity>> OVERVIEW_SCREEN_ENTITY = BLOCK_ENTITIES.register("overview_screen",
+            () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.OverviewScreenBlockEntity::new, OVERVIEW_SCREEN.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.AlarmBeaconBlockEntity>> ALARM_BEACON_ENTITY = BLOCK_ENTITIES.register("alarm_beacon",
+            () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.AlarmBeaconBlockEntity::new, ALARM_BEACON.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.EsdButtonBlockEntity>> ESD_BUTTON_ENTITY = BLOCK_ENTITIES.register("esd_button",
+            () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.EsdButtonBlockEntity::new, ESD_BUTTON.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.WallClockBlockEntity>> WALL_CLOCK_ENTITY = BLOCK_ENTITIES.register("wall_clock",
+            () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.WallClockBlockEntity::new, WALL_CLOCK.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.FilingCabinetBlockEntity>> FILING_CABINET_ENTITY = BLOCK_ENTITIES.register("filing_cabinet",
+            () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.FilingCabinetBlockEntity::new, FILING_CABINET.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SteamTurbineBlockEntity>> STEAM_TURBINE_ENTITY = BLOCK_ENTITIES.register("steam_turbine",
             () -> new BlockEntityType<>(SteamTurbineBlockEntity::new, STEAM_TURBINE.get()));
 
@@ -507,6 +599,26 @@ public final class SetpointContent {
                 output.accept(CONTROL_VALVE_ITEM.get());
                 output.accept(CONTROLLER_ITEM.get());
                 output.accept(CONSOLE_ITEM.get());
+                output.accept(OVERVIEW_SCREEN_ITEM.get());
+                output.accept(ALARM_BEACON_ITEM.get());
+                output.accept(ESD_BUTTON_ITEM.get());
+                output.accept(RADIO_CHARGER_ITEM.get());
+                output.accept(CONTROL_DESK_ITEM.get());
+                output.accept(DESK_CORNER_ITEM.get());
+                output.accept(DESK_SCREENS_ITEM.get());
+                output.accept(OFFICE_CHAIR_ITEM.get());
+                output.accept(RAISED_FLOOR_ITEM.get());
+                output.accept(RAISED_FLOOR_VENT_ITEM.get());
+                output.accept(CEILING_PANEL_ITEM.get());
+                output.accept(CEILING_LIGHT_ITEM.get());
+                output.accept(WALL_CLOCK_ITEM.get());
+                output.accept(FILING_CABINET_ITEM.get());
+                output.accept(PRINTER_ITEM.get());
+                output.accept(COFFEE_MACHINE_ITEM.get());
+                output.accept(EXIT_SIGN_ITEM.get());
+                output.accept(BLAST_DOOR_ITEM.get());
+                output.accept(WIRED_GLASS_ITEM.get());
+                output.accept(WIRED_GLASS_PANE_ITEM.get());
                 output.accept(FIELD_COMMUNICATOR.get());
                 output.accept(CREATIVE_GENERATOR_ITEM.get());
                 output.accept(HOOKONIUM_ORE_ITEM.get());

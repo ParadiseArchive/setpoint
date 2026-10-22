@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "N": "minecraft:iron_nugget",
+    "C": "minecraft:clock"
+  },
+  "pattern": [
+    " N ",
+    "NCN",
+    " N "
+  ],
+  "result": {
+    "id": "setpoint:wall_clock"
+  }
+}

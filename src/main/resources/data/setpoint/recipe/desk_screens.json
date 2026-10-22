@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "P": "minecraft:glass_pane",
+    "R": "minecraft:redstone",
+    "I": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    "PPP",
+    "RIR",
+    " I "
+  ],
+  "result": {
+    "id": "setpoint:desk_screens"
+  }
+}

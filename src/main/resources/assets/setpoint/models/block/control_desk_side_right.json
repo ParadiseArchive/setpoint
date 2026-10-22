@@ -1,0 +1,79 @@
+{
+  "textures": {
+    "top": "setpoint:block/desk_top",
+    "edge": "setpoint:block/desk_edge",
+    "panel": "setpoint:block/desk_panel",
+    "key": "setpoint:block/keyboard",
+    "particle": "setpoint:block/desk_panel"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0.5
+      ],
+      "to": [
+        1.5,
+        14,
+        15.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            2,
+            15,
+            16
+          ],
+          "texture": "#panel"
+        },
+        "south": {
+          "uv": [
+            0,
+            2,
+            15,
+            16
+          ],
+          "texture": "#panel"
+        },
+        "east": {
+          "uv": [
+            0,
+            2,
+            15,
+            16
+          ],
+          "texture": "#panel"
+        },
+        "west": {
+          "uv": [
+            0,
+            2,
+            15,
+            16
+          ],
+          "texture": "#panel"
+        },
+        "up": {
+          "uv": [
+            0,
+            2,
+            15,
+            16
+          ],
+          "texture": "#panel"
+        },
+        "down": {
+          "uv": [
+            0,
+            2,
+            15,
+            16
+          ],
+          "texture": "#panel"
+        }
+      }
+    }
+  ]
+}

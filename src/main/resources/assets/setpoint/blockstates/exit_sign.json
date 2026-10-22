@@ -1,0 +1,64 @@
+{
+  "variants": {
+    "arrow=none,facing=north": {
+      "model": "setpoint:block/exit_sign_none"
+    },
+    "arrow=left,facing=north": {
+      "model": "setpoint:block/exit_sign_left"
+    },
+    "arrow=right,facing=north": {
+      "model": "setpoint:block/exit_sign_right"
+    },
+    "arrow=down,facing=north": {
+      "model": "setpoint:block/exit_sign_down"
+    },
+    "arrow=none,facing=east": {
+      "model": "setpoint:block/exit_sign_none",
+      "y": 90
+    },
+    "arrow=left,facing=east": {
+      "model": "setpoint:block/exit_sign_left",
+      "y": 90
+    },
+    "arrow=right,facing=east": {
+      "model": "setpoint:block/exit_sign_right",
+      "y": 90
+    },
+    "arrow=down,facing=east": {
+      "model": "setpoint:block/exit_sign_down",
+      "y": 90
+    },
+    "arrow=none,facing=south": {
+      "model": "setpoint:block/exit_sign_none",
+      "y": 180
+    },
+    "arrow=left,facing=south": {
+      "model": "setpoint:block/exit_sign_left",
+      "y": 180
+    },
+    "arrow=right,facing=south": {
+      "model": "setpoint:block/exit_sign_right",
+      "y": 180
+    },
+    "arrow=down,facing=south": {
+      "model": "setpoint:block/exit_sign_down",
+      "y": 180
+    },
+    "arrow=none,facing=west": {
+      "model": "setpoint:block/exit_sign_none",
+      "y": 270
+    },
+    "arrow=left,facing=west": {
+      "model": "setpoint:block/exit_sign_left",
+      "y": 270
+    },
+    "arrow=right,facing=west": {
+      "model": "setpoint:block/exit_sign_right",
+      "y": 270
+    },
+    "arrow=down,facing=west": {
+      "model": "setpoint:block/exit_sign_down",
+      "y": 270
+    }
+  }
+}

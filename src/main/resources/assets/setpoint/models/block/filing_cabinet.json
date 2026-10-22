@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/orientable",
+  "textures": {
+    "front": "setpoint:block/cabinet_front",
+    "side": "setpoint:block/cabinet_side",
+    "top": "setpoint:block/cabinet_side"
+  }
+}

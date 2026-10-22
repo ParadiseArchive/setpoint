@@ -1,0 +1,52 @@
+{
+  "variants": {
+    "part=0": {
+      "model": "setpoint:block/control_room_hour_hand"
+    },
+    "part=1": {
+      "model": "setpoint:block/control_room_minute_hand"
+    },
+    "part=2": {
+      "model": "setpoint:block/control_room_hour_hand"
+    },
+    "part=3": {
+      "model": "setpoint:block/control_room_hour_hand"
+    },
+    "part=4": {
+      "model": "setpoint:block/control_room_hour_hand"
+    },
+    "part=5": {
+      "model": "setpoint:block/control_room_hour_hand"
+    },
+    "part=6": {
+      "model": "setpoint:block/control_room_hour_hand"
+    },
+    "part=7": {
+      "model": "setpoint:block/control_room_hour_hand"
+    },
+    "part=8": {
+      "model": "setpoint:block/control_room_hour_hand"
+    },
+    "part=9": {
+      "model": "setpoint:block/control_room_hour_hand"
+    },
+    "part=10": {
+      "model": "setpoint:block/control_room_hour_hand"
+    },
+    "part=11": {
+      "model": "setpoint:block/control_room_hour_hand"
+    },
+    "part=12": {
+      "model": "setpoint:block/control_room_hour_hand"
+    },
+    "part=13": {
+      "model": "setpoint:block/control_room_hour_hand"
+    },
+    "part=14": {
+      "model": "setpoint:block/control_room_hour_hand"
+    },
+    "part=15": {
+      "model": "setpoint:block/control_room_hour_hand"
+    }
+  }
+}

@@ -282,7 +282,7 @@ public class BoilerBlockEntity extends BlockEntity implements MenuProvider, Vess
         tripped = protect && BoilerModel.tripped(tripped, fillFraction());
         pressureTripped = pressureProtection() && BoilerModel.pressureTripped(pressureTripped, pressure());
         double fire = firingRate();
-        boolean wantFire = !tripped && !pressureTripped && fire > 0.005;
+        boolean wantFire = !tripped && !pressureTripped && fire > 0.005 && !io.hookdev.setpoint.control.Esd.tripped(level, pos); // an ESD puts the fire out
 
         if (burnLeft <= 0 && wantFire) {
             ItemResource resource = fuel.getResource(0);

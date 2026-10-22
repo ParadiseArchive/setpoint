@@ -127,7 +127,7 @@ public abstract class GeneratorBlockEntity extends BlockEntity implements MenuPr
 
     private void tick(ServerLevel level, BlockPos pos, BlockState state) {
         int stored = energy.getAmountAsInt();
-        boolean room = stored + output() <= ENERGY_CAPACITY;
+        boolean room = stored + output() <= ENERGY_CAPACITY && !io.hookdev.setpoint.control.Esd.tripped(level, pos); // an ESD stops it like a full buffer
 
         if (runTicksLeft <= 0 && room) {
             ItemResource resource = input.getResource(0);

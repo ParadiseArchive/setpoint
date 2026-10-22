@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "W": "minecraft:black_wool",
+    "I": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    "W  ",
+    "WWW",
+    "III"
+  ],
+  "result": {
+    "id": "setpoint:office_chair"
+  }
+}
