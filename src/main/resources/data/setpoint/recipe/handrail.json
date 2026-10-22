@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "N": "minecraft:iron_nugget",
+    "Y": "minecraft:yellow_dye"
+  },
+  "pattern": [
+    "NNN",
+    "NYN"
+  ],
+  "result": {
+    "count": 6,
+    "id": "setpoint:handrail"
+  }
+}

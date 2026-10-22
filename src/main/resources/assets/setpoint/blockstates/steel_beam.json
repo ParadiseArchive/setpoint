@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=y": {
+      "model": "setpoint:block/steel_beam"
+    },
+    "axis=z": {
+      "model": "setpoint:block/steel_beam",
+      "x": 90
+    },
+    "axis=x": {
+      "model": "setpoint:block/steel_beam",
+      "x": 90,
+      "y": 90
+    }
+  }
+}

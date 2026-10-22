@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "N": "minecraft:iron_nugget",
+    "G": "minecraft:glowstone"
+  },
+  "pattern": [
+    " I ",
+    "NGN"
+  ],
+  "result": {
+    "count": 2,
+    "id": "setpoint:industrial_lamp"
+  }
+}

@@ -445,6 +445,162 @@
         },
         {
           "type": "h",
+          "text": "Factory blocks"
+        },
+        {
+          "type": "p",
+          "text": "To build round your plant: **steel grating** (a thin see-through floor that lies in the bottom or the top of a block, like a slab), **grating stairs**, a yellow **handrail** (it stands on the side you look towards; place another in the same block for a corner), a **caged ladder**, a **steel I-beam** for columns and girders, **checker plate**, **hazard stripes**, **corrugated steel** cladding and an **industrial lamp**."
+        },
+        {
+          "type": "p",
+          "text": "For a platform: put grating in the top half of the blocks, so it lies level with the floor around it, and handrails on the block above along its edges."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:grating",
+          "grid": [
+            "",
+            "",
+            "",
+            "minecraft:iron_bars",
+            "minecraft:iron_bars",
+            "minecraft:iron_bars",
+            "",
+            "",
+            ""
+          ],
+          "count": 6
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:grating_stairs",
+          "grid": [
+            "minecraft:iron_bars",
+            "",
+            "",
+            "minecraft:iron_bars",
+            "minecraft:iron_bars",
+            "",
+            "minecraft:iron_bars",
+            "minecraft:iron_bars",
+            "minecraft:iron_bars"
+          ],
+          "count": 4
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:handrail",
+          "grid": [
+            "minecraft:iron_nugget",
+            "minecraft:iron_nugget",
+            "minecraft:iron_nugget",
+            "minecraft:iron_nugget",
+            "minecraft:yellow_dye",
+            "minecraft:iron_nugget",
+            "",
+            "",
+            ""
+          ],
+          "count": 6
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:caged_ladder",
+          "grid": [
+            "minecraft:iron_nugget",
+            "minecraft:ladder",
+            "minecraft:iron_nugget",
+            "minecraft:iron_nugget",
+            "minecraft:ladder",
+            "minecraft:iron_nugget",
+            "minecraft:iron_nugget",
+            "minecraft:ladder",
+            "minecraft:iron_nugget"
+          ],
+          "count": 3
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:steel_beam",
+          "grid": [
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "",
+            "minecraft:iron_ingot",
+            "",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot"
+          ],
+          "count": 6
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:checker_plate",
+          "grid": [
+            "minecraft:iron_ingot",
+            "",
+            "minecraft:iron_ingot",
+            "",
+            "minecraft:iron_ingot",
+            "",
+            "minecraft:iron_ingot",
+            "",
+            "minecraft:iron_ingot"
+          ],
+          "count": 8
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:hazard_stripes",
+          "grid": [
+            "setpoint:checker_plate",
+            "minecraft:yellow_dye",
+            "setpoint:checker_plate",
+            "setpoint:checker_plate",
+            "minecraft:black_dye",
+            "setpoint:checker_plate",
+            "setpoint:checker_plate",
+            "minecraft:yellow_dye",
+            "setpoint:checker_plate"
+          ],
+          "count": 6
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:corrugated_steel",
+          "grid": [
+            "minecraft:iron_ingot",
+            "",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "",
+            "minecraft:iron_ingot"
+          ],
+          "count": 12
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:industrial_lamp",
+          "grid": [
+            "",
+            "minecraft:iron_ingot",
+            "",
+            "minecraft:iron_nugget",
+            "minecraft:glowstone",
+            "minecraft:iron_nugget",
+            "",
+            "",
+            ""
+          ],
+          "count": 2
+        },
+        {
+          "type": "h",
           "text": "Floating roof tank"
         },
         {

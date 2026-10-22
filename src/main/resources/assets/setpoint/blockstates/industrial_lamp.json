@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=up": {
+      "model": "setpoint:block/industrial_lamp"
+    },
+    "facing=down": {
+      "model": "setpoint:block/industrial_lamp",
+      "x": 180
+    },
+    "facing=north": {
+      "model": "setpoint:block/industrial_lamp",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "setpoint:block/industrial_lamp",
+      "x": 90,
+      "y": 180
+    },
+    "facing=east": {
+      "model": "setpoint:block/industrial_lamp",
+      "x": 90,
+      "y": 90
+    },
+    "facing=west": {
+      "model": "setpoint:block/industrial_lamp",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

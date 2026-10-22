@@ -160,6 +160,22 @@ public final class SetpointContent {
     /** Holds the gas sphere's models (plates, columns, bracing, ladder, platform), for its renderer; never placed. */
     public static final DeferredBlock<VehicleModelBlock> GAS_SPHERE_MODEL = BLOCKS.registerBlock("gas_sphere_model", VehicleModelBlock::new,
             p -> p.noCollision().noOcclusion().noLootTable());
+    // ---------- factory blocks: to build platforms, stairs and halls around the plant ----------
+    public static final DeferredBlock<Block> CHECKER_PLATE = BLOCKS.registerSimpleBlock("checker_plate", p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL).requiresCorrectToolForDrops());
+    public static final DeferredBlock<io.hookdev.setpoint.block.GratingBlock> GRATING = BLOCKS.registerBlock("grating", io.hookdev.setpoint.block.GratingBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<net.minecraft.world.level.block.StairBlock> GRATING_STAIRS = BLOCKS.registerBlock("grating_stairs",
+            p -> new net.minecraft.world.level.block.StairBlock(CHECKER_PLATE.get().defaultBlockState(), p), p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.HandrailBlock> HANDRAIL = BLOCKS.registerBlock("handrail", io.hookdev.setpoint.block.HandrailBlock::new,
+            p -> p.mapColor(MapColor.COLOR_YELLOW).strength(2.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<net.minecraft.world.level.block.LadderBlock> CAGED_LADDER = BLOCKS.registerBlock("caged_ladder", net.minecraft.world.level.block.LadderBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(2.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<net.minecraft.world.level.block.RotatedPillarBlock> STEEL_BEAM = BLOCKS.registerBlock("steel_beam", net.minecraft.world.level.block.RotatedPillarBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<Block> HAZARD_STRIPES = BLOCKS.registerSimpleBlock("hazard_stripes", p -> p.mapColor(MapColor.COLOR_YELLOW).strength(3.0f, 6.0f).sound(SoundType.METAL));
+    public static final DeferredBlock<Block> CORRUGATED_STEEL = BLOCKS.registerSimpleBlock("corrugated_steel", p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
+    public static final DeferredBlock<io.hookdev.setpoint.block.IndustrialLampBlock> INDUSTRIAL_LAMP = BLOCKS.registerBlock("industrial_lamp", io.hookdev.setpoint.block.IndustrialLampBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(1.0f, 3.0f).sound(SoundType.METAL).noOcclusion().lightLevel(state -> 15));
     public static final DeferredBlock<TankBlock> TANK = BLOCKS.registerBlock("tank", TankBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
     public static final DeferredBlock<PumpBlock> PUMP = BLOCKS.registerBlock("centrifugal_pump", PumpBlock::new,
@@ -242,6 +258,15 @@ public final class SetpointContent {
     public static final DeferredItem<BlockItem> NITROGEN_GENERATOR_ITEM = ITEMS.registerSimpleBlockItem(NITROGEN_GENERATOR);
     public static final DeferredItem<BlockItem> GAS_CYLINDER_ITEM = ITEMS.registerSimpleBlockItem(GAS_CYLINDER, p -> p.stacksTo(16));
     public static final DeferredItem<BlockItem> GAS_SPHERE_ITEM = ITEMS.registerSimpleBlockItem(GAS_SPHERE, p -> p.rarity(Rarity.RARE).stacksTo(1));
+    public static final DeferredItem<BlockItem> CHECKER_PLATE_ITEM = ITEMS.registerSimpleBlockItem(CHECKER_PLATE);
+    public static final DeferredItem<BlockItem> GRATING_ITEM = ITEMS.registerSimpleBlockItem(GRATING);
+    public static final DeferredItem<BlockItem> GRATING_STAIRS_ITEM = ITEMS.registerSimpleBlockItem(GRATING_STAIRS);
+    public static final DeferredItem<BlockItem> HANDRAIL_ITEM = ITEMS.registerSimpleBlockItem(HANDRAIL);
+    public static final DeferredItem<BlockItem> CAGED_LADDER_ITEM = ITEMS.registerSimpleBlockItem(CAGED_LADDER);
+    public static final DeferredItem<BlockItem> STEEL_BEAM_ITEM = ITEMS.registerSimpleBlockItem(STEEL_BEAM);
+    public static final DeferredItem<BlockItem> HAZARD_STRIPES_ITEM = ITEMS.registerSimpleBlockItem(HAZARD_STRIPES);
+    public static final DeferredItem<BlockItem> CORRUGATED_STEEL_ITEM = ITEMS.registerSimpleBlockItem(CORRUGATED_STEEL);
+    public static final DeferredItem<BlockItem> INDUSTRIAL_LAMP_ITEM = ITEMS.registerSimpleBlockItem(INDUSTRIAL_LAMP);
     public static final DeferredItem<BlockItem> TANK_ITEM = ITEMS.registerSimpleBlockItem(TANK);
     public static final DeferredItem<BlockItem> PUMP_ITEM = ITEMS.registerSimpleBlockItem(PUMP);
     public static final DeferredItem<BlockItem> CREATIVE_GENERATOR_ITEM = ITEMS.registerSimpleBlockItem(CREATIVE_GENERATOR);
@@ -395,6 +420,15 @@ public final class SetpointContent {
                 output.accept(PALLET_ITEM.get());
                 output.accept(PALLET_TRUCK.get());
                 output.accept(FORKLIFT.get());
+                output.accept(GRATING_ITEM.get());
+                output.accept(GRATING_STAIRS_ITEM.get());
+                output.accept(HANDRAIL_ITEM.get());
+                output.accept(CAGED_LADDER_ITEM.get());
+                output.accept(STEEL_BEAM_ITEM.get());
+                output.accept(CHECKER_PLATE_ITEM.get());
+                output.accept(HAZARD_STRIPES_ITEM.get());
+                output.accept(CORRUGATED_STEEL_ITEM.get());
+                output.accept(INDUSTRIAL_LAMP_ITEM.get());
                 output.accept(PUMP_ITEM.get());
                 output.accept(STIRLING_ENGINE_ITEM.get());
                 output.accept(BIOGAS_GENERATOR_ITEM.get());

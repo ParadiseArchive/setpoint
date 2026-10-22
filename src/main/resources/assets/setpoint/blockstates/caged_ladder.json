@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "setpoint:block/caged_ladder"
+    },
+    "facing=east": {
+      "model": "setpoint:block/caged_ladder",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "setpoint:block/caged_ladder",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "setpoint:block/caged_ladder",
+      "y": 270
+    }
+  }
+}

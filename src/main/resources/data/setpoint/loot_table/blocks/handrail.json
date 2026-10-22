@@ -1,0 +1,86 @@
+{
+  "type": "minecraft:block",
+  "random_sequence": "setpoint:blocks/handrail",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "setpoint:handrail",
+          "condition": {
+            "type": "minecraft:match_block",
+            "blocks": "setpoint:handrail",
+            "state": {
+              "north": "true"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "setpoint:handrail",
+          "condition": {
+            "type": "minecraft:match_block",
+            "blocks": "setpoint:handrail",
+            "state": {
+              "east": "true"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "setpoint:handrail",
+          "condition": {
+            "type": "minecraft:match_block",
+            "blocks": "setpoint:handrail",
+            "state": {
+              "south": "true"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "setpoint:handrail",
+          "condition": {
+            "type": "minecraft:match_block",
+            "blocks": "setpoint:handrail",
+            "state": {
+              "west": "true"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "setpoint:grating",
+          "condition": {
+            "type": "minecraft:match_block",
+            "blocks": "setpoint:handrail",
+            "state": {
+              "floor": "true"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -779,7 +779,9 @@ public final class SetpointGameTests {
                     || block.get() == SetpointContent.ROOF_TANK_PART.get() || block.get() == SetpointContent.GAS_SPHERE_PART.get()) continue; // parts: their base drops
             if (block.get() == SetpointContent.PALLET_TRUCK_MODEL.get() || block.get() == SetpointContent.FORKLIFT_MODEL.get()
                     || block.get() == SetpointContent.FLOATING_ROOF_TANK_MODEL.get() || block.get() == SetpointContent.GAS_SPHERE_MODEL.get()) continue; // only hold models
-            var drops = Block.getDrops(block.get().defaultBlockState(), helper.getLevel(), pos, null, null, new ItemStack(Items.DIAMOND_PICKAXE));
+            BlockState state = block.get() == SetpointContent.HANDRAIL.get() // a handrail is as many as the sides it rails: one here
+                    ? block.get().defaultBlockState().setValue(io.hookdev.setpoint.block.HandrailBlock.EDGES.get(Direction.NORTH), true) : block.get().defaultBlockState();
+            var drops = Block.getDrops(state, helper.getLevel(), pos, null, null, new ItemStack(Items.DIAMOND_PICKAXE));
             helper.assertTrue(drops.size() == 1 && drops.get(0).is(block.get().asItem()), block.getId() + " should drop itself, got " + drops);
         }
         helper.succeed();

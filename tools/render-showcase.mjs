@@ -391,6 +391,25 @@ const gasSphere = () => {
   return parts;
 };
 render('gas_sphere', gasSphere(), 2);
+// factory blocks, one by one, and put together as a small platform: grating in the top of the blocks on I-beams,
+// handrails round its edges, stairs up to it, checker plate and hazard stripes on the ground, a lamp on a column
+render('grating', [{ model: 'grating_top' }], 6);
+render('grating_stairs', [{ model: 'grating_stairs', y: 180 }], 6);
+render('handrail', [{ model: 'handrail_edge', y: 180 }], 6);
+render('caged_ladder', [{ model: 'caged_ladder', y: 180 }], 6);
+render('steel_beam', [{ model: 'steel_beam' }], 6);
+for (const name of ['checker_plate', 'hazard_stripes', 'corrugated_steel']) render(name, [{ model: name }], 6);
+render('industrial_lamp', [{ model: 'industrial_lamp' }], 8);
+render('factory_platform', [ // beams, then grating and handrails sharing the blocks above them, stairs up from the ground
+  ...[0, 1, 2, 3].flatMap((x) => [0, 1].map((z) => ({ model: x < 3 ? 'checker_plate' : 'hazard_stripes', at: [x, -1, z] }))),
+  ...[0, 2].flatMap((x) => [0, 1].map((z) => ({ model: 'steel_beam', at: [x, 0, z] }))),
+  ...[0, 1, 2].flatMap((x) => [0, 1].map((z) => ({ model: 'grating', at: [x, 1, z] }))),
+  ...[0, 1, 2].map((x) => ({ model: 'handrail_edge', at: [x, 1, 0] })), ...[0, 1].map((x) => ({ model: 'handrail_edge', y: 180, at: [x, 1, 1] })),
+  { model: 'handrail_edge', y: 270, at: [0, 1, 0] }, { model: 'handrail_edge', y: 270, at: [0, 1, 1] },
+  { model: 'grating_stairs', y: 180, at: [3, 0, 1] }, { model: 'grating_stairs', y: 180, at: [4, -1, 1] },
+  { model: 'industrial_lamp', at: [2, 1, 0] },
+], 3);
+
 render('floating_roof_tank', floatingRoofTank(52), 2);
 render('floating_roof_tank_full', floatingRoofTank(88), 2);
 render('floating_roof_tank_low', floatingRoofTank(14), 2);

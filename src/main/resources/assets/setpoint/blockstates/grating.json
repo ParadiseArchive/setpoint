@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "half=bottom": {
+      "model": "setpoint:block/grating"
+    },
+    "half=top": {
+      "model": "setpoint:block/grating_top"
+    }
+  }
+}

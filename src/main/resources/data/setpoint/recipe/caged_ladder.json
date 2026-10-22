@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "N": "minecraft:iron_nugget",
+    "L": "minecraft:ladder"
+  },
+  "pattern": [
+    "NLN",
+    "NLN",
+    "NLN"
+  ],
+  "result": {
+    "count": 3,
+    "id": "setpoint:caged_ladder"
+  }
+}

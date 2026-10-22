@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": "setpoint:checker_plate",
+    "Y": "minecraft:yellow_dye",
+    "K": "minecraft:black_dye"
+  },
+  "pattern": [
+    "CYC",
+    "CKC",
+    "CYC"
+  ],
+  "result": {
+    "count": 6,
+    "id": "setpoint:hazard_stripes"
+  }
+}

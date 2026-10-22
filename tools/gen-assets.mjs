@@ -1688,6 +1688,143 @@ const SPHERE_SHIFT = { plate: [0, 8, 0], leg: [0, 0, 0], foot: [0, 0, 0], rod: [
   item('gas_sphere', 'setpoint:block/gas_sphere_item');
 }
 recipe('gas_sphere', ['IGI', 'GPG', 'IGI'], { I: 'minecraft:iron_block', G: 'setpoint:gas_cylinder', P: 'setpoint:gas_pipe' }, 'setpoint:gas_sphere');
+
+// =====================================================================================
+// Factory blocks: grating, stairs, handrails, ladders, beams and cladding to build round the plant
+// =====================================================================================
+texture('grating', (p) => { // see-through floor grating: bearing bars one way, cross bars the other, holes between
+  for (let x = 0; x < 16; x += 3) p.rect(x, 0, 1, 16, '#8e949e');
+  for (let y = 1; y < 16; y += 4) p.rect(0, y, 16, 1, '#b6bcc5');
+  p.rect(0, 0, 16, 1, '#6f747d'); p.rect(0, 15, 16, 1, '#6f747d'); p.rect(0, 0, 1, 16, '#6f747d'); p.rect(15, 0, 1, 16, '#6f747d');
+});
+texture('grating_edge', (p) => { p.rect(0, 0, 16, 16, '#7d838d'); p.rect(0, 0, 16, 1, '#a3a9b2'); p.rect(0, 15, 16, 1, '#5d626b'); });
+texture('stair_stringer', (p) => { // the steel side of a stair, with the bolts of the treads
+  p.rect(0, 0, 16, 16, '#7d838d'); p.rect(0, 0, 16, 1, '#a3a9b2'); p.rect(0, 15, 16, 1, '#5d626b');
+  for (const [x, y] of [[3, 3], [11, 3], [3, 11], [11, 11]]) p.set(x, y, '#c7ccd3');
+});
+texture('checker_plate', (p) => { // chequer plate: raised bars in a herringbone of pairs
+  p.rect(0, 0, 16, 16, '#8a909a');
+  for (let y = 0; y < 16; y += 4) for (let x = 0; x < 16; x += 4) {
+    const flip = ((x + y) / 4) % 2 === 0;
+    if (flip) { p.set(x + 1, y + 1, '#c3c9d1'); p.set(x + 2, y + 2, '#c3c9d1'); p.set(x + 2, y + 1, '#6c727c'); }
+    else { p.set(x + 2, y + 1, '#c3c9d1'); p.set(x + 1, y + 2, '#c3c9d1'); p.set(x + 1, y + 1, '#6c727c'); }
+  }
+});
+texture('hazard_stripes', (p) => { // yellow and black at 45°, like the edge of a loading dock
+  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) p.set(x, y, Math.floor((x + y) / 4) % 2 === 0 ? '#e2b13c' : '#1f2125');
+});
+texture('corrugated_steel', (p) => { // cladding: vertical ribs, light on one side, shadow on the other
+  const ribs = ['#a9b0bb', '#c4cad3', '#b6bdc7', '#959ca7'];
+  for (let x = 0; x < 16; x++) p.rect(x, 0, 1, 16, ribs[x % 4]);
+  p.rect(0, 15, 16, 1, '#80868f');
+});
+texture('steel_beam', (p) => { p.rect(0, 0, 16, 16, '#5c6b7d'); p.rect(0, 0, 16, 1, '#7a8a9d'); p.rect(0, 15, 16, 1, '#465363'); });
+texture('steel_beam_end', (p) => { p.rect(0, 0, 16, 16, '#4d5a6a'); for (const [x, y] of [[3, 3], [12, 12]]) p.set(x, y, '#6f7f92'); });
+texture('lamp_glass', (p) => { p.rect(0, 0, 16, 16, '#fff6d6'); p.rect(2, 2, 12, 12, '#fffbea'); p.rect(5, 5, 6, 6, '#ffffff'); });
+texture('lamp_body', (p) => { p.rect(0, 0, 16, 16, '#3c4048'); p.rect(0, 0, 16, 1, '#5a5f69'); });
+{
+  // grating: a 2-pixel floor in the bottom or the top of the block
+  const gratingFaces = (y1, y2) => ({
+    up: { uv: [0, 0, 16, 16], texture: '#grating' }, down: { uv: [0, 0, 16, 16], texture: '#grating' },
+    ...Object.fromEntries(['north', 'south', 'east', 'west'].map((f) => [f, { uv: [0, 16 - y2, 16, 16 - y1], texture: '#edge', cullface: f }])),
+  });
+  const gt = { grating: tex('grating'), edge: tex('grating_edge'), particle: tex('grating_edge') };
+  M('grating', { parent: 'minecraft:block/block', textures: gt, elements: [box([0, 0, 0], [16, 2, 16], gratingFaces(0, 2))] });
+  M('grating_top', { parent: 'minecraft:block/block', textures: gt, elements: [box([0, 14, 0], [16, 16, 16], gratingFaces(14, 16))] });
+  BS('grating', { variants: { 'half=bottom': { model: 'setpoint:block/grating' }, 'half=top': { model: 'setpoint:block/grating_top' } } });
+  item('grating', 'setpoint:block/grating');
+
+  // grating stairs: open steel stairs, two thin grating treads between steel stringers, in vanilla's stair shapes (a
+  // straight flight, an inner and an outer corner; climbing towards east). They walk like any stairs.
+  const st = { grating: tex('grating'), steel: tex('stair_stringer'), particle: tex('stair_stringer') };
+  const tread = (x1, z1, x2, z2, y) => box([x1, y - 2, z1], [x2, y, z2], { up: { uv: [x1, z1, x2, z2], texture: '#grating' }, down: { uv: [x1, z1, x2, z2], texture: '#grating' },
+    north: { uv: [x1, 0, x2, 2], texture: '#steel' }, south: { uv: [x1, 0, x2, 2], texture: '#steel' }, east: { uv: [z1, 0, z2, 2], texture: '#steel' }, west: { uv: [z1, 0, z2, 2], texture: '#steel' } });
+  const plateBox = (from, to) => box(from, to, Object.fromEntries(['north', 'south', 'east', 'west', 'up', 'down'].map((f) => [f, { uv: [0, 0, 16, 16], texture: '#steel' }])));
+  const stringer = (z) => [plateBox([0, 0, z], [8, 8, z + 1]), plateBox([8, 0, z], [16, 16, z + 1])];
+  M('grating_stairs', { parent: 'minecraft:block/block', textures: st, elements: [tread(0, 0, 8, 16, 8), tread(8, 0, 16, 16, 16), ...stringer(0), ...stringer(15)] });
+  M('grating_stairs_inner', { parent: 'minecraft:block/block', textures: st, elements: [tread(0, 0, 8, 8, 8), tread(8, 0, 16, 16, 16), tread(0, 8, 8, 16, 16),
+    plateBox([0, 0, 0], [8, 8, 1]), plateBox([8, 0, 0], [16, 16, 1]), plateBox([0, 0, 0], [1, 8, 8]), plateBox([0, 0, 8], [1, 16, 16])] });
+  M('grating_stairs_outer', { parent: 'minecraft:block/block', textures: st, elements: [tread(0, 0, 16, 8, 8), tread(0, 8, 8, 16, 8), tread(8, 8, 16, 16, 16),
+    plateBox([8, 0, 15], [16, 16, 16]), plateBox([15, 0, 8], [16, 16, 15]), plateBox([0, 0, 15], [8, 8, 16]), plateBox([15, 0, 0], [16, 8, 8])] });
+  const stairs = {};
+  for (const [f, y0] of Object.entries({ east: 0, south: 90, west: 180, north: 270 })) for (const half of ['bottom', 'top']) {
+    for (const shape of ['straight', 'inner_left', 'inner_right', 'outer_left', 'outer_right']) {
+      let y = y0, x = 0; // the same turns vanilla gives its stairs
+      if (half === 'bottom') { if (shape.endsWith('left')) y += 270; } else { x = 180; if (shape.endsWith('right')) y += 90; }
+      y %= 360;
+      const model = 'setpoint:block/grating_stairs' + (shape === 'straight' ? '' : shape.startsWith('inner') ? '_inner' : '_outer');
+      stairs[`facing=${f},half=${half},shape=${shape}`] = { model, ...(x ? { x } : {}), ...(y ? { y } : {}), ...(x || y ? { uvlock: true } : {}) };
+    }
+  }
+  BS('grating_stairs', { variants: stairs });
+  item('grating_stairs', 'setpoint:block/grating_stairs');
+
+  // handrail: one model per side (on the north edge, turned for the others): two posts, a knee rail, a top rail, a toe board
+  const ht = { rail: tex('sphere_rail'), particle: tex('sphere_rail') };
+  const railBox = (from, to) => box(from, to, Object.fromEntries(['north', 'south', 'east', 'west', 'up', 'down'].map((f) => [f, { uv: [0, 0, 16, 16], texture: '#rail' }])));
+  M('handrail_edge', { textures: ht, elements: [
+    railBox([1, 0, 0.25], [2.5, 16, 1.75]), railBox([13.5, 0, 0.25], [15, 16, 1.75]),
+    railBox([0, 14.5, 0], [16, 16, 2]), railBox([0, 8, 0.5], [16, 9, 1.5]), railBox([0, 0, 0.5], [16, 2.5, 1.25]),
+  ] });
+  BS('handrail', { multipart: [...Object.entries({ north: 0, east: 90, south: 180, west: 270 }).map(([edge, y]) =>
+    ({ when: { [edge]: 'true' }, apply: { model: 'setpoint:block/handrail_edge', ...(y ? { y } : {}) } })),
+    { when: { floor: 'true' }, apply: { model: 'setpoint:block/grating' } }] }); // a grating floor in the same block
+  M('handrail_item', { parent: 'minecraft:block/block', textures: ht, elements: [
+    railBox([1, 0, 7.25], [2.5, 16, 8.75]), railBox([13.5, 0, 7.25], [15, 16, 8.75]),
+    railBox([0, 14.5, 7], [16, 16, 9]), railBox([0, 8, 7.5], [16, 9, 8.5]), railBox([0, 0, 7.5], [16, 2.5, 8.25]),
+  ] });
+  item('handrail', 'setpoint:block/handrail_item');
+
+  // caged ladder: rungs against the wall (south, for facing north), hoops round the climber
+  const lt = { steel: tex('frt_steel'), particle: tex('frt_steel') };
+  const steelBox = (from, to) => box(from, to, Object.fromEntries(['north', 'south', 'east', 'west', 'up', 'down'].map((f) => [f, { uv: [0, 0, 16, 16], texture: '#steel' }])));
+  const ladder = [steelBox([2, 0, 14], [3, 16, 16]), steelBox([13, 0, 14], [14, 16, 16])];
+  for (let y = 2; y < 16; y += 4) ladder.push(steelBox([3, y - 0.5, 14.5], [13, y + 0.5, 15.5]));
+  for (const y of [3, 11]) ladder.push(steelBox([1, y, 2], [15, y + 1, 3]), steelBox([1, y, 3], [2, y + 1, 14]), steelBox([14, y, 3], [15, y + 1, 14]));
+  for (const x of [4.5, 7.5, 10.5]) ladder.push(steelBox([x, 0, 2], [x + 1, 16, 3]));
+  ladder.push(steelBox([1, 0, 8], [2, 16, 9]), steelBox([14, 0, 8], [15, 16, 9]));
+  M('caged_ladder', { parent: 'minecraft:block/block', ambientocclusion: false, textures: lt, elements: ladder });
+  BS('caged_ladder', { variants: Object.fromEntries(Object.entries({ north: 0, east: 90, south: 180, west: 270 }).map(([f, y]) => [`facing=${f}`, { model: 'setpoint:block/caged_ladder', ...(y ? { y } : {}) }])) });
+  item('caged_ladder', 'setpoint:block/caged_ladder');
+
+  // steel I-beam: two flanges and a web, standing up; laid along x or z it turns like a log
+  const bt = { side: tex('steel_beam'), end: tex('steel_beam_end'), particle: tex('steel_beam') };
+  const beamPart = (from, to) => box(from, to, {
+    north: { uv: [from[0], 0, to[0], 16], texture: '#side' }, south: { uv: [from[0], 0, to[0], 16], texture: '#side' },
+    east: { uv: [from[2], 0, to[2], 16], texture: '#side' }, west: { uv: [from[2], 0, to[2], 16], texture: '#side' },
+    up: { uv: [from[0], from[2], to[0], to[2]], texture: '#end', cullface: 'up' }, down: { uv: [from[0], from[2], to[0], to[2]], texture: '#end', cullface: 'down' } });
+  M('steel_beam', { parent: 'minecraft:block/block', textures: bt, elements: [beamPart([0, 0, 0], [16, 16, 2]), beamPart([0, 0, 14], [16, 16, 16]), beamPart([7, 0, 2], [9, 16, 14])] });
+  BS('steel_beam', { variants: { 'axis=y': { model: 'setpoint:block/steel_beam' }, 'axis=z': { model: 'setpoint:block/steel_beam', x: 90 },
+    'axis=x': { model: 'setpoint:block/steel_beam', x: 90, y: 90 } } });
+  item('steel_beam', 'setpoint:block/steel_beam');
+
+  for (const name of ['checker_plate', 'hazard_stripes', 'corrugated_steel']) {
+    M(name, { parent: 'minecraft:block/cube_all', textures: { all: tex(name) } });
+    BS(name, { variants: { '': { model: 'setpoint:block/' + name } } });
+    item(name, 'setpoint:block/' + name);
+  }
+
+  // industrial lamp: a bulkhead light with a wire guard, pointing up; the blockstate turns it like an end rod
+  const lp = { body: tex('lamp_body'), glass: tex('lamp_glass'), guard: tex('frt_steel'), particle: tex('lamp_body') };
+  const lampBox = (from, to, t) => box(from, to, Object.fromEntries(['north', 'south', 'east', 'west', 'up', 'down'].map((f) => [f, { uv: [0, 0, 16, 16], texture: '#' + t }])));
+  M('industrial_lamp', { parent: 'minecraft:block/block', ambientocclusion: false, textures: lp, elements: [
+    lampBox([4, 0, 4], [12, 1.5, 12], 'body'), lampBox([5, 1.5, 5], [11, 5, 11], 'glass'),
+    lampBox([4.5, 1.5, 7.5], [11.5, 6, 8.5], 'guard'), lampBox([7.5, 1.5, 4.5], [8.5, 6, 11.5], 'guard'),
+  ] });
+  BS('industrial_lamp', { variants: { 'facing=up': { model: 'setpoint:block/industrial_lamp' }, 'facing=down': { model: 'setpoint:block/industrial_lamp', x: 180 },
+    'facing=north': { model: 'setpoint:block/industrial_lamp', x: 90 }, 'facing=south': { model: 'setpoint:block/industrial_lamp', x: 90, y: 180 },
+    'facing=east': { model: 'setpoint:block/industrial_lamp', x: 90, y: 90 }, 'facing=west': { model: 'setpoint:block/industrial_lamp', x: 90, y: 270 } } });
+  item('industrial_lamp', 'setpoint:block/industrial_lamp');
+}
+recipe('grating', ['BBB'], { B: 'minecraft:iron_bars' }, 'setpoint:grating', 6);
+recipe('grating_stairs', ['B  ', 'BB ', 'BBB'], { B: 'minecraft:iron_bars' }, 'setpoint:grating_stairs', 4);
+recipe('handrail', ['NNN', 'NYN'], { N: 'minecraft:iron_nugget', Y: 'minecraft:yellow_dye' }, 'setpoint:handrail', 6);
+recipe('caged_ladder', ['NLN', 'NLN', 'NLN'], { N: 'minecraft:iron_nugget', L: 'minecraft:ladder' }, 'setpoint:caged_ladder', 3);
+recipe('steel_beam', ['III', ' I ', 'III'], { I: 'minecraft:iron_ingot' }, 'setpoint:steel_beam', 6);
+recipe('checker_plate', ['I I', ' I ', 'I I'], { I: 'minecraft:iron_ingot' }, 'setpoint:checker_plate', 8);
+recipe('hazard_stripes', ['CYC', 'CKC', 'CYC'], { C: 'setpoint:checker_plate', Y: 'minecraft:yellow_dye', K: 'minecraft:black_dye' }, 'setpoint:hazard_stripes', 6);
+recipe('corrugated_steel', ['I I', 'I I', 'I I'], { I: 'minecraft:iron_ingot' }, 'setpoint:corrugated_steel', 12);
+recipe('industrial_lamp', [' I ', 'NGN'], { I: 'minecraft:iron_ingot', N: 'minecraft:iron_nugget', G: 'minecraft:glowstone' }, 'setpoint:industrial_lamp', 2);
 recipe('floating_roof_tank', ['IBI', 'BTB', 'IBI'], { I: 'setpoint:hookonium_ingot', B: 'setpoint:hookonium_block', T: 'setpoint:tank' }, 'setpoint:floating_roof_tank');
 recipe('ibc', ['BBB', 'BCB', 'SSS'], { B: 'minecraft:iron_bars', C: 'minecraft:cauldron', S: 'minecraft:oak_slab' }, 'setpoint:ibc');
 
@@ -1886,6 +2023,13 @@ const MACHINES = ['pipe', 'tank', 'centrifugal_pump', 'creative_generator', 'lev
   'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine', 'dcs_console', 'hand_valve', 'water_intake', 'flow_transmitter',
   'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve', 'pid_board', 'pallet', 'gas_pipe', 'electrolyser', 'nitrogen_generator'];
 for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) lootSelf(name);
+// factory blocks: each drops itself; a handrail drops one for every side it rails
+const FACTORY = ['grating', 'grating_stairs', 'caged_ladder', 'steel_beam', 'checker_plate', 'hazard_stripes', 'corrugated_steel', 'industrial_lamp'];
+for (const name of FACTORY) lootSelf(name);
+json(join(DATA, 'loot_table/blocks', 'handrail.json'), { type: 'minecraft:block', random_sequence: 'setpoint:blocks/handrail',
+  pools: ['north', 'east', 'south', 'west'].map((edge) => ({ rolls: 1, entries: [{ type: 'minecraft:item', name: 'setpoint:handrail',
+    condition: { type: 'minecraft:match_block', blocks: 'setpoint:handrail', state: { [edge]: 'true' } } }] })).concat([{ rolls: 1,
+    entries: [{ type: 'minecraft:item', name: 'setpoint:grating', condition: { type: 'minecraft:match_block', blocks: 'setpoint:handrail', state: { floor: 'true' } } }] }]) });
 for (const name of ['drum', 'ibc', 'floating_roof_tank', 'gas_cylinder', 'gas_sphere']) json(join(DATA, 'loot_table/blocks', name + '.json'), {
   type: 'minecraft:block', random_sequence: 'setpoint:blocks/' + name,
   pools: [{ rolls: 1, conditions: [{ condition: 'minecraft:survives_explosion' }], entries: [{ type: 'minecraft:item', name: 'setpoint:' + name,
@@ -1895,7 +2039,10 @@ lootOre('hookonium_ore', 'setpoint:raw_hookonium');
 lootOre('deepslate_hookonium_ore', 'setpoint:raw_hookonium');
 const HOOKONIUM_BLOCKS = ['hookonium_ore', 'deepslate_hookonium_ore', 'hookonium_block', 'raw_hookonium_block'].map((n) => 'setpoint:' + n);
 const tag = (path, values) => json(join(ROOT, 'data', path + '.json'), { values });
-tag('minecraft/tags/block/mineable/pickaxe', [...MACHINES.map((n) => 'setpoint:' + n), 'setpoint:drum', 'setpoint:ibc', 'setpoint:floating_roof_tank', 'setpoint:roof_tank_part', 'setpoint:gas_cylinder', 'setpoint:gas_sphere', 'setpoint:gas_sphere_part', ...HOOKONIUM_BLOCKS]);
+tag('minecraft/tags/block/mineable/pickaxe', [...MACHINES.map((n) => 'setpoint:' + n), 'setpoint:drum', 'setpoint:ibc', 'setpoint:floating_roof_tank', 'setpoint:roof_tank_part', 'setpoint:gas_cylinder', 'setpoint:gas_sphere', 'setpoint:gas_sphere_part', ...FACTORY.map((n) => 'setpoint:' + n), 'setpoint:handrail', ...HOOKONIUM_BLOCKS]);
+tag('minecraft/tags/block/climbable', ['setpoint:caged_ladder']);
+tag('minecraft/tags/block/stairs', ['setpoint:grating_stairs']);
+tag('minecraft/tags/item/stairs', ['setpoint:grating_stairs']);
 tag('minecraft/tags/block/needs_diamond_tool', HOOKONIUM_BLOCKS);
 // the pipe wrench turns, cuts and picks up these
 tag('setpoint/tags/block/wrenchable', MACHINES.map((n) => 'setpoint:' + n));
