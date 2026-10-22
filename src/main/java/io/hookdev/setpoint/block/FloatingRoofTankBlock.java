@@ -173,6 +173,17 @@ public class FloatingRoofTankBlock extends PortableTankBlock {
         return RenderShape.INVISIBLE;
     }
 
+    /** Like its parts: no square patch of shade on the ground, and daylight through. */
+    @Override
+    protected float getShadeBrightness(BlockState state, BlockGetter level, BlockPos pos) {
+        return 1.0f;
+    }
+
+    @Override
+    protected boolean propagatesSkylightDown(BlockState state) {
+        return true;
+    }
+
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new FloatingRoofTankBlockEntity(pos, state);

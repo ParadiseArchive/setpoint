@@ -34,6 +34,18 @@ public abstract class MultiblockPartBlock extends BaseEntityBlock {
         return RenderShape.INVISIBLE;
     }
 
+    /** It draws nothing, so it casts no shade on the blocks around it (a full collision box would darken them in square patches)... */
+    @Override
+    protected float getShadeBrightness(BlockState state, BlockGetter level, BlockPos pos) {
+        return 1.0f;
+    }
+
+    /** ...and lets daylight through, so whatever its base draws over it is lit like the open air. */
+    @Override
+    protected boolean propagatesSkylightDown(BlockState state) {
+        return true;
+    }
+
     protected static @Nullable BlockPos base(BlockGetter level, BlockPos pos) {
         if (!(level.getBlockEntity(pos) instanceof MultiblockPartBlockEntity part) || part.base() == null) return null;
         return level.getBlockState(part.base()).getBlock() instanceof MultiblockBase ? part.base() : null;
