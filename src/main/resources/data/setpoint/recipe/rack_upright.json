@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "D": "minecraft:blue_dye"
+  },
+  "pattern": [
+    "I",
+    "D",
+    "I"
+  ],
+  "result": {
+    "count": 4,
+    "id": "setpoint:rack_upright"
+  }
+}

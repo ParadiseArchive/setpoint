@@ -32,6 +32,8 @@
     "setpoint:gas_cylinder",
     "setpoint:gas_sphere",
     "setpoint:gas_sphere_part",
+    "setpoint:rack_upright",
+    "setpoint:rack_beam",
     "setpoint:grating",
     "setpoint:grating_stairs",
     "setpoint:caged_ladder",

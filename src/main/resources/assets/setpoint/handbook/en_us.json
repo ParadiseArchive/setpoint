@@ -465,6 +465,46 @@
         },
         {
           "type": "h",
+          "text": "Pallet racking"
+        },
+        {
+          "type": "p",
+          "text": "Store loaded pallets up high with the forklift. Stand **rack uprights** in rows, with two blocks between them for each bay. At each level, lay **rack beams** two by two between the uprights: they sit in the top of the block. Drive the forklift up with a pallet, raise it over the beams and lower it: it sets the pallet down on them. Leave three blocks between levels for a pallet with drums."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:rack_upright",
+          "grid": [
+            "minecraft:iron_ingot",
+            "",
+            "",
+            "minecraft:blue_dye",
+            "",
+            "",
+            "minecraft:iron_ingot",
+            "",
+            ""
+          ],
+          "count": 4
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:rack_beam",
+          "grid": [
+            "minecraft:orange_dye",
+            "minecraft:orange_dye",
+            "minecraft:orange_dye",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "",
+            "",
+            ""
+          ],
+          "count": 4
+        },
+        {
+          "type": "h",
           "text": "Factory blocks"
         },
         {

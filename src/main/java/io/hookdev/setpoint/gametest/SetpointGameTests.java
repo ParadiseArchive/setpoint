@@ -156,6 +156,7 @@ public final class SetpointGameTests {
         test("a_gas_sphere_takes_gas_and_breaks_whole", SetpointGameTests::aGasSphereTakesGasAndBreaksWhole, 100);
         BIG.add("a_gas_sphere_takes_gas_and_breaks_whole");
         test("compressor_pushes_gas_uphill", SetpointGameTests::compressorPushesGasUphill, 200);
+        test("forklift_racks_a_pallet", SetpointGameTests::forkliftRacksAPallet, 40);
     }
 
     private static void test(String name, Consumer<GameTestHelper> function, int maxTicks) {
@@ -1379,6 +1380,27 @@ public final class SetpointGameTests {
             for (BlockPos p : parts) helper.assertTrue(helper.getLevel().getBlockState(p).isAir(), "every part should be gone, not " + p);
             helper.succeed();
         });
+    }
+
+    /** Pallet racking: the forklift lowers a pallet onto four rack beams three blocks up, and it stays there. */
+    private static void forkliftRacksAPallet(GameTestHelper helper) {
+        for (int x = 0; x < 7; x++) for (int z = 0; z < 3; z++) helper.setBlock(x, 0, z, Blocks.STONE);
+        BlockPos base = new BlockPos(4, 1, 1);
+        BlockPos abs = helper.absolutePos(base);
+        ItemStack drum = new ItemStack(SetpointContent.DRUM_ITEM.get());
+        PalletBlock.place(helper.getLevel(), abs, Direction.WEST, List.of(drum)); // covers x 4..5, z 0..1
+        var forklift = SetpointContent.FORKLIFT_ENTITY.get().create(helper.getLevel(), net.minecraft.world.entity.EntitySpawnReason.TRIGGERED);
+        forklift.snapTo(new Vec3(abs.getX() + 1 - ForkliftEntity.PALLET_AHEAD, abs.getY(), abs.getZ()), -90, 0); // facing east, forks under the pallet
+        helper.getLevel().addFreshEntity(forklift);
+        forklift.pickUpNow();
+        helper.assertTrue(forklift.hasPallet(), "the forklift should take the pallet");
+        for (BlockPos cell : List.of(base.above(2), base.above(2).north(), base.above(2).east(), base.above(2).north().east())) helper.setBlock(cell, SetpointContent.RACK_BEAM.get());
+        forklift.raiseTo(3.5f);
+        forklift.lowerNow();
+        helper.assertBlockPresent(SetpointContent.PALLET.get(), base.above(3));
+        helper.assertTrue(!forklift.hasPallet(), "the pallet should stay on the rack");
+        forklift.discard();
+        helper.succeed();
     }
 
     /** Two cylinders of hydrogen at 10 bar with a compressor between them: it pushes gas from one into the other, past 10 bar. */

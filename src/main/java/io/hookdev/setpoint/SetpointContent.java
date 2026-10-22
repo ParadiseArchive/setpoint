@@ -174,6 +174,10 @@ public final class SetpointContent {
             p -> p.mapColor(MapColor.METAL).strength(2.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
     public static final DeferredBlock<net.minecraft.world.level.block.RotatedPillarBlock> STEEL_BEAM = BLOCKS.registerBlock("steel_beam", net.minecraft.world.level.block.RotatedPillarBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.RackUprightBlock> RACK_UPRIGHT = BLOCKS.registerBlock("rack_upright", io.hookdev.setpoint.block.RackUprightBlock::new,
+            p -> p.mapColor(MapColor.COLOR_BLUE).strength(3.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.RackBeamBlock> RACK_BEAM = BLOCKS.registerBlock("rack_beam", io.hookdev.setpoint.block.RackBeamBlock::new,
+            p -> p.mapColor(MapColor.COLOR_ORANGE).strength(3.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
     public static final DeferredBlock<Block> HAZARD_STRIPES = BLOCKS.registerSimpleBlock("hazard_stripes", p -> p.mapColor(MapColor.COLOR_YELLOW).strength(3.0f, 6.0f).sound(SoundType.METAL));
     public static final DeferredBlock<Block> CORRUGATED_STEEL = BLOCKS.registerSimpleBlock("corrugated_steel", p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
     public static final DeferredBlock<io.hookdev.setpoint.block.IndustrialLampBlock> INDUSTRIAL_LAMP = BLOCKS.registerBlock("industrial_lamp", io.hookdev.setpoint.block.IndustrialLampBlock::new,
@@ -267,6 +271,8 @@ public final class SetpointContent {
     public static final DeferredItem<BlockItem> HANDRAIL_ITEM = ITEMS.registerSimpleBlockItem(HANDRAIL);
     public static final DeferredItem<BlockItem> CAGED_LADDER_ITEM = ITEMS.registerSimpleBlockItem(CAGED_LADDER);
     public static final DeferredItem<BlockItem> STEEL_BEAM_ITEM = ITEMS.registerSimpleBlockItem(STEEL_BEAM);
+    public static final DeferredItem<BlockItem> RACK_UPRIGHT_ITEM = ITEMS.registerSimpleBlockItem(RACK_UPRIGHT);
+    public static final DeferredItem<BlockItem> RACK_BEAM_ITEM = ITEMS.registerSimpleBlockItem(RACK_BEAM);
     public static final DeferredItem<BlockItem> HAZARD_STRIPES_ITEM = ITEMS.registerSimpleBlockItem(HAZARD_STRIPES);
     public static final DeferredItem<BlockItem> CORRUGATED_STEEL_ITEM = ITEMS.registerSimpleBlockItem(CORRUGATED_STEEL);
     public static final DeferredItem<BlockItem> INDUSTRIAL_LAMP_ITEM = ITEMS.registerSimpleBlockItem(INDUSTRIAL_LAMP);
@@ -426,6 +432,8 @@ public final class SetpointContent {
                 output.accept(PALLET_ITEM.get());
                 output.accept(PALLET_TRUCK.get());
                 output.accept(FORKLIFT.get());
+                output.accept(RACK_UPRIGHT_ITEM.get());
+                output.accept(RACK_BEAM_ITEM.get());
                 output.accept(GRATING_ITEM.get());
                 output.accept(GRATING_STAIRS_ITEM.get());
                 output.accept(HANDRAIL_ITEM.get());

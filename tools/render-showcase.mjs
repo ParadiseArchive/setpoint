@@ -394,6 +394,16 @@ const gasSphere = () => {
 render('gas_sphere', gasSphere(), 2);
 // factory blocks, one by one, and put together as a small platform: grating in the top of the blocks on I-beams,
 // handrails round its edges, stairs up to it, checker plate and hazard stripes on the ground, a lamp on a column
+// pallet racking: two bays of two levels, a loaded pallet on the upper beams and one on the ground
+const DRUMS4 = [[0xb0, 0x2e, 0x26], [0x3b, 0x79, 0xde], [0xfe, 0xd8, 0x3d], [0x5e, 0x7c, 0x16]];
+render('pallet_rack', [
+  ...[0, 3, 6].flatMap((x) => [0, 1].flatMap((z) => [0, 1, 2, 3, 4, 5].map((y) => ({ model: 'rack_upright', at: [x, y, z] })))),
+  ...[1, 2, 4, 5].flatMap((x) => [0, 1].map((z) => ({ model: 'rack_beam', y: 90, at: [x, 2, z] }))),
+  { model: 'pallet_4', y: 90, at: [2, 3, 0], tints: DRUMS4 }, // a turned pallet model reaches a block back in x
+  { model: 'pallet_4', y: 90, at: [5, 0, 0], tints: DRUMS4.slice().reverse() },
+], 3);
+render('rack_beam', [{ model: 'rack_beam' }], 6);
+render('rack_upright', [{ model: 'rack_upright' }], 6);
 render('grating', [{ model: 'grating_top' }], 6);
 render('grating_stairs', [{ model: 'grating_stairs', y: 180 }], 6);
 render('handrail', [{ model: 'handrail_edge', y: 180 }], 6);

@@ -1849,6 +1849,33 @@ texture('lamp_body', (p) => { p.rect(0, 0, 16, 16, '#3c4048'); p.rect(0, 0, 16, 
     'facing=east': { model: 'setpoint:block/industrial_lamp', x: 90, y: 90 }, 'facing=west': { model: 'setpoint:block/industrial_lamp', x: 90, y: 270 } } });
   item('industrial_lamp', 'setpoint:block/industrial_lamp');
 }
+// pallet racking: blue uprights with holes, orange beams with a wire deck in the top of the block
+texture('rack_upright', (p) => {
+  p.rect(0, 0, 16, 16, '#2f5fa8'); p.rect(0, 0, 1, 16, '#4b7cc6'); p.rect(15, 0, 1, 16, '#21467e');
+  for (let y = 1; y < 16; y += 3) { p.rect(5, y, 2, 1, '#14284a'); p.rect(9, y, 2, 1, '#14284a'); }  // the holes for the beam hooks
+});
+texture('rack_upright_end', (p) => { p.rect(0, 0, 16, 16, '#21467e'); p.rect(5, 5, 6, 6, '#2f5fa8'); });
+texture('rack_beam', (p) => { p.rect(0, 0, 16, 16, '#e46a1c'); p.rect(0, 0, 16, 1, '#f59149'); p.rect(0, 15, 16, 1, '#a94a10'); });
+texture('rack_deck', (p) => { // wire mesh: see-through
+  for (let x = 0; x < 16; x += 4) p.rect(x, 0, 1, 16, '#9aa0ab');
+  for (let y = 1; y < 16; y += 4) p.rect(0, y, 16, 1, '#b6bcc5');
+});
+{
+  const all = (t, uv = [0, 0, 16, 16]) => Object.fromEntries(['north', 'south', 'east', 'west', 'up', 'down'].map((f) => [f, { uv, texture: t }]));
+  M('rack_upright', { parent: 'minecraft:block/block', textures: { side: tex('rack_upright'), end: tex('rack_upright_end'), particle: tex('rack_upright') },
+    elements: [box([5, 0, 5], [11, 16, 11], { ...Object.fromEntries(['north', 'south', 'east', 'west'].map((f) => [f, { uv: [5, 0, 11, 16], texture: '#side' }])),
+      up: { uv: [5, 5, 11, 11], texture: '#end', cullface: 'up' }, down: { uv: [5, 5, 11, 11], texture: '#end', cullface: 'down' } })] });
+  BS('rack_upright', { variants: { '': { model: 'setpoint:block/rack_upright' } } });
+  item('rack_upright', 'setpoint:block/rack_upright');
+  M('rack_beam', { parent: 'minecraft:block/block', textures: { beam: tex('rack_beam'), deck: tex('rack_deck'), particle: tex('rack_beam') }, elements: [
+    box([0, 12, 0], [16, 16, 2], all('#beam')), box([0, 12, 14], [16, 16, 16], all('#beam')),
+    box([0, 14.5, 2], [16, 15.5, 14], { up: { uv: [0, 2, 16, 14], texture: '#deck' }, down: { uv: [0, 2, 16, 14], texture: '#deck' } }),
+  ] });
+  BS('rack_beam', { variants: { 'axis=x': { model: 'setpoint:block/rack_beam' }, 'axis=z': { model: 'setpoint:block/rack_beam', y: 90 } } });
+  item('rack_beam', 'setpoint:block/rack_beam');
+}
+recipe('rack_upright', ['I', 'D', 'I'], { I: 'minecraft:iron_ingot', D: 'minecraft:blue_dye' }, 'setpoint:rack_upright', 4);
+recipe('rack_beam', ['DDD', 'III'], { I: 'minecraft:iron_ingot', D: 'minecraft:orange_dye' }, 'setpoint:rack_beam', 4);
 recipe('grating', ['BBB'], { B: 'minecraft:iron_bars' }, 'setpoint:grating', 6);
 recipe('grating_stairs', ['B  ', 'BB ', 'BBB'], { B: 'minecraft:iron_bars' }, 'setpoint:grating_stairs', 4);
 recipe('handrail', ['NNN', 'NYN'], { N: 'minecraft:iron_nugget', Y: 'minecraft:yellow_dye' }, 'setpoint:handrail', 6);
@@ -2057,7 +2084,7 @@ const MACHINES = ['pipe', 'tank', 'centrifugal_pump', 'creative_generator', 'lev
   'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve', 'pid_board', 'pallet', 'gas_pipe', 'electrolyser', 'nitrogen_generator', 'compressor'];
 for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) lootSelf(name);
 // factory blocks: each drops itself; a handrail drops one for every side it rails
-const FACTORY = ['grating', 'grating_stairs', 'caged_ladder', 'steel_beam', 'checker_plate', 'hazard_stripes', 'corrugated_steel', 'industrial_lamp'];
+const FACTORY = ['rack_upright', 'rack_beam', 'grating', 'grating_stairs', 'caged_ladder', 'steel_beam', 'checker_plate', 'hazard_stripes', 'corrugated_steel', 'industrial_lamp'];
 for (const name of FACTORY) lootSelf(name);
 json(join(DATA, 'loot_table/blocks', 'handrail.json'), { type: 'minecraft:block', random_sequence: 'setpoint:blocks/handrail',
   pools: ['north', 'east', 'south', 'west'].map((edge) => ({ rolls: 1, entries: [{ type: 'minecraft:item', name: 'setpoint:handrail',

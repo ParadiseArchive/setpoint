@@ -1,0 +1,11 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "setpoint:block/rack_beam"
+    },
+    "axis=z": {
+      "model": "setpoint:block/rack_beam",
+      "y": 90
+    }
+  }
+}
