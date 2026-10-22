@@ -67,6 +67,9 @@ public final class PidSymbols {
     // a gas sphere on its legs
     private static final String[] GAS_SPHERE = {
             "..####..", ".#....#.", "#......#", "#++++++#", ".#++++#.", "..####..", ".#.##.#.", "#..##..#"};
+    // a compressor: a circle with the gas squeezed from wide to narrow, drawn the way the gas goes (like the pump)
+    private static final String[] COMPRESSOR = {
+            "..####..", ".#....#.", "#++....#", "#..++..#", "#...+++#", "#..++..#", "#++....#", "..####.."};
     private static final String[] CONSOLE = {
             "########", "#++++++#", "#+....+#", "#++++++#", "########", "...##...", "..####..", "........"};
 
@@ -96,13 +99,14 @@ public final class PidSymbols {
             case PidDrawing.NITROGEN_GENERATOR -> NITROGEN_GENERATOR;
             case PidDrawing.GAS_CYLINDER -> GAS_CYLINDER;
             case PidDrawing.GAS_SPHERE -> GAS_SPHERE;
+            case PidDrawing.COMPRESSOR -> COMPRESSOR;
             default -> null;
         };
     }
 
     /** Only symbols with a direction turn; vessels and instruments always stand upright. */
     private static boolean turns(int symbol) {
-        return symbol == PidDrawing.PUMP || symbol == PidDrawing.CONTROL_VALVE || symbol == PidDrawing.HAND_VALVE
+        return symbol == PidDrawing.PUMP || symbol == PidDrawing.COMPRESSOR || symbol == PidDrawing.CONTROL_VALVE || symbol == PidDrawing.HAND_VALVE
                 || symbol == PidDrawing.HAND_VALVE_SHUT || symbol == PidDrawing.TURBINE || symbol == PidDrawing.DRAIN_VALVE || symbol == PidDrawing.CHECK_VALVE;
     }
 

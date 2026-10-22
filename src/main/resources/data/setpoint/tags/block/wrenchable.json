@@ -23,6 +23,7 @@
     "setpoint:pallet",
     "setpoint:gas_pipe",
     "setpoint:electrolyser",
-    "setpoint:nitrogen_generator"
+    "setpoint:nitrogen_generator",
+    "setpoint:compressor"
   ]
 }

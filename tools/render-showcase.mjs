@@ -271,6 +271,7 @@ const GAS_TINT = { hydrogen: [0xc7, 0x32, 0x2f], oxygen: [0xf2, 0xf4, 0xf7], nit
 const gasPipe = (at, arms) => [{ model: 'gas_pipe_core', at }, ...arms.map((y) => ({ model: 'gas_pipe_arm', at, y }))];
 render('electrolyser', [{ model: 'electrolyser_on', y: E }]);
 render('nitrogen_generator', [{ model: 'nitrogen_generator_on', y: S }]);
+render('compressor', [{ model: 'compressor_on', y: E }]);
 render('gas_pipe', gasPipe([0, 0, 0], [E, W_, S]));
 render('gas_cylinder', [{ model: 'gas_cylinder', tints: [GAS_TINT.hydrogen] }], 6);
 render('gas_cylinders', Object.values(GAS_TINT).map((t, i) => ({ model: 'gas_cylinder', at: [i * 0.75, 0, -i * 0.75], tints: [t] })), 4);

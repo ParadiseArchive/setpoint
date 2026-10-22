@@ -421,6 +421,26 @@
         },
         {
           "type": "p",
+          "text": "To go past 10 bar, use a **gas compressor**. Like the pump, its suction is on the side that faced you and its discharge on the far side. It draws from the fullest vessel on the suction line and fills the emptiest one on the discharge line, up to 200 bar. The higher the gas coming in, the more it moves; the harder it squeezes, the more power it takes."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:compressor",
+          "grid": [
+            "minecraft:iron_ingot",
+            "setpoint:gas_pipe",
+            "minecraft:iron_ingot",
+            "minecraft:piston",
+            "minecraft:redstone_block",
+            "minecraft:piston",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot"
+          ],
+          "count": 1
+        },
+        {
+          "type": "p",
           "text": "For a lot of gas there is the **gas sphere**: a round pressure vessel on eight columns, like the spheres that hold propane and hydrogen on a real plant. It takes eight by eight blocks and is ten high, has 220 B of room and is built for **16 bar**, so it holds up to 3520 B of gas. Place it with one block: that block is its valve station at the front, where gas pipes join. It reaches four blocks to your left, three to your right and eight away from you."
         },
         {

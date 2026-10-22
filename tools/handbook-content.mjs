@@ -92,6 +92,8 @@ export const HANDBOOK = {
         ['p', 'Both fill their outlet up to **10 bar**, then wait until something takes the gas. A **boiler** gives its steam to a gas pipe on top, and a **steam turbine** takes steam from a gas pipe on any side, so they no longer have to touch.'],
         ['p', 'A **gas cylinder** holds one gas up to 200 bar; its shoulder shows which. Pipes join it on top and its sides. A pressure transmitter reads it and a safety valve protects it. Break it and the gas goes along in the item.'],
         ['craft', 'setpoint:gas_cylinder'],
+        ['p', 'To go past 10 bar, use a **gas compressor**. Like the pump, its suction is on the side that faced you and its discharge on the far side. It draws from the fullest vessel on the suction line and fills the emptiest one on the discharge line, up to 200 bar. The higher the gas coming in, the more it moves; the harder it squeezes, the more power it takes.'],
+        ['craft', 'setpoint:compressor'],
         ['p', 'For a lot of gas there is the **gas sphere**: a round pressure vessel on eight columns, like the spheres that hold propane and hydrogen on a real plant. It takes eight by eight blocks and is ten high, has 220 B of room and is built for **16 bar**, so it holds up to 3520 B of gas. Place it with one block: that block is its valve station at the front, where gas pipes join. It reaches four blocks to your left, three to your right and eight away from you.'],
         ['p', 'Climb the caged ladder in the front-right corner and cross the bridge to the platform on top. A pressure transmitter or safety valve works against any block of it.'],
         ['craft', 'setpoint:gas_sphere'],

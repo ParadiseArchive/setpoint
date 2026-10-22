@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "north": "setpoint:block/compressor_discharge_on",
+    "south": "setpoint:block/compressor_suction",
+    "east": "setpoint:block/compressor_side",
+    "west": "setpoint:block/compressor_side",
+    "up": "setpoint:block/compressor_top",
+    "down": "setpoint:block/compressor_bottom",
+    "particle": "setpoint:block/compressor_side"
+  }
+}

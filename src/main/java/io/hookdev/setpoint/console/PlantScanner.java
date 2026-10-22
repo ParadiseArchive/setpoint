@@ -36,7 +36,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 public final class PlantScanner {
     /** How far a console sees, in blocks, in every direction. */
     public static final int RANGE = 32;
-    private static final List<String> KIND_ORDER = List.of("LIC", "FIC", "PIC", "PUMP", "VALVE", "FT", "PT", "TANK", "IBC", "DRUM", "LT", "BOILER", "PSV", "TURBINE", "GEN", "INTAKE", "ELECTROLYSER", "N2 GEN", "SPHERE", "CYLINDER");
+    private static final List<String> KIND_ORDER = List.of("LIC", "FIC", "PIC", "PUMP", "VALVE", "FT", "PT", "TANK", "IBC", "DRUM", "LT", "BOILER", "PSV", "TURBINE", "GEN", "INTAKE", "ELECTROLYSER", "N2 GEN", "COMPRESSOR", "SPHERE", "CYLINDER");
 
     private PlantScanner() {}
 
@@ -164,6 +164,12 @@ public final class PlantScanner {
             int severity = maker.status().equals("RUNNING") || maker.status().equals("FULL") ? Reading.NORMAL : Reading.ATTENTION;
             return new Reading(be.getBlockPos(), maker.tag(), kind, maker.status(), severity, String.format("%.1f bar  %d mB/t", outlet, maker.made()),
                     List.of("OUTLET bar"), new float[]{(float) outlet}, List.of());
+        }
+        if (be instanceof io.hookdev.setpoint.block.entity.CompressorBlockEntity compressor) {
+            int severity = compressor.status().equals("RUNNING") || compressor.status().equals("FULL") ? Reading.NORMAL : Reading.ATTENTION;
+            return new Reading(be.getBlockPos(), compressor.tag(), "COMPRESSOR", compressor.status(), severity,
+                    String.format("%.1f > %.1f bar  %d mB/t", compressor.suctionPressure(), compressor.dischargePressure(), compressor.flow()),
+                    List.of("OUT bar"), new float[]{(float) compressor.dischargePressure()}, List.of());
         }
         if (be instanceof io.hookdev.setpoint.block.entity.GasSphereBlockEntity sphere) {
             var gas = sphere.tank().gas();

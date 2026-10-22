@@ -1577,6 +1577,39 @@ texture('gas_cylinder_bottom', (p) => { p.rect(0, 0, 16, 16, '#5d6470'); });
   json(join(ASSETS, 'items', 'gas_cylinder.json'), { model: { type: 'minecraft:model', model: 'setpoint:block/gas_cylinder',
     tints: [{ type: 'minecraft:constant', value: 0xFF8D95A5 | 0 }] } });
 }
+// compressor: a two-cylinder reciprocating compressor on its motor. Like the pump: discharge north (away from you as
+// you place it), suction south; cylinder heads on top with their cooling fins
+texture('compressor_side', (p) => { // the motor and the crankcase, the flywheel guard, a status light
+  plate(p, '#4f6b8a');
+  p.rect(1, 9, 14, 6, '#3d5470'); for (let x = 2; x < 15; x += 2) p.rect(x, 10, 1, 4, '#5f7d9e');  // motor fins
+  p.rect(3, 2, 6, 6, C.steel1); p.rect(4, 3, 4, 4, C.steel0); p.set(5, 4, C.steel4);                 // the flywheel guard
+});
+const compressorFront = (led, ledDark) => (p) => {
+  plate(p, '#4f6b8a');
+  p.rect(3, 3, 10, 10, GAS.yellow); p.rect(4, 4, 8, 8, C.steel3); p.rect(5, 5, 6, 6, C.steel1); p.rect(6, 6, 4, 4, C.outline);
+  for (const [x, y] of [[4, 4], [11, 4], [4, 11], [11, 11]]) p.set(x, y, C.steel4);
+  p.rect(13, 1, 2, 2, led); p.set(14, 2, ledDark);
+};
+texture('compressor_discharge', compressorFront(C.ledOff, C.outline));
+texture('compressor_discharge_on', compressorFront(C.cyan, C.cyanDark));
+texture('compressor_suction', (p) => { // the bigger suction flange
+  plate(p, '#4f6b8a');
+  p.rect(2, 2, 12, 12, GAS.yellow); p.rect(3, 3, 10, 10, C.steel3); p.rect(4, 4, 8, 8, C.steel1); p.rect(5, 5, 6, 6, C.outline);
+});
+texture('compressor_top', (p) => { // two cylinder heads with fins
+  plate(p, '#3d5470');
+  for (const x of [1, 9]) { p.rect(x, 2, 6, 12, C.steel2); for (let y = 3; y < 14; y += 2) p.rect(x, y, 6, 1, C.steel0); p.rect(x + 2, 7, 2, 2, C.steel4); }
+});
+texture('compressor_bottom', (p) => { plate(p, C.steel0); });
+for (const on of [false, true]) {
+  M('compressor' + (on ? '_on' : ''), { parent: 'minecraft:block/cube', textures: {
+    north: tex('compressor_discharge' + (on ? '_on' : '')), south: tex('compressor_suction'), east: tex('compressor_side'), west: tex('compressor_side'),
+    up: tex('compressor_top'), down: tex('compressor_bottom'), particle: tex('compressor_side') } });
+}
+BS('compressor', { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => [false, true].map((run) =>
+  [`facing=${f},running=${run}`, { model: 'setpoint:block/compressor' + (run ? '_on' : ''), ...(y ? { y } : {}) }]))) });
+item('compressor', 'setpoint:block/compressor_on');
+recipe('compressor', ['IGI', 'PRP', 'III'], { I: 'minecraft:iron_ingot', G: 'setpoint:gas_pipe', P: 'minecraft:piston', R: 'minecraft:redstone_block' }, 'setpoint:compressor');
 recipe('gas_pipe', [' Y ', 'III'], { Y: 'minecraft:yellow_dye', I: 'minecraft:iron_ingot' }, 'setpoint:gas_pipe', 6);
 recipe('electrolyser', ['IGI', 'CTC', 'IRI'], { I: 'minecraft:iron_ingot', G: 'minecraft:glass', C: 'minecraft:copper_block', T: 'setpoint:tank', R: 'minecraft:redstone' }, 'setpoint:electrolyser');
 recipe('nitrogen_generator', ['ITI', 'TRT', 'IPI'], { I: 'minecraft:iron_ingot', T: 'setpoint:tank', R: 'minecraft:redstone', P: 'minecraft:piston' }, 'setpoint:nitrogen_generator');
@@ -2021,7 +2054,7 @@ const lootOre = (name, drop) => json(join(DATA, 'loot_table/blocks', name + '.js
 });
 const MACHINES = ['pipe', 'tank', 'centrifugal_pump', 'creative_generator', 'level_transmitter', 'control_valve', 'controller',
   'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine', 'dcs_console', 'hand_valve', 'water_intake', 'flow_transmitter',
-  'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve', 'pid_board', 'pallet', 'gas_pipe', 'electrolyser', 'nitrogen_generator'];
+  'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve', 'pid_board', 'pallet', 'gas_pipe', 'electrolyser', 'nitrogen_generator', 'compressor'];
 for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) lootSelf(name);
 // factory blocks: each drops itself; a handrail drops one for every side it rails
 const FACTORY = ['grating', 'grating_stairs', 'caged_ladder', 'steel_beam', 'checker_plate', 'hazard_stripes', 'corrugated_steel', 'industrial_lamp'];

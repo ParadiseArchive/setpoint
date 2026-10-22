@@ -24,6 +24,7 @@
     "setpoint:gas_pipe",
     "setpoint:electrolyser",
     "setpoint:nitrogen_generator",
+    "setpoint:compressor",
     "setpoint:drum",
     "setpoint:ibc",
     "setpoint:floating_roof_tank",

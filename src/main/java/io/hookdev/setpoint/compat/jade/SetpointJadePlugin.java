@@ -50,14 +50,15 @@ public class SetpointJadePlugin implements IWailaPlugin {
             io.hookdev.setpoint.block.entity.WaterIntakeBlockEntity.class, io.hookdev.setpoint.block.entity.PortableTankBlockEntity.class,
             io.hookdev.setpoint.block.entity.TankPartBlockEntity.class, io.hookdev.setpoint.block.entity.GasMakerBlockEntity.class,
             io.hookdev.setpoint.block.entity.GasCylinderBlockEntity.class, io.hookdev.setpoint.block.entity.GasSphereBlockEntity.class,
-            io.hookdev.setpoint.block.entity.GasSpherePartBlockEntity.class};
+            io.hookdev.setpoint.block.entity.GasSpherePartBlockEntity.class, io.hookdev.setpoint.block.entity.CompressorBlockEntity.class};
     @SuppressWarnings("unchecked")
     private static final Class<? extends Block>[] BLOCKS = new Class[]{PumpBlock.class, TankBlock.class, ControlValveBlock.class,
             ControllerBlock.class, LevelTransmitterBlock.class, BoilerBlock.class, SteamTurbineBlock.class, GeneratorBlock.class,
             io.hookdev.setpoint.block.FlowTransmitterBlock.class, io.hookdev.setpoint.block.PressureTransmitterBlock.class,
             io.hookdev.setpoint.block.SafetyValveBlock.class, io.hookdev.setpoint.block.WaterIntakeBlock.class, io.hookdev.setpoint.block.PortableTankBlock.class,
             io.hookdev.setpoint.block.TankPartBlock.class, io.hookdev.setpoint.block.GasMakerBlock.class, io.hookdev.setpoint.block.GasCylinderBlock.class,
-            io.hookdev.setpoint.block.GasSphereBlock.class, io.hookdev.setpoint.block.GasSpherePartBlock.class};
+            io.hookdev.setpoint.block.GasSphereBlock.class, io.hookdev.setpoint.block.GasSpherePartBlock.class,
+            io.hookdev.setpoint.block.CompressorBlock.class};
 
     @Override
     public void register(IWailaCommonRegistration registration) {

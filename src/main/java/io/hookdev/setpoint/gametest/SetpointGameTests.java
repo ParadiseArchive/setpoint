@@ -155,6 +155,7 @@ public final class SetpointGameTests {
         test("a_gas_cylinder_keeps_its_gas", SetpointGameTests::aGasCylinderKeepsItsGas, 20);
         test("a_gas_sphere_takes_gas_and_breaks_whole", SetpointGameTests::aGasSphereTakesGasAndBreaksWhole, 100);
         BIG.add("a_gas_sphere_takes_gas_and_breaks_whole");
+        test("compressor_pushes_gas_uphill", SetpointGameTests::compressorPushesGasUphill, 200);
     }
 
     private static void test(String name, Consumer<GameTestHelper> function, int maxTicks) {
@@ -1377,6 +1378,24 @@ public final class SetpointGameTests {
             helper.assertTrue(helper.getLevel().getBlockState(abs).isAir(), "breaking a part should break the whole sphere");
             for (BlockPos p : parts) helper.assertTrue(helper.getLevel().getBlockState(p).isAir(), "every part should be gone, not " + p);
             helper.succeed();
+        });
+    }
+
+    /** Two cylinders of hydrogen at 10 bar with a compressor between them: it pushes gas from one into the other, past 10 bar. */
+    private static void compressorPushesGasUphill(GameTestHelper helper) {
+        helper.setBlock(1, 1, 1, SetpointContent.GAS_CYLINDER.get());
+        helper.setBlock(2, 1, 1, SetpointContent.GAS_PIPE.get());
+        helper.setBlock(3, 1, 1, SetpointContent.COMPRESSOR.get().defaultBlockState().setValue(io.hookdev.setpoint.block.CompressorBlock.FACING, Direction.EAST));
+        helper.setBlock(3, 0, 1, SetpointContent.CREATIVE_GENERATOR.get());
+        helper.setBlock(4, 1, 1, SetpointContent.GAS_PIPE.get());
+        helper.setBlock(5, 1, 1, SetpointContent.GAS_CYLINDER.get());
+        var from = helper.getBlockEntity(new BlockPos(1, 1, 1), io.hookdev.setpoint.block.entity.GasCylinderBlockEntity.class);
+        var to = helper.getBlockEntity(new BlockPos(5, 1, 1), io.hookdev.setpoint.block.entity.GasCylinderBlockEntity.class);
+        from.tank().set(io.hookdev.setpoint.gas.Gases.HYDROGEN.resource(), 10_000);
+        to.tank().set(io.hookdev.setpoint.gas.Gases.HYDROGEN.resource(), 10_000);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(to.pressure() > 15 && from.pressure() < 5, "the compressor should push gas from 10 bar into 10 bar: now " + from.pressure() + " and " + to.pressure());
+            helper.assertTrue(from.tank().amount() + to.tank().amount() == 20_000, "no gas should be made or lost");
         });
     }
 
