@@ -32,9 +32,10 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
  * Safety valve (PSV). Place it on a boiler drum: it pops open at its set pressure and blows steam off until the
- * pressure is a bar lower. Sneak-right-click to change the set pressure; a comparator next to it sees it lift.
+ * pressure is a bar lower. Sneak-right-click to change the set pressure; a comparator next to it sees it lift. A gas pipe on its
+ * outlet leads what it blows off to a flare.
  */
-public class SafetyValveBlock extends InstrumentBlock {
+public class SafetyValveBlock extends InstrumentBlock implements io.hookdev.setpoint.gas.GasPortBlock {
     /** The way the outlet points: away from the vessel it sits on. */
     public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
     public static final BooleanProperty LIFTING = BooleanProperty.create("lifting");
@@ -51,6 +52,12 @@ public class SafetyValveBlock extends InstrumentBlock {
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         return this.defaultBlockState().setValue(FACING, context.getClickedFace());
+    }
+
+    /** A gas pipe on its outlet carries what it blows off to a flare. */
+    @Override
+    public boolean gasPort(BlockState state, Direction side) {
+        return side == state.getValue(FACING);
     }
 
     @Override

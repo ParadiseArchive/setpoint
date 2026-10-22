@@ -1,0 +1,28 @@
+{
+  "parent": "setpoint:light_the_sky",
+  "criteria": {
+    "smokeless": {
+      "trigger": "setpoint:plant_event",
+      "conditions": {
+        "event": "smokeless"
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "setpoint:flare_stack"
+    },
+    "frame": "challenge",
+    "title": {
+      "translate": "advancements.setpoint.smokeless.title"
+    },
+    "description": {
+      "translate": "advancements.setpoint.smokeless.description"
+    }
+  },
+  "requirements": [
+    [
+      "smokeless"
+    ]
+  ]
+}

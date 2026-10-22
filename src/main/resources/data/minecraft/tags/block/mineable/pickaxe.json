@@ -40,6 +40,8 @@
     "setpoint:gas_sphere_part",
     "setpoint:pumpjack_part",
     "setpoint:column_part",
+    "setpoint:flare_stack",
+    "setpoint:flare_stack_part",
     "setpoint:rack_upright",
     "setpoint:rack_beam",
     "setpoint:grating",

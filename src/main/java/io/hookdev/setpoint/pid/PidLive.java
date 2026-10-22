@@ -27,7 +27,7 @@ import net.minecraft.world.level.block.state.BlockState;
 public record PidLive(String tag, int state, float gauge, String kind, String status, String value) {
     public static final int PLAIN = 0, ACTIVE = 1, ATTENTION = 2, ALARM = 3;
     /** Statuses that mean the equipment is doing its job: drawn in cyan. */
-    public static final Set<String> ACTIVE_STATUSES = Set.of("RUNNING", "STEAMING", "HEATING", "FLOWING", "AUTO", "CAS", "IN CONTROL", "OK");
+    public static final Set<String> ACTIVE_STATUSES = Set.of("RUNNING", "STEAMING", "HEATING", "FLOWING", "AUTO", "CAS", "IN CONTROL", "OK", "BURNING", "PILOT ON");
 
     public static final Codec<PidLive> CODEC = RecordCodecBuilder.create(i -> i.group(
             Codec.STRING.fieldOf("tag").forGetter(PidLive::tag),

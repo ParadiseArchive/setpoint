@@ -1,0 +1,52 @@
+{
+  "variants": {
+    "part=0": {
+      "model": "setpoint:block/flare_stack_stack"
+    },
+    "part=1": {
+      "model": "setpoint:block/flare_stack_tip"
+    },
+    "part=2": {
+      "model": "setpoint:block/flare_stack_leg"
+    },
+    "part=3": {
+      "model": "setpoint:block/flare_stack_leg_red"
+    },
+    "part=4": {
+      "model": "setpoint:block/flare_stack_rod"
+    },
+    "part=5": {
+      "model": "setpoint:block/flare_stack_rail"
+    },
+    "part=6": {
+      "model": "setpoint:block/flare_stack_deck"
+    },
+    "part=7": {
+      "model": "setpoint:block/flare_stack_drum"
+    },
+    "part=8": {
+      "model": "setpoint:block/flare_stack_head"
+    },
+    "part=9": {
+      "model": "setpoint:block/flare_stack_pipe"
+    },
+    "part=10": {
+      "model": "setpoint:block/flare_stack_station"
+    },
+    "part=11": {
+      "model": "setpoint:block/flare_stack_flame"
+    },
+    "part=12": {
+      "model": "setpoint:block/flare_stack_flame_core"
+    },
+    "part=13": {
+      "model": "setpoint:block/flare_stack_lamp"
+    },
+    "part=14": {
+      "model": "setpoint:block/floating_roof_tank_ladder"
+    },
+    "part=15": {
+      "model": "setpoint:block/floating_roof_tank_cage"
+    }
+  }
+}

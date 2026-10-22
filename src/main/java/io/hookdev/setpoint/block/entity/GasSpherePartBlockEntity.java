@@ -21,5 +21,6 @@ public class GasSpherePartBlockEntity extends MultiblockPartBlockEntity implemen
     @Override public double pressure() { GasSphereBlockEntity s = sphere(); return s == null ? 0 : s.pressure(); }
     @Override public double designPressure() { return GasSphereBlockEntity.MAX_PRESSURE; }
     @Override public int vent(int amount) { GasSphereBlockEntity s = sphere(); return s == null ? 0 : s.vent(amount); }
+    @Override public net.neoforged.neoforge.transfer.fluid.FluidResource ventedGas() { GasSphereBlockEntity s = sphere(); return s == null ? net.neoforged.neoforge.transfer.fluid.FluidResource.EMPTY : s.ventedGas(); }
     @Override public String tag() { GasSphereBlockEntity s = sphere(); return s == null ? "" : s.tag(); }
 }

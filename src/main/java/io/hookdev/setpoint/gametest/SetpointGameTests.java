@@ -87,6 +87,8 @@ public final class SetpointGameTests {
     private static final Map<String, Integer> MAX_TICKS = new LinkedHashMap<>();
     /** Tests that need more room than the bench: they get the big bench (10 x 8 x 10). */
     private static final java.util.Set<String> BIG = new java.util.HashSet<>();
+    /** Tests that need a lot of height: they get the tall bench (9 x 44 x 13), for the flare. */
+    private static final java.util.Set<String> TALL = new java.util.HashSet<>();
     /**
      * Tests that run in a batch of their own: an emergency stop reaches 32 blocks, and alarm beacons and overview screens
      * listen to every console that far, so other tests must not be near them.
@@ -160,6 +162,8 @@ public final class SetpointGameTests {
         test("a_gas_cylinder_keeps_its_gas", SetpointGameTests::aGasCylinderKeepsItsGas, 20);
         test("a_gas_sphere_takes_gas_and_breaks_whole", SetpointGameTests::aGasSphereTakesGasAndBreaksWhole, 100);
         BIG.add("a_gas_sphere_takes_gas_and_breaks_whole");
+        test("a_flare_burns_what_the_header_brings", SetpointGameTests::aFlareBurnsWhatTheHeaderBrings, 200);
+        TALL.add("a_flare_burns_what_the_header_brings");
         test("compressor_pushes_gas_uphill", SetpointGameTests::compressorPushesGasUphill, 200);
         test("forklift_racks_a_pallet", SetpointGameTests::forkliftRacksAPallet, 40);
         test("fuel_cell_makes_power_and_water", SetpointGameTests::fuelCellMakesPowerAndWater, 100);
@@ -201,7 +205,7 @@ public final class SetpointGameTests {
             String name = function.getId().getPath();
             Holder<TestEnvironmentDefinition<?>> batch = ALONE.contains(name) ? event.registerEnvironment(Setpoint.id("alone/" + name)) : environment;
             event.registerTest(function.getId(), new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, function.getId()),
-                    new TestData<>(batch, Setpoint.id(BIG.contains(function.getId().getPath()) ? "big_bench" : "bench"), MAX_TICKS.get(function.getId().getPath()), 0, true)));
+                    new TestData<>(batch, Setpoint.id(BIG.contains(name) ? "big_bench" : TALL.contains(name) ? "tall_bench" : "bench"), MAX_TICKS.get(function.getId().getPath()), 0, true)));
         }
     }
 
@@ -801,11 +805,12 @@ public final class SetpointGameTests {
             if (block.get() == SetpointContent.HOOKONIUM_ORE.get() || block.get() == SetpointContent.DEEPSLATE_HOOKONIUM_ORE.get()) continue;
             if (block.get() == SetpointContent.TANK_PART.get() || block.get() == SetpointContent.PALLET_PART.get()
                     || block.get() == SetpointContent.ROOF_TANK_PART.get() || block.get() == SetpointContent.GAS_SPHERE_PART.get()
-                    || block.get() == SetpointContent.PUMPJACK_PART.get() || block.get() == SetpointContent.COLUMN_PART.get()) continue; // parts: their base drops
+                    || block.get() == SetpointContent.PUMPJACK_PART.get() || block.get() == SetpointContent.COLUMN_PART.get()
+                    || block.get() == SetpointContent.FLARE_PART.get()) continue; // parts: their base drops
             if (block.get() == SetpointContent.PALLET_TRUCK_MODEL.get() || block.get() == SetpointContent.FORKLIFT_MODEL.get()
                     || block.get() == SetpointContent.FLOATING_ROOF_TANK_MODEL.get() || block.get() == SetpointContent.GAS_SPHERE_MODEL.get()
                     || block.get() == SetpointContent.PUMPJACK_MODEL.get() || block.get() == SetpointContent.COLUMN_MODEL.get()
-                    || block.get() == SetpointContent.CONTROL_ROOM_MODEL.get()) continue; // only hold models
+                    || block.get() == SetpointContent.CONTROL_ROOM_MODEL.get() || block.get() == SetpointContent.FLARE_MODEL.get()) continue; // only hold models
             BlockState state = block.get() == SetpointContent.HANDRAIL.get() // a handrail is as many as the sides it rails: one here
                     ? block.get().defaultBlockState().setValue(io.hookdev.setpoint.block.HandrailBlock.EDGES.get(Direction.NORTH), true) : block.get().defaultBlockState();
             var drops = Block.getDrops(state, helper.getLevel(), pos, null, null, new ItemStack(Items.DIAMOND_PICKAXE));
@@ -1491,6 +1496,50 @@ public final class SetpointGameTests {
             helper.assertTrue(contents != null && contents.copy().getAmount() == sphere.tank().amount(), "the dropped sphere should hold its gas, drops: " + drops);
             helper.getLevel().destroyBlock(middle, false);
             helper.assertTrue(helper.getLevel().getBlockState(abs).isAir(), "breaking a part should break the whole sphere");
+            for (BlockPos p : parts) helper.assertTrue(helper.getLevel().getBlockState(p).isAir(), "every part should be gone, not " + p);
+            helper.succeed();
+        });
+    }
+
+    /**
+     * A flare: placed with one block it stands forty blocks high (a solid stack, a deck you can stand on, the ladder up
+     * the inside). Lit on LPG pilot gas, it takes a cylinder of hydrogen on its header down to its set pressure and burns
+     * it; a safety valve piped to the header blows off into it instead of into the air; the pilot burns a little LPG;
+     * and breaking any part breaks the whole flare.
+     */
+    private static void aFlareBurnsWhatTheHeaderBrings(GameTestHelper helper) {
+        BlockPos base = new BlockPos(4, 1, 11);
+        BlockState state = SetpointContent.FLARE.get().defaultBlockState().setValue(io.hookdev.setpoint.block.FlareBlock.FACING, Direction.SOUTH);
+        helper.setBlock(base, state);
+        BlockPos abs = helper.absolutePos(base);
+        state.getBlock().setPlacedBy(helper.getLevel(), abs, helper.getLevel().getBlockState(abs), null, new ItemStack(SetpointContent.FLARE_ITEM.get()));
+        var parts = ((io.hookdev.setpoint.block.FlareBlock) state.getBlock()).parts(abs, state);
+        for (BlockPos part : parts) helper.assertTrue(helper.getLevel().getBlockState(part).is(SetpointContent.FLARE_PART.get()), "a part should stand at " + part);
+        // facing south, the stack stands seven blocks north of the panel, with the ladder on its east side
+        helper.assertTrue(parts.contains(helper.absolutePos(new BlockPos(4, 40, 4))), "the stack should reach forty blocks up");
+        helper.assertBlockProperty(new BlockPos(5, 20, 4), io.hookdev.setpoint.block.FlarePartBlock.LADDER, true);
+        BlockPos deck = helper.absolutePos(new BlockPos(2, 12, 2));
+        helper.assertTrue(parts.contains(deck) && helper.getLevel().getBlockState(deck).getCollisionShape(helper.getLevel(), deck).max(Direction.Axis.Y) == 1.0,
+                "the first platform's deck should be solid, twelve blocks up");
+        // pilot gas on its left (west), a cylinder of hydrogen on the header at the front, and one more with a safety valve piped to the header
+        var pilot = cylinder(helper, new BlockPos(3, 1, 11), io.hookdev.setpoint.gas.Gases.LPG, 10_000);
+        helper.setBlock(4, 1, 12, SetpointContent.GAS_PIPE.get());
+        var onHeader = cylinder(helper, new BlockPos(5, 1, 12), io.hookdev.setpoint.gas.Gases.HYDROGEN, 20_000);
+        var relieved = cylinder(helper, new BlockPos(6, 1, 12), io.hookdev.setpoint.gas.Gases.HYDROGEN, 11_000);
+        helper.setBlock(new BlockPos(6, 2, 12), SetpointContent.SAFETY_VALVE.get().defaultBlockState().setValue(io.hookdev.setpoint.block.SafetyValveBlock.FACING, Direction.UP));
+        for (BlockPos pipe : new BlockPos[]{new BlockPos(6, 3, 12), new BlockPos(5, 3, 12), new BlockPos(4, 3, 12), new BlockPos(4, 2, 12)}) helper.setBlock(pipe, SetpointContent.GAS_PIPE.get());
+        var flare = helper.getBlockEntity(base, io.hookdev.setpoint.block.entity.FlareBlockEntity.class);
+        flare.ignite(helper.makeMockPlayer(GameType.SURVIVAL));
+        helper.assertTrue(flare.lit(), "it should light on its pilot gas");
+        helper.runAfterDelay(100, () -> {
+            helper.assertTrue(Math.abs(onHeader.pressure() - flare.setPressure()) < 0.05, "it should take the cylinder on its header down to its set pressure, not " + onHeader.pressure());
+            helper.assertTrue(relieved.pressure() < 9.1, "the safety valve should blow its cylinder off to the flare, it stands at " + relieved.pressure());
+            helper.assertTrue(flare.burnt() >= 13_500, "it should burn all that hydrogen, burnt " + flare.burnt());
+            helper.assertTrue(pilot.tank().amount() < 10_000 && pilot.tank().amount() > 9_000, "the pilot should burn a little LPG, " + pilot.tank().amount() + " left");
+            helper.assertTrue(flare.lit() && flare.status().equals("PILOT ON"), "with nothing more coming it should burn on its pilot, it is " + flare.status());
+            helper.assertBlockProperty(new BlockPos(4, 40, 4), io.hookdev.setpoint.block.FlarePartBlock.LIT, true);
+            helper.getLevel().destroyBlock(deck, false);
+            helper.assertTrue(helper.getLevel().getBlockState(abs).isAir(), "breaking a part should break the whole flare");
             for (BlockPos p : parts) helper.assertTrue(helper.getLevel().getBlockState(p).isAir(), "every part should be gone, not " + p);
             helper.succeed();
         });

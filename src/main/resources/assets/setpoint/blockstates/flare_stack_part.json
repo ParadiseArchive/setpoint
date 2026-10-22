@@ -1,0 +1,9 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "setpoint:block/flare_stack"
+      }
+    }
+  ]
+}

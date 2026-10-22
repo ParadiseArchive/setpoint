@@ -1,0 +1,102 @@
+{
+  "parent": "minecraft:block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "stack": "setpoint:block/flare_stack",
+    "tip": "setpoint:block/flare_tip",
+    "tip_top": "setpoint:block/flare_tip_top",
+    "leg": "setpoint:block/flare_leg",
+    "leg_red": "setpoint:block/flare_leg_red",
+    "rod": "setpoint:block/flare_rod",
+    "rail": "setpoint:block/sphere_rail",
+    "grating": "setpoint:block/frt_grating",
+    "steel": "setpoint:block/frt_steel",
+    "concrete": "setpoint:block/sphere_concrete",
+    "drum": "setpoint:block/flare_drum",
+    "pipe": "setpoint:block/gas_pipe",
+    "station": "setpoint:block/sphere_station",
+    "panel": "setpoint:block/flare_panel",
+    "lamp": "setpoint:block/flare_lamp",
+    "band_lpg": "setpoint:block/band_lpg",
+    "band_steam": "setpoint:block/band_steam",
+    "flame": {
+      "force_translucent": true,
+      "sprite": "setpoint:block/flare_flame"
+    },
+    "flame_core": {
+      "force_translucent": true,
+      "sprite": "setpoint:block/flare_flame_core"
+    },
+    "particle": "setpoint:block/flare_leg_red"
+  },
+  "elements": [
+    {
+      "from": [
+        5,
+        5,
+        8
+      ],
+      "to": [
+        11,
+        11,
+        24
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "texture": "#leg"
+        },
+        "south": {
+          "uv": [
+            0,
+            0,
+            6,
+            6
+          ],
+          "texture": "#leg"
+        },
+        "east": {
+          "uv": [
+            0,
+            0,
+            6,
+            16
+          ],
+          "texture": "#leg"
+        },
+        "west": {
+          "uv": [
+            0,
+            0,
+            6,
+            16
+          ],
+          "texture": "#leg"
+        },
+        "up": {
+          "uv": [
+            0,
+            0,
+            6,
+            16
+          ],
+          "texture": "#leg"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            6,
+            16
+          ],
+          "texture": "#leg"
+        }
+      }
+    }
+  ]
+}

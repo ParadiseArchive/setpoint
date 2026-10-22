@@ -119,6 +119,16 @@
       }
     ]
   },
+  "block.flare_stack.roar": {
+    "subtitle": "subtitles.setpoint.block.flare_stack.roar",
+    "sounds": [
+      {
+        "name": "setpoint:block/flare_roar",
+        "volume": 1,
+        "attenuation_distance": 48
+      }
+    ]
+  },
   "block.safety_valve.lift": {
     "subtitle": "subtitles.setpoint.block.safety_valve.lift",
     "sounds": [

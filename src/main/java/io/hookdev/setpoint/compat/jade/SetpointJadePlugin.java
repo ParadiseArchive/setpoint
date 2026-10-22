@@ -53,7 +53,8 @@ public class SetpointJadePlugin implements IWailaPlugin {
             io.hookdev.setpoint.block.entity.GasSpherePartBlockEntity.class, io.hookdev.setpoint.block.entity.CompressorBlockEntity.class,
             io.hookdev.setpoint.block.entity.FuelCellBlockEntity.class, io.hookdev.setpoint.block.entity.AmmoniaReactorBlockEntity.class,
             io.hookdev.setpoint.block.entity.FertilizerMixerBlockEntity.class, io.hookdev.setpoint.block.entity.PumpjackBlockEntity.class,
-            io.hookdev.setpoint.block.entity.DistillationColumnBlockEntity.class, io.hookdev.setpoint.block.entity.DieselGeneratorBlockEntity.class};
+            io.hookdev.setpoint.block.entity.DistillationColumnBlockEntity.class, io.hookdev.setpoint.block.entity.DieselGeneratorBlockEntity.class,
+            io.hookdev.setpoint.block.entity.FlareBlockEntity.class, io.hookdev.setpoint.block.entity.MultiblockPartBlockEntity.class};
     @SuppressWarnings("unchecked")
     private static final Class<? extends Block>[] BLOCKS = new Class[]{PumpBlock.class, TankBlock.class, ControlValveBlock.class,
             ControllerBlock.class, LevelTransmitterBlock.class, BoilerBlock.class, SteamTurbineBlock.class, GeneratorBlock.class,
@@ -61,7 +62,8 @@ public class SetpointJadePlugin implements IWailaPlugin {
             io.hookdev.setpoint.block.SafetyValveBlock.class, io.hookdev.setpoint.block.WaterIntakeBlock.class, io.hookdev.setpoint.block.PortableTankBlock.class,
             io.hookdev.setpoint.block.TankPartBlock.class, io.hookdev.setpoint.block.GasMakerBlock.class, io.hookdev.setpoint.block.GasCylinderBlock.class,
             io.hookdev.setpoint.block.GasSphereBlock.class, io.hookdev.setpoint.block.GasSpherePartBlock.class,
-            io.hookdev.setpoint.block.CompressorBlock.class, io.hookdev.setpoint.block.PumpjackBlock.class, io.hookdev.setpoint.block.DistillationColumnBlock.class};
+            io.hookdev.setpoint.block.CompressorBlock.class, io.hookdev.setpoint.block.PumpjackBlock.class, io.hookdev.setpoint.block.DistillationColumnBlock.class,
+            io.hookdev.setpoint.block.FlareBlock.class, io.hookdev.setpoint.block.FlarePartBlock.class};
 
     @Override
     public void register(IWailaCommonRegistration registration) {
@@ -80,7 +82,9 @@ public class SetpointJadePlugin implements IWailaPlugin {
         @Override
         public void appendServerData(CompoundTag data, BlockAccessor accessor) {
             var be = accessor.getBlockEntity() instanceof io.hookdev.setpoint.block.entity.TankPartBlockEntity part ? part.tank()
-                    : accessor.getBlockEntity() instanceof io.hookdev.setpoint.block.entity.GasSpherePartBlockEntity part ? part.sphere() : accessor.getBlockEntity();
+                    : accessor.getBlockEntity() instanceof io.hookdev.setpoint.block.entity.GasSpherePartBlockEntity part ? part.sphere()
+                    : accessor.getBlockEntity() instanceof io.hookdev.setpoint.block.entity.MultiblockPartBlockEntity part && part.base() != null ? accessor.getLevel().getBlockEntity(part.base())
+                    : accessor.getBlockEntity();
             Reading r = be == null ? null : PlantScanner.read(be);
             if (r == null) return;
             data.putString("setpoint_tag", r.tag());

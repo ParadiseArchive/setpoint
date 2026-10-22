@@ -4,7 +4,9 @@ import org.jspecify.annotations.Nullable;
 
 import io.hookdev.setpoint.SetpointContent;
 import io.hookdev.setpoint.advancement.PlantEventTrigger;
+import io.hookdev.setpoint.block.FlareBlock;
 import io.hookdev.setpoint.block.SafetyValveBlock;
+import io.hookdev.setpoint.gas.GasRun;
 import io.hookdev.setpoint.hydraulics.PressureVessel;
 
 import net.minecraft.ChatFormatting;
@@ -38,6 +40,8 @@ public class SafetyValveBlockEntity extends InstrumentBlockEntity {
     private double setPressure = 10;
     private boolean lifting;
     private int vented;
+    private @Nullable BlockPos flarePos;
+    private long nextScan;
 
     public SafetyValveBlockEntity(BlockPos pos, BlockState state) {
         super(SetpointContent.SAFETY_VALVE_ENTITY.get(), pos, state, "PSV");
@@ -69,13 +73,16 @@ public class SafetyValveBlockEntity extends InstrumentBlockEntity {
         double pressure = vessel == null ? 0 : vessel.pressure();
         boolean wasLifting = lifting;
         lifting = vessel != null && (lifting ? pressure > setPressure - BLOWDOWN : pressure >= setPressure);
+        FlareBlockEntity flare = lifting ? flare(level, pos, state) : null;
+        var gas = lifting ? vessel.ventedGas() : null;
         vented = lifting ? vessel.vent(RELIEF_RATE) : 0;
+        if (flare != null) flare.relieve(gas, vented);
 
         if (lifting && !wasLifting) {
             level.playSound(null, pos, SetpointContent.SAFETY_VALVE_LIFT.get(), SoundSource.BLOCKS, 0.5f, 1.0f);
             PlantEventTrigger.near(level, pos, PlantEventTrigger.PSV_LIFTED);
         }
-        if (lifting) {
+        if (lifting && flare == null) { // to the air
             Direction outlet = state.getValue(SafetyValveBlock.FACING);
             double x = pos.getX() + 0.5 + outlet.getStepX() * 0.6, y = pos.getY() + 0.5 + outlet.getStepY() * 0.6, z = pos.getZ() + 0.5 + outlet.getStepZ() * 0.6;
             if (level.getGameTime() % 2 == 0) {
@@ -89,6 +96,19 @@ public class SafetyValveBlockEntity extends InstrumentBlockEntity {
         if (state.getValue(SafetyValveBlock.LIFTING) != lifting) {
             level.setBlock(pos, state.setValue(SafetyValveBlock.LIFTING, lifting), Block.UPDATE_ALL);
         }
+    }
+
+    /** The flare its outlet is piped to, if any: then it blows off into the flare header instead of into the air. */
+    private @Nullable FlareBlockEntity flare(ServerLevel level, BlockPos pos, BlockState state) {
+        if (level.getGameTime() >= nextScan) {
+            nextScan = level.getGameTime() + 20;
+            flarePos = null;
+            for (GasRun.End end : GasRun.traceAll(level, pos, state.getValue(SafetyValveBlock.FACING))) {
+                BlockState at = level.getBlockState(end.pos());
+                if (at.getBlock() instanceof FlareBlock && end.face() == FlareBlock.header(at)) flarePos = end.pos();
+            }
+        }
+        return flarePos != null && level.getBlockEntity(flarePos) instanceof FlareBlockEntity flare ? flare : null;
     }
 
     /** Sneak-right-click: the next set pressure. */

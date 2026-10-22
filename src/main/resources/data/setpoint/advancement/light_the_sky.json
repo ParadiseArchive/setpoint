@@ -1,0 +1,28 @@
+{
+  "parent": "setpoint:blowing_off_steam",
+  "criteria": {
+    "flare_lit": {
+      "trigger": "setpoint:plant_event",
+      "conditions": {
+        "event": "flare_lit"
+      }
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "setpoint:flare_stack"
+    },
+    "frame": "goal",
+    "title": {
+      "translate": "advancements.setpoint.light_the_sky.title"
+    },
+    "description": {
+      "translate": "advancements.setpoint.light_the_sky.description"
+    }
+  },
+  "requirements": [
+    [
+      "flare_lit"
+    ]
+  ]
+}

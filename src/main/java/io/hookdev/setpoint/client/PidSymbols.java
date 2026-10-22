@@ -85,6 +85,9 @@ public final class PidSymbols {
     // a distillation column: a tall vessel with its trays
     private static final String[] COLUMN = {
             "..####..", ".#....#.", ".#+++.#.", ".#.+++#.", ".#+++.#.", ".#.+++#.", ".#....#.", "..####.."};
+    // a flare: the stack with its flame on top
+    private static final String[] FLARE = {
+            "..+..+..", "..++++..", "...++...", "...##...", "...##...", "...##...", "..####..", ".######."};
     private static final String[] CONSOLE = {
             "########", "#++++++#", "#+....+#", "#++++++#", "########", "...##...", "..####..", "........"};
 
@@ -120,6 +123,7 @@ public final class PidSymbols {
             case PidDrawing.FERTILIZER_MIXER -> FERTILIZER_MIXER;
             case PidDrawing.PUMPJACK -> PUMPJACK;
             case PidDrawing.COLUMN -> COLUMN;
+            case PidDrawing.FLARE -> FLARE;
             default -> null;
         };
     }

@@ -395,6 +395,72 @@ const gasSphere = () => {
   return parts;
 };
 render('gas_sphere', gasSphere(), 2);
+// the flare, put together like FlareRenderer does (FLARE_SHIFT in gen-assets.mjs), its front and ladder side toward the
+// camera, burning with the wind blowing its flame to the left
+const FLARE_SHIFT = { stack: [0, 0, 0], tip: [0, -16, 0], leg: [0, 8, 0], leg_red: [0, 8, 0], rod: [0, 8, 0], rail: [0, 8, 0], deck: [0, 2, 0],
+  drum: [0, 0, 0], head: [0, 0, 0], pipe: [0, 8, 0], station: [-8, 0, -8], flame: [0, 0, 0], flame_core: [0, 0, 0], lamp: [0, 0, 0],
+  ladder: [0, 0, -66], cage: [0, 0, -66] };
+const flareStack = (load) => {
+  const parts = [];
+  const ry = (deg) => { const a = deg * Math.PI / 180; return ([x, y, z]) => [x * Math.cos(a) + z * Math.sin(a), y, -x * Math.sin(a) + z * Math.cos(a)]; };
+  const rx = (deg) => { const a = deg * Math.PI / 180; return ([x, y, z]) => [x, y * Math.cos(a) - z * Math.sin(a), y * Math.sin(a) + z * Math.cos(a)]; };
+  const mv = (dx, dy, dz) => ([x, y, z]) => [x + dx, y + dy, z + dz];
+  const sc = (kx, ky, kz) => ([x, y, z]) => [x * kx, y * ky, z * kz];
+  const piece = (name, [x, y, z], ...frame) => {
+    const sh = FLARE_SHIFT[name], model = name === 'ladder' || name === 'cage' ? 'floating_roof_tank_' + name : 'flare_stack_' + name;
+    const steps = [...frame, mv(x - 8 - sh[0], y - sh[1], z - 8 - sh[2])];
+    parts.push({ model, xf: (p) => steps.reduceRight((q, step) => step(q), p) });
+  };
+  const rod = (name, x1, y1, z1, x2, y2, z2, thick = 1) => {
+    const dx = x2 - x1, dy = y2 - y1, dz = z2 - z1, flat = Math.hypot(dx, dz), len = Math.hypot(flat, dy);
+    piece(name, [0, 0, 0], mv(x1, y1, z1), ry(Math.atan2(dx, dz) * 180 / Math.PI), rx(-Math.atan2(dy, flat) * 180 / Math.PI), sc(thick, thick, len / 16));
+  };
+  const legHalf = (y) => 48 + (22 - 48) * Math.min(1, Math.max(0, y / 576));
+  for (let y = 0; y < 592; y += 16) piece('stack', [0, y, 0]);
+  piece('tip', [0, 592, 0]);
+  const corners = [[1, 1], [-1, 1], [-1, -1], [1, -1]];
+  for (let k = 0; k * 96 < 576; k++) {
+    const y0 = k * 96, y1 = y0 + 96, w0 = legHalf(y0), w1 = legHalf(y1);
+    for (let c = 0; c < 4; c++) {
+      const a = corners[c], b = corners[(c + 1) % 4];
+      rod(k % 2 ? 'leg_red' : 'leg', a[0] * w0, y0, a[1] * w0, a[0] * w1, y1, a[1] * w1);
+      rod('rod', a[0] * w0, y0, a[1] * w0, b[0] * w1, y1, b[1] * w1);
+      rod('rod', b[0] * w0, y0, b[1] * w0, a[0] * w1, y1, a[1] * w1);
+      rod('rod', a[0] * w1, y1, a[1] * w1, b[0] * w1, y1, b[1] * w1, 1.5);
+    }
+    for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) rod('rod', dx * 5, y1, dz * 5, dx * w1, y1, dz * w1);
+  }
+  [[192, 48], [384, 40], [576, 40]].forEach(([y, half], d) => {
+    for (let x = -half; x < half; x += 8) for (let z = -half; z < half; z += 8) {
+      const cx = x + 4, cz = z + 4;
+      if ((Math.abs(cx) < 8 && Math.abs(cz) < 8) || (cx > 8 && cx < 24 && Math.abs(cz) < 8)) continue;
+      piece('deck', [cx, y, cz]);
+    }
+    const h = half - 0.5;
+    for (let c = 0; c < 4; c++) {
+      const a = corners[c], b = corners[(c + 1) % 4];
+      for (let k = 0; k < 6; k++) { const t = k / 6, x = h * (a[0] + (b[0] - a[0]) * t), z = h * (a[1] + (b[1] - a[1]) * t); rod('rail', x, y, z, x, y + 12, z); }
+      for (const r of [6, 12]) rod('rail', a[0] * h, y + r, a[1] * h, b[0] * h, y + r, b[1] * h);
+      if (d > 0) piece('lamp', [a[0] * h, y + 12, a[1] * h]);
+    }
+  });
+  for (let c = 0; c * 32 <= 576; c++) {
+    piece('ladder', [0, c * 32, 0], mv(-62, 0, 0), ry(90));
+    if (c > 0 && ![192, 384, 576].includes(c * 32)) piece('cage', [0, c * 32, 0], mv(-62, 0, 0), ry(90));
+  }
+  piece('drum', [0, 0, 80]); piece('head', [0, 0, 104]); piece('head', [0, 0, 0], mv(0, 0, 56), ry(180));
+  piece('pipe', [0, 0, 0], mv(0, 28, 64), rx(-90));
+  for (let n = 0; n < 4; n++) piece('pipe', [0, 0, n * 16], mv(0, 40, 64), ry(180));
+  piece('station', [-8, 0, 104]);
+  if (load > 0) {
+    const h = Math.min(16, 1.5 + 2.2 * Math.sqrt(load / 20)), w = 0.4 + h * 0.3;
+    const flame = [mv(0, 640, 0), ry(-45), rx(14), ry(20), sc(w, h, w)];
+    piece('flame', [0, 0, 0], ...flame);
+    piece('flame_core', [0, 0, 0], ...flame, sc(0.55, 0.6, 0.55), ry(30));
+  }
+  return parts;
+};
+render('flare_stack', flareStack(150), 1);
 // the pumpjack, put together like PumpjackRenderer does (PUMPJACK_SHIFT in gen-assets.mjs), side on, mid-nod
 const PUMPJACK_SHIFT = { frame: [0, 0, 32], post: [0, -12, 32], beam_front: [0, 0, -12], beam_back: [0, 0, 12], crank: [0, 0, 0],
   gearbox: [0, 0, 44], wellhead: [0, 0, 0], rod: [0, 8, 0] };

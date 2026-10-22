@@ -37,7 +37,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 public final class PlantScanner {
     /** How far a console sees, in blocks, in every direction. */
     public static final int RANGE = 32;
-    private static final List<String> KIND_ORDER = List.of("LIC", "FIC", "PIC", "PUMP", "VALVE", "FT", "PT", "TANK", "IBC", "DRUM", "LT", "BOILER", "PSV", "TURBINE", "GEN", "INTAKE", "ELECTROLYSER", "N2 GEN", "COMPRESSOR", "FUEL CELL", "REACTOR", "MIXER", "SPHERE", "CYLINDER", "PUMPJACK", "COLUMN");
+    private static final List<String> KIND_ORDER = List.of("LIC", "FIC", "PIC", "PUMP", "VALVE", "FT", "PT", "TANK", "IBC", "DRUM", "LT", "BOILER", "PSV", "TURBINE", "GEN", "INTAKE", "ELECTROLYSER", "N2 GEN", "COMPRESSOR", "FUEL CELL", "REACTOR", "MIXER", "SPHERE", "CYLINDER", "PUMPJACK", "COLUMN", "FLARE");
 
     private PlantScanner() {}
 
@@ -213,6 +213,14 @@ public final class PlantScanner {
             return new Reading(be.getBlockPos(), compressor.tag(), "COMPRESSOR", compressor.status(), severity,
                     String.format("%.1f > %.1f bar  %d mB/t", compressor.suctionPressure(), compressor.dischargePressure(), compressor.flow()),
                     List.of("OUT bar"), new float[]{(float) compressor.dischargePressure()}, List.of());
+        }
+        if (be instanceof io.hookdev.setpoint.block.entity.FlareBlockEntity flare) {
+            String status = flare.status();
+            int severity = status.equals("FLARE OUT") ? Reading.ALARM : status.equals("BURNING") || status.equals("PILOT ON") ? Reading.NORMAL : Reading.ATTENTION;
+            List<String> alarms = status.equals("FLARE OUT") ? List.of("FLARE OUT") : status.equals("SMOKING") ? List.of("SMOKING") : List.of();
+            return new Reading(be.getBlockPos(), flare.tag(), "FLARE", status, severity,
+                    String.format("%d mB/t  set %.0f bar", flare.load(), flare.setPressure()), List.of("LOAD (0-1000 mB/t)", "SMOKE %"),
+                    new float[]{flare.load() / 10f, flare.smoke() * 100}, alarms);
         }
         if (be instanceof io.hookdev.setpoint.block.entity.GasSphereBlockEntity sphere) {
             var gas = sphere.tank().gas();

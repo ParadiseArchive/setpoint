@@ -22,6 +22,19 @@ public final class ClientHooks {
         OverviewScreenTextures.remove(pos);
     }
 
+    private static final java.util.Map<BlockPos, FlareSound> FLARES = new java.util.HashMap<>();
+
+    /** Every tick of a flare: its roar plays while it burns and someone is near enough to hear it. */
+    public static void flareTick(io.hookdev.setpoint.block.entity.FlareBlockEntity flare) {
+        FLARES.values().removeIf(FlareSound::isStopped);
+        var player = Minecraft.getInstance().player;
+        if (!flare.lit() || player == null || FLARES.containsKey(flare.getBlockPos())
+                || player.distanceToSqr(flare.tip()) > 128 * 128) return;
+        FlareSound sound = new FlareSound(flare);
+        FLARES.put(flare.getBlockPos().immutable(), sound);
+        Minecraft.getInstance().getSoundManager().play(sound);
+    }
+
     public static void openHandbook() {
         Minecraft.getInstance().gui.setScreen(new HandbookScreen(Handbook.load()));
     }

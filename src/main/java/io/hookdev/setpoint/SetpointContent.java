@@ -140,6 +140,8 @@ public final class SetpointContent {
     public static final DeferredHolder<SoundEvent, SoundEvent> FORKLIFT_HORN = SOUNDS.register("entity.forklift.horn", SoundEvent::createVariableRangeEvent);
     /** The control room's alarm horn: a two-tone call from the alarm beacon (tools/make-alarm.mjs). */
     public static final DeferredHolder<SoundEvent, SoundEvent> ALARM_HORN = SOUNDS.register("block.alarm_beacon.horn", SoundEvent::createVariableRangeEvent);
+    /** The roar of a burning flare: a seamless loop of rumbling fire (tools/make-flare.mjs), louder the harder it burns. */
+    public static final DeferredHolder<SoundEvent, SoundEvent> FLARE_ROAR = SOUNDS.register("block.flare_stack.roar", SoundEvent::createVariableRangeEvent);
     /** The hiss of a safety valve blowing off steam. */
     public static final DeferredHolder<SoundEvent, SoundEvent> SAFETY_VALVE_LIFT = SOUNDS.register("block.safety_valve.lift",
             SoundEvent::createVariableRangeEvent);
@@ -185,6 +187,15 @@ public final class SetpointContent {
             p -> p.mapColor(MapColor.SNOW).strength(5.0f, 1200.0f).sound(SoundType.METAL).noOcclusion().dynamicShape().noLootTable());
     /** Holds the gas sphere's models (plates, columns, bracing, ladder, platform), for its renderer; never placed. */
     public static final DeferredBlock<VehicleModelBlock> GAS_SPHERE_MODEL = BLOCKS.registerBlock("gas_sphere_model", VehicleModelBlock::new,
+            p -> p.noCollision().noOcclusion().noLootTable());
+    /** A flare stack: steel, as hard as the gas sphere; the top of its stack glows while it burns. */
+    public static final DeferredBlock<io.hookdev.setpoint.block.FlareBlock> FLARE = BLOCKS.registerBlock("flare_stack", io.hookdev.setpoint.block.FlareBlock::new,
+            p -> p.mapColor(MapColor.COLOR_RED).strength(5.0f, 1200.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.FlarePartBlock> FLARE_PART = BLOCKS.registerBlock("flare_stack_part", io.hookdev.setpoint.block.FlarePartBlock::new,
+            p -> p.mapColor(MapColor.COLOR_RED).strength(5.0f, 1200.0f).sound(SoundType.METAL).noOcclusion().dynamicShape().noLootTable()
+                    .lightLevel(s -> s.getValue(io.hookdev.setpoint.block.FlarePartBlock.LIT) ? 15 : 0));
+    /** Holds the flare's models (stack, tip, legs, bracing, platforms, drum, flame), for its renderer; never placed. */
+    public static final DeferredBlock<VehicleModelBlock> FLARE_MODEL = BLOCKS.registerBlock("flare_stack_model", VehicleModelBlock::new,
             p -> p.noCollision().noOcclusion().noLootTable());
     // ---------- factory blocks: to build platforms, stairs and halls around the plant ----------
     public static final DeferredBlock<Block> CHECKER_PLATE = BLOCKS.registerSimpleBlock("checker_plate", p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL).requiresCorrectToolForDrops());
@@ -351,6 +362,7 @@ public final class SetpointContent {
     public static final DeferredItem<io.hookdev.setpoint.item.FertilizerItem> FERTILIZER = ITEMS.registerItem("fertilizer", io.hookdev.setpoint.item.FertilizerItem::new);
     public static final DeferredItem<BlockItem> GAS_CYLINDER_ITEM = ITEMS.registerSimpleBlockItem(GAS_CYLINDER, p -> p.stacksTo(16));
     public static final DeferredItem<BlockItem> GAS_SPHERE_ITEM = ITEMS.registerSimpleBlockItem(GAS_SPHERE, p -> p.rarity(Rarity.RARE).stacksTo(1));
+    public static final DeferredItem<BlockItem> FLARE_ITEM = ITEMS.registerSimpleBlockItem(FLARE, p -> p.rarity(Rarity.RARE).stacksTo(1));
     public static final DeferredItem<BlockItem> CHECKER_PLATE_ITEM = ITEMS.registerSimpleBlockItem(CHECKER_PLATE);
     public static final DeferredItem<BlockItem> GRATING_ITEM = ITEMS.registerSimpleBlockItem(GRATING);
     public static final DeferredItem<BlockItem> GRATING_STAIRS_ITEM = ITEMS.registerSimpleBlockItem(GRATING_STAIRS);
@@ -503,6 +515,10 @@ public final class SetpointContent {
             () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.GasSphereBlockEntity::new, GAS_SPHERE.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.GasSpherePartBlockEntity>> GAS_SPHERE_PART_ENTITY = BLOCK_ENTITIES.register("gas_sphere_part",
             () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.GasSpherePartBlockEntity::new, GAS_SPHERE_PART.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.FlareBlockEntity>> FLARE_ENTITY = BLOCK_ENTITIES.register("flare_stack",
+            () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.FlareBlockEntity::new, FLARE.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MultiblockPartBlockEntity>> FLARE_PART_ENTITY = BLOCK_ENTITIES.register("flare_stack_part",
+            () -> new BlockEntityType<>((pos, state) -> new MultiblockPartBlockEntity(SetpointContent.FLARE_PART_ENTITY.get(), pos, state), FLARE_PART.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BoilerBlockEntity>> BOILER_ENTITY = BLOCK_ENTITIES.register("boiler",
             () -> new BlockEntityType<>(BoilerBlockEntity::new, BOILER.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WaterIntakeBlockEntity>> WATER_INTAKE_ENTITY = BLOCK_ENTITIES.register("water_intake",
@@ -556,6 +572,7 @@ public final class SetpointContent {
                 output.accept(FERTILIZER.get());
                 output.accept(GAS_CYLINDER_ITEM.get());
                 output.accept(GAS_SPHERE_ITEM.get());
+                output.accept(FLARE_ITEM.get());
                 for (var gas : io.hookdev.setpoint.gas.Gases.ALL) { // a cylinder of each gas at 10 bar, to try things with
                     net.minecraft.world.item.ItemStack cylinder = new net.minecraft.world.item.ItemStack(GAS_CYLINDER_ITEM.get());
                     cylinder.set(FLUID_CONTENTS.get(), SimpleFluidContent.copyOf(new net.neoforged.neoforge.fluids.FluidStack(gas.fluid().get(), 10_000)));

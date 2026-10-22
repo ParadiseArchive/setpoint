@@ -769,6 +769,7 @@ json(join(ASSETS, 'sounds.json'), {
     sounds: [{ name: 'setpoint:vehicle/horn_low', volume: 1.0 }], // the same, lower (tools/make-horn.mjs low)
   },
   'block.alarm_beacon.horn': { subtitle: 'subtitles.setpoint.block.alarm_beacon.horn', sounds: [{ name: 'setpoint:block/alarm_horn', volume: 1.0 }] }, // tools/make-alarm.mjs
+  'block.flare_stack.roar': { subtitle: 'subtitles.setpoint.block.flare_stack.roar', sounds: [{ name: 'setpoint:block/flare_roar', volume: 1.0, attenuation_distance: 48 }] }, // tools/make-flare.mjs
   'block.safety_valve.lift': {
     subtitle: 'subtitles.setpoint.block.safety_valve.lift',
     sounds: [{ name: 'minecraft:random/fizz', pitch: 0.6, volume: 0.6 }, { name: 'minecraft:random/fizz', pitch: 0.5, volume: 0.6 }],
@@ -1808,6 +1809,169 @@ const SPHERE_SHIFT = { plate: [0, 8, 0], leg: [0, 0, 0], foot: [0, 0, 0], rod: [
 recipe('gas_sphere', ['IGI', 'GPG', 'IGI'], { I: 'minecraft:iron_block', G: 'setpoint:gas_cylinder', P: 'setpoint:gas_pipe' }, 'setpoint:gas_sphere');
 
 // =====================================================================================
+// Flare stack: a riser forty blocks high in a derrick, the knock-out drum at its foot, the flame on top
+// =====================================================================================
+// Like the gas sphere, its renderer puts it together from part models (the never-placed block setpoint:flare_stack_model,
+// one per part=). Each is built in its own small frame (a leg or rod lies along z, one block long, and is stretched to
+// length; a deck tile is 8 x 8) and moved into a model's bounds by FLARE_SHIFT; FlareRenderer.SHIFT must match, and the
+// sizes FlareBlock. The ladder and its cage are the floating roof tank's own models.
+texture('flare_stack', (p) => { // heat-resistant dark steel, lit from the left
+  p.rect(0, 0, 16, 16, '#5a5f68'); p.rect(0, 0, 3, 16, '#6c727c'); p.rect(3, 0, 2, 16, '#7a808a'); p.rect(11, 0, 5, 16, '#4b4f57');
+  p.rect(0, 15, 16, 1, '#41454c');
+  for (const [x, y] of [[6, 4], [9, 11], [2, 9], [13, 2]]) p.set(x, y, '#535860');
+});
+texture('flare_tip', (p) => { // stainless steel, sooted at the top where the flame licks it
+  p.rect(0, 0, 16, 16, '#a7adb5'); p.rect(0, 0, 3, 16, '#bcc2ca'); p.rect(11, 0, 5, 16, '#8f959e');
+  const soot = ['#24252a', '#2e3035', '#3b3d43', '#4c4f56', '#646870', '#80858d'];
+  soot.forEach((c, y) => p.rect(0, y, 16, 1, c));
+  for (const [x, y] of [[3, 6], [9, 7], [13, 6], [6, 8]]) p.set(x, y, '#6f747c');
+});
+texture('flare_tip_top', (p) => { p.rect(0, 0, 16, 16, '#1d1e22'); p.rect(0, 0, 16, 1, '#3b3d43'); p.rect(0, 0, 1, 16, '#3b3d43'); });
+texture('flare_leg', (p) => { p.rect(0, 0, 16, 16, '#e8eaed'); p.rect(0, 0, 1, 16, '#ffffff'); p.rect(5, 0, 1, 16, '#c3c7cd'); });
+texture('flare_leg_red', (p) => { p.rect(0, 0, 16, 16, '#c8372d'); p.rect(0, 0, 1, 16, '#e0574a'); p.rect(5, 0, 1, 16, '#9e2a22'); });
+texture('flare_rod', (p) => { p.rect(0, 0, 16, 16, '#6b717b'); p.rect(0, 0, 1, 16, '#858b95'); });
+texture('flare_drum', (p) => { // the knock-out drum: light grey plates, a weld seam round it
+  p.rect(0, 0, 16, 16, '#c3c7cd');
+  for (const [x, y] of [[4, 3], [11, 6], [7, 11], [2, 9], [13, 13]]) p.set(x, y, '#b5b9c0');
+  p.rect(15, 0, 1, 16, '#a2a7af');
+});
+texture('flare_panel', (p) => { // the ignition panel: a grey cabinet, a red IGNITE button, an amber pilot lamp
+  plate(p, '#8a9099');
+  p.rect(3, 4, 4, 4, '#2a2c30'); p.rect(4, 5, 2, 2, '#e0392b'); p.set(4, 5, '#ff7a6e');
+  p.rect(10, 4, 3, 3, '#2a2c30'); p.set(11, 5, C.amber);
+  p.rect(3, 10, 10, 2, '#5d636c');
+});
+texture('flare_lamp', (p) => { p.rect(0, 0, 16, 16, '#ff3b2f'); p.rect(0, 0, 16, 2, '#ff8a80'); });
+// the flame: eight frames of fire, narrow where it leaves the tip, widest a third of the way up, licking off in
+// tongues at the top; see-through at its edges. The core is the same, smaller, nearly white.
+for (const core of [false, true]) {
+  animated(core ? 'flare_flame_core' : 'flare_flame', 2, Array.from({ length: 8 }, (_, f) => (p) => {
+    const rnd = (a, b) => { const s = Math.sin(a * 12.9898 + b * 78.233 + f * 37.719) * 43758.5453; return s - Math.floor(s); };
+    for (let y = 0; y < 16; y++) {
+      const t = (15 - y) / 15;
+      const sway = Math.sin((f / 8) * Math.PI * 2 + t * 4) * 1.3 * t;
+      const body = Math.max(0, Math.sin(Math.PI * Math.min(1, 0.14 + t * 0.9))) ** 0.8 * (1 - t * 0.45);
+      const half = (core ? 4.4 : 7.8) * body * (0.9 + 0.2 * rnd(y, 1)) + 0.4;
+      for (let x = 0; x < 16; x++) {
+        const d = Math.abs(x + 0.5 - 8 - sway) / half;
+        if (d > 1 || (t > 0.5 && rnd(x, y) < (t - 0.5) * 1.5)) continue;
+        const heat = (1 - d) * (1 - t * 0.55);
+        if (core) p.set(x, y, heat > 0.45 ? '#fffbe6f0' : '#ffe9a0e0');
+        else p.set(x, y, heat > 0.6 ? '#ffe27ae8' : heat > 0.35 ? '#ffb43cd8' : heat > 0.15 ? '#ff7a22c0' : '#e8461e90');
+      }
+    }
+  }));
+}
+const FLARE_SHIFT = { stack: [0, 0, 0], tip: [0, -16, 0], leg: [0, 8, 0], leg_red: [0, 8, 0], rod: [0, 8, 0], rail: [0, 8, 0], deck: [0, 2, 0],
+  drum: [0, 0, 0], head: [0, 0, 0], pipe: [0, 8, 0], station: [-8, 0, -8], flame: [0, 0, 0], flame_core: [0, 0, 0], lamp: [0, 0, 0] };
+{
+  const P = Object.fromEntries(Object.keys(FLARE_SHIFT).map((k) => [k, []]));
+  const add = (part, from, to, faces, stretch = false, extra = {}) => P[part].push({ from, to, faces, stretch, extra });
+  const sides = (t, skip = []) => Object.fromEntries(['north', 'south', 'east', 'west', 'up', 'down'].filter((f) => !skip.includes(f)).map((f) => [f, t]));
+  // a rod along z, a block long, stretched by the renderer: every face shows its whole texture
+  const rod = (part, r, t) => add(part, [-r, -r, 0], [r, r, 16], Object.fromEntries(['north', 'south', 'east', 'west', 'up', 'down']
+    .map((f) => [f, { t, uv: f === 'north' || f === 'south' ? [0, 0, 2 * r, 2 * r] : [0, 0, 2 * r, 16] }])), true);
+
+  // ---- the stack, a block of it, and the tip: a reducer up to the wider tip, its steam ring, three pilots beside it
+  add('stack', [-5, 0, -5], [5, 16, 5], sides('stack', ['up', 'down']));
+  add('tip', [-6, 0, -6], [6, 4, 6], sides('tip', ['down']));
+  add('tip', [-7, 4, -7], [7, 44, 7], { ...sides('tip', ['up', 'down']), up: 'tip_top' });
+  add('tip', [-7.5, 43, -7.5], [7.5, 44, 7.5], sides('rod', ['up']));                        // the rim
+  for (const [x1, z1, x2, z2] of [[-9, -9, 9, -8], [-9, 8, 9, 9], [-9, -8, -8, 8], [8, -8, 9, 8]]) add('tip', [x1, 8, z1], [x2, 10, z2], sides('rod')); // the steam ring
+  for (const [x, z] of [[0, -8.5], [0, 8.5], [-8.5, 0], [8.5, 0]]) add('tip', [x - 0.5, 10, z - 0.5], [x + 0.5, 42, z + 0.5], sides('rod', ['up', 'down'])); // its risers
+  for (const a of [30, 150, 270]) { // the pilots, with their burner heads just under the rim
+    const x = 9.5 * Math.sin(a * Math.PI / 180), z = 9.5 * Math.cos(a * Math.PI / 180);
+    add('tip', [x - 1, 4, z - 1], [x + 1, 44, z + 1], sides('stack', ['down']));
+    add('tip', [x - 1.5, 44, z - 1.5], [x + 1.5, 47, z + 1.5], sides('tip'));
+  }
+  // ---- the derrick's members and the platform pieces
+  rod('leg', 3, 'leg'); rod('leg_red', 3, 'leg_red'); rod('rod', 1, 'rod'); rod('rail', 0.5, 'rail');
+  add('deck', [-4, -2, -4], [4, 0, 4], { up: { t: 'grating', uv: [0, 0, 8, 8] }, down: { t: 'grating', uv: [0, 0, 8, 8] } }, true);
+  add('lamp', [-0.5, -2, -0.5], [0.5, 0, 0.5], sides('rod', ['up']));
+  add('lamp', [-1.5, 0, -1.5], [1.5, 2.5, 1.5], sides('lamp'), false, { light_emission: 15 });
+  // ---- the knock-out drum, from its middle: the shell as slices of a circle along z, two saddles, the outlet on top
+  for (let y = 6; y < 30; y += 2) {
+    const h = Math.sqrt(144 - (y + 1 - 18) ** 2);
+    add('drum', [-h, y, -24], [h, y + 2, 24], { east: 'drum', west: 'drum', north: 'drum', south: 'drum', ...(y + 1 > 18 ? { up: 'drum' } : { down: 'drum' }) });
+  }
+  for (const z of [-14, 14]) {
+    add('drum', [-10, 0, z - 3], [10, 8, z + 3], sides('concrete', ['down']));
+    add('drum', [-9, 8, z - 2], [9, 11, z + 2], sides('steel', ['down']));
+  }
+  add('drum', [-4.5, 29, -20.5], [4.5, 31, -11.5], sides('steel'));                           // the outlet flange
+  add('drum', [-2, 13, 22], [2, 23, 23], { ...sides('rod', ['up', 'down']) });                 // a level gauge on the front end
+  add('drum', [11.5, 12, -6], [13, 24, 6], sides('steel', ['west']));                           // the manway on its side
+  // ---- a dished head, from the end of the shell (z = 0) outwards
+  add('head', [-11, 8, 0], [11, 28, 2], sides('drum', ['north']));
+  add('head', [-8, 10, 2], [8, 26, 4], sides('drum', ['north']));
+  add('head', [-4, 14, 4], [4, 22, 5], sides('drum', ['north']));
+  // ---- a length of the pipe from the drum to the stack
+  add('pipe', [-4, -4, 0], [4, 4, 16], sides('pipe', ['north', 'south']));
+  // ---- the ignition panel, in its own block's pixels: a plinth, the cabinet, a stub with a band for each gas line,
+  // the IGNITE box on top and the pipe up and back into the drum
+  add('station', [1, 0, 1], [15, 2, 15], sides('concrete', ['down']));
+  add('station', [4, 2, 4], [12, 12, 12], { ...sides('station', ['down', 'south']), south: 'panel' });
+  add('station', [5, 5, 12], [11, 11, 16], sides('pipe', ['south', 'north']));                // the flare header, at the front
+  add('station', [0, 5, 5], [4, 11, 11], sides('pipe', ['east', 'west']));                     // pilot gas, on the left
+  add('station', [1.5, 4.5, 4.5], [2.5, 11.5, 11.5], sides('band_lpg'));
+  add('station', [12, 5, 5], [16, 11, 11], sides('pipe', ['east', 'west']));                   // steam, on the right
+  add('station', [13.5, 4.5, 4.5], [14.5, 11.5, 11.5], sides('band_steam'));
+  add('station', [6, 12, 4], [10, 22, 8], sides('pipe', ['down']));                            // up to the drum
+  add('station', [6, 14, 0], [10, 22, 4], sides('pipe', ['north']));
+  add('station', [3, 12, 9], [13, 16, 13], { ...sides('station', ['down', 'south']), south: { t: 'panel', uv: [0, 2, 16, 8] } });
+  // ---- the flame: three crossed sheets, and a core like it; they glow by themselves
+  for (const part of ['flame', 'flame_core']) {
+    for (const angle of [0, 60, -60]) {
+      add(part, [-8, 0, 0], [8, 16, 0], { north: { t: part, uv: [0, 0, 16, 16] }, south: { t: part, uv: [0, 0, 16, 16] } }, true,
+        { light_emission: 15, shade: false, ...(angle ? { rotation: { origin: [8, 0, 8], x: 0, y: angle, z: 0 } } : {}) });
+    }
+  }
+
+  const BUILD = (list, shift) => list.flatMap(({ from, to, faces, stretch, extra }) => {
+    const m = (p) => p.map((v, k) => +(v + 8 * (k !== 1) + shift[k]).toFixed(4));
+    if (stretch) return [{ ...box(m(from), m(to), Object.fromEntries(Object.entries(faces).map(([f, { t, uv }]) => [f, { uv, texture: '#' + t }]))), ...extra }];
+    return tiled(m(from), m(to), (f) => {
+      const t = faces[f];
+      return t ? '#' + (typeof t === 'string' ? t : t.t) : null;
+    }).map((e) => ({ ...e, ...extra }));
+  });
+  const textures = { stack: tex('flare_stack'), tip: tex('flare_tip'), tip_top: tex('flare_tip_top'), leg: tex('flare_leg'), leg_red: tex('flare_leg_red'),
+    rod: tex('flare_rod'), rail: tex('sphere_rail'), grating: tex('frt_grating'), steel: tex('frt_steel'), concrete: tex('sphere_concrete'),
+    drum: tex('flare_drum'), pipe: tex('gas_pipe'), station: tex('sphere_station'), panel: tex('flare_panel'), lamp: tex('flare_lamp'),
+    band_lpg: tex('band_lpg'), band_steam: tex('band_steam'), flame: { force_translucent: true, sprite: tex('flare_flame') },
+    flame_core: { force_translucent: true, sprite: tex('flare_flame_core') }, particle: tex('flare_leg_red') };
+  const parts = Object.keys(FLARE_SHIFT);
+  for (const part of parts) M('flare_stack_' + part, { parent: 'minecraft:block/block', ambientocclusion: false, textures, elements: BUILD(P[part], FLARE_SHIFT[part]) });
+  const models = [...parts.map((p) => 'flare_stack_' + p), 'floating_roof_tank_ladder', 'floating_roof_tank_cage'];
+  BS('flare_stack_model', { variants: Object.fromEntries(Array.from({ length: 16 }, (_, i) => [`part=${i}`, { model: 'setpoint:block/' + models[i] }])) });
+  M('flare_stack', { textures: { particle: tex('flare_leg_red') } });
+  BS('flare_stack', { variants: Object.fromEntries(['north', 'east', 'south', 'west'].map((f) => [`facing=${f}`, { model: 'setpoint:block/flare_stack' }])) });
+  BS('flare_stack_part', { multipart: [{ apply: { model: 'setpoint:block/flare_stack' } }] });
+}
+// the item: a flat picture, a model this tall and thin would be a line in the inventory
+texture('flare_stack', (p) => pixels(p, [
+  '.......a........',
+  '......aba.......',
+  '......bcb.......',
+  '.......s........',
+  '......wsw.......',
+  '......rsr.......',
+  '.....w.s.w......',
+  '.....rgsgr......',
+  '....w.gsg.w.....',
+  '....r.gsg.r.....',
+  '...wggggggw.....',
+  '...r.g.s.g.r....',
+  '..w.g..s..g.w...',
+  '..r.g..s..g.r...',
+  '..wddddsddddw...',
+  '.ffffffffffff...',
+], { a: '#ffb43c', b: '#ff7a22', c: '#ffe27a', s: '#5a5f68', w: '#e8eaed', r: '#c8372d', g: '#6b717b', d: '#c3c7cd', f: '#3d424d' }), 'item');
+json(join(ASSETS, 'models/item', 'flare_stack.json'), { parent: 'minecraft:item/generated', textures: { layer0: 'setpoint:item/flare_stack' } });
+item('flare_stack', 'setpoint:item/flare_stack');
+recipe('flare_stack', ['IFI', 'BPB', 'IDI'], { I: 'minecraft:iron_block', F: 'minecraft:flint_and_steel', B: 'minecraft:iron_bars', P: 'setpoint:gas_pipe', D: 'setpoint:drum' }, 'setpoint:flare_stack');
+
+// =====================================================================================
 // Factory blocks: grating, stairs, handrails, ladders, beams and cladding to build round the plant
 // =====================================================================================
 texture('grating', (p) => { // see-through floor grating: bearing bars one way, cross bars the other, holes between
@@ -2727,6 +2891,7 @@ for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) loot
 // factory blocks: each drops itself; a handrail drops one for every side it rails
 const FACTORY = ['rack_upright', 'rack_beam', 'grating', 'grating_stairs', 'caged_ladder', 'steel_beam', 'checker_plate', 'hazard_stripes', 'corrugated_steel', 'industrial_lamp'];
 for (const name of FACTORY) lootSelf(name);
+lootSelf('flare_stack');
 // control room: each drops itself (the filing cabinet also what it holds); the blast door only from its lower half
 const CONTROL_ROOM = ['overview_screen', 'alarm_beacon', 'esd_button', 'radio_charger', 'control_desk', 'desk_corner', 'desk_screens', 'office_chair',
   'raised_floor', 'raised_floor_vent', 'ceiling_panel', 'ceiling_light', 'wall_clock', 'filing_cabinet', 'printer', 'coffee_machine', 'exit_sign', 'wired_glass', 'wired_glass_pane'];
@@ -2747,7 +2912,7 @@ lootOre('hookonium_ore', 'setpoint:raw_hookonium');
 lootOre('deepslate_hookonium_ore', 'setpoint:raw_hookonium');
 const HOOKONIUM_BLOCKS = ['hookonium_ore', 'deepslate_hookonium_ore', 'hookonium_block', 'raw_hookonium_block'].map((n) => 'setpoint:' + n);
 const tag = (path, values) => json(join(ROOT, 'data', path + '.json'), { values });
-tag('minecraft/tags/block/mineable/pickaxe', [...MACHINES.map((n) => 'setpoint:' + n), 'setpoint:drum', 'setpoint:ibc', 'setpoint:floating_roof_tank', 'setpoint:roof_tank_part', 'setpoint:gas_cylinder', 'setpoint:gas_sphere', 'setpoint:gas_sphere_part', 'setpoint:pumpjack_part', 'setpoint:column_part', ...FACTORY.map((n) => 'setpoint:' + n), 'setpoint:handrail', ...CONTROL_ROOM.filter((n) => n !== 'office_chair').map((n) => 'setpoint:' + n), 'setpoint:blast_door', ...HOOKONIUM_BLOCKS]);
+tag('minecraft/tags/block/mineable/pickaxe', [...MACHINES.map((n) => 'setpoint:' + n), 'setpoint:drum', 'setpoint:ibc', 'setpoint:floating_roof_tank', 'setpoint:roof_tank_part', 'setpoint:gas_cylinder', 'setpoint:gas_sphere', 'setpoint:gas_sphere_part', 'setpoint:pumpjack_part', 'setpoint:column_part', 'setpoint:flare_stack', 'setpoint:flare_stack_part', ...FACTORY.map((n) => 'setpoint:' + n), 'setpoint:handrail', ...CONTROL_ROOM.filter((n) => n !== 'office_chair').map((n) => 'setpoint:' + n), 'setpoint:blast_door', ...HOOKONIUM_BLOCKS]);
 tag('minecraft/tags/block/doors', ['setpoint:blast_door']);
 tag('minecraft/tags/item/doors', ['setpoint:blast_door']);
 tag('minecraft/tags/block/climbable', ['setpoint:caged_ladder']);
@@ -2783,8 +2948,8 @@ function nbt() {
     end() { u8(0); },
   };
 }
-// the test benches: empty rooms, the normal one and a big one for the floating roof tank
-for (const [name, W, H, D] of [['bench', 7, 11, 3], ['big_bench', 10, 12, 10]]) {
+// the test benches: empty rooms, the normal one, a big one for the floating roof tank and a tall one for the flare
+for (const [name, W, H, D] of [['bench', 7, 11, 3], ['big_bench', 10, 12, 10], ['tall_bench', 9, 44, 13]]) {
 const n = nbt();
 n.named(10, '');                                       // root compound
 n.named(3, 'DataVersion'); n.i32(5023);                // Minecraft 26.3
@@ -2886,6 +3051,8 @@ shapeless('handbook', ['minecraft:book', 'minecraft:copper_ingot'], 'setpoint:ha
     ['skyscraper', 'moving_water', 'setpoint:tank', 'goal', happened('tall_tank')],
     ['steady_flow', 'hands_off', 'setpoint:flow_transmitter', 'goal', happened('flow_holding')],
     ['good_neighbours', 'moving_water', 'setpoint:centrifugal_pump', 'task', happened('foreign_tank')],
+    ['light_the_sky', 'blowing_off_steam', 'setpoint:flare_stack', 'goal', happened('flare_lit')],
+    ['smokeless', 'light_the_sky', 'setpoint:flare_stack', 'challenge', happened('smokeless')],
   ];
   for (const [name, parent, icon, frame, criteria, extra = {}] of ADV) {
     json(join(DATA, 'advancement', name + '.json'), {

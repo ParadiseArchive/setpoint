@@ -179,6 +179,8 @@ public final class PidCapture {
         if (be instanceof io.hookdev.setpoint.block.entity.CompressorBlockEntity compressor) {
             return new Found(PidDrawing.COMPRESSOR, quarter(state.getValue(io.hookdev.setpoint.block.CompressorBlock.FACING)), compressor.tag(), 5);
         }
+        if (block instanceof io.hookdev.setpoint.block.FlarePartBlock) return null; // the rest of a flare: drawn once, at its ignition panel
+        if (be instanceof io.hookdev.setpoint.block.entity.FlareBlockEntity flare) return new Found(PidDrawing.FLARE, 0, flare.tag(), 5);
         if (block instanceof io.hookdev.setpoint.block.GasSpherePartBlock) return null; // the rest of a gas sphere: drawn once, at its valve station
         if (be instanceof io.hookdev.setpoint.block.entity.GasSphereBlockEntity sphere) return new Found(PidDrawing.GAS_SPHERE, 0, sphere.tag(), 5);
         if (block instanceof SteamTurbineBlock && be instanceof SteamTurbineBlockEntity turbine) {

@@ -1,0 +1,66 @@
+{
+  "parent": "minecraft:block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "stack": "setpoint:block/flare_stack",
+    "tip": "setpoint:block/flare_tip",
+    "tip_top": "setpoint:block/flare_tip_top",
+    "leg": "setpoint:block/flare_leg",
+    "leg_red": "setpoint:block/flare_leg_red",
+    "rod": "setpoint:block/flare_rod",
+    "rail": "setpoint:block/sphere_rail",
+    "grating": "setpoint:block/frt_grating",
+    "steel": "setpoint:block/frt_steel",
+    "concrete": "setpoint:block/sphere_concrete",
+    "drum": "setpoint:block/flare_drum",
+    "pipe": "setpoint:block/gas_pipe",
+    "station": "setpoint:block/sphere_station",
+    "panel": "setpoint:block/flare_panel",
+    "lamp": "setpoint:block/flare_lamp",
+    "band_lpg": "setpoint:block/band_lpg",
+    "band_steam": "setpoint:block/band_steam",
+    "flame": {
+      "force_translucent": true,
+      "sprite": "setpoint:block/flare_flame"
+    },
+    "flame_core": {
+      "force_translucent": true,
+      "sprite": "setpoint:block/flare_flame_core"
+    },
+    "particle": "setpoint:block/flare_leg_red"
+  },
+  "elements": [
+    {
+      "from": [
+        4,
+        0,
+        4
+      ],
+      "to": [
+        12,
+        2,
+        12
+      ],
+      "faces": {
+        "up": {
+          "uv": [
+            0,
+            0,
+            8,
+            8
+          ],
+          "texture": "#grating"
+        },
+        "down": {
+          "uv": [
+            0,
+            0,
+            8,
+            8
+          ],
+          "texture": "#grating"
+        }
+      }
+    }
+  ]
+}

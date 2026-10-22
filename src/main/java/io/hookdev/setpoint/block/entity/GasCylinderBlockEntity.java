@@ -85,6 +85,7 @@ public class GasCylinderBlockEntity extends BlockEntity implements GasPortBlock.
     @Override public double pressure() { return gas.pressure(); }
     @Override public double designPressure() { return MAX_PRESSURE; }
     @Override public int vent(int amount) { return gas.extract(amount); }
+    @Override public net.neoforged.neoforge.transfer.fluid.FluidResource ventedGas() { return gas.gas(); }
     @Override public String tag() { return name.tag(worldPosition); }
 
     @Override
