@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "north": "setpoint:block/fuel_cell_front_on",
+    "east": "setpoint:block/fuel_cell_hydrogen",
+    "west": "setpoint:block/fuel_cell_oxygen",
+    "south": "setpoint:block/fuel_cell_back",
+    "up": "setpoint:block/fuel_cell_side",
+    "down": "setpoint:block/fuel_cell_side",
+    "particle": "setpoint:block/fuel_cell_side"
+  }
+}

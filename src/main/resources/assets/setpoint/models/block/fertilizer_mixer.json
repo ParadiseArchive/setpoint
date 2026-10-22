@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "north": "setpoint:block/fertilizer_mixer_front",
+    "east": "setpoint:block/mixer_ammonia",
+    "west": "setpoint:block/fertilizer_mixer_side",
+    "south": "setpoint:block/fertilizer_mixer_side",
+    "up": "setpoint:block/fertilizer_mixer_top",
+    "down": "setpoint:block/fertilizer_mixer_side",
+    "particle": "setpoint:block/fertilizer_mixer_side"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "I": "minecraft:iron_block",
+    "P": "setpoint:gas_pipe",
+    "T": "setpoint:tank",
+    "F": "minecraft:blast_furnace"
+  },
+  "pattern": [
+    "IPI",
+    "PTP",
+    "IFI"
+  ],
+  "result": {
+    "id": "setpoint:ammonia_reactor"
+  }
+}

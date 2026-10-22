@@ -70,6 +70,15 @@ public final class PidSymbols {
     // a compressor: a circle with the gas squeezed from wide to narrow, drawn the way the gas goes (like the pump)
     private static final String[] COMPRESSOR = {
             "..####..", ".#....#.", "#++....#", "#..++..#", "#...+++#", "#..++..#", "#++....#", "..####.."};
+    // a fuel cell: a stack of plates between the gas feeds, a lightning bolt for the power it makes
+    private static final String[] FUEL_CELL = {
+            "########", "#.#.#.##", "#.#.#.##", "########", "...++...", "..++....", "...++...", "..++...."};
+    // a reactor: a tall vessel with domed ends and a catalyst bed inside
+    private static final String[] AMMONIA_REACTOR = {
+            "..####..", ".#....#.", ".#++++#.", ".#.++.#.", ".#++++#.", ".#.++.#.", ".#....#.", "..####.."};
+    // a mixer: a vessel with an agitator
+    private static final String[] FERTILIZER_MIXER = {
+            "...##...", "########", "#..##..#", "#..##..#", "#.####.#", "#..##..#", "#......#", ".######."};
     private static final String[] CONSOLE = {
             "########", "#++++++#", "#+....+#", "#++++++#", "########", "...##...", "..####..", "........"};
 
@@ -100,6 +109,9 @@ public final class PidSymbols {
             case PidDrawing.GAS_CYLINDER -> GAS_CYLINDER;
             case PidDrawing.GAS_SPHERE -> GAS_SPHERE;
             case PidDrawing.COMPRESSOR -> COMPRESSOR;
+            case PidDrawing.FUEL_CELL -> FUEL_CELL;
+            case PidDrawing.AMMONIA_REACTOR -> AMMONIA_REACTOR;
+            case PidDrawing.FERTILIZER_MIXER -> FERTILIZER_MIXER;
             default -> null;
         };
     }

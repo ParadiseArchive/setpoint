@@ -36,7 +36,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 public final class PlantScanner {
     /** How far a console sees, in blocks, in every direction. */
     public static final int RANGE = 32;
-    private static final List<String> KIND_ORDER = List.of("LIC", "FIC", "PIC", "PUMP", "VALVE", "FT", "PT", "TANK", "IBC", "DRUM", "LT", "BOILER", "PSV", "TURBINE", "GEN", "INTAKE", "ELECTROLYSER", "N2 GEN", "COMPRESSOR", "SPHERE", "CYLINDER");
+    private static final List<String> KIND_ORDER = List.of("LIC", "FIC", "PIC", "PUMP", "VALVE", "FT", "PT", "TANK", "IBC", "DRUM", "LT", "BOILER", "PSV", "TURBINE", "GEN", "INTAKE", "ELECTROLYSER", "N2 GEN", "COMPRESSOR", "FUEL CELL", "REACTOR", "MIXER", "SPHERE", "CYLINDER");
 
     private PlantScanner() {}
 
@@ -164,6 +164,20 @@ public final class PlantScanner {
             int severity = maker.status().equals("RUNNING") || maker.status().equals("FULL") ? Reading.NORMAL : Reading.ATTENTION;
             return new Reading(be.getBlockPos(), maker.tag(), kind, maker.status(), severity, String.format("%.1f bar  %d mB/t", outlet, maker.made()),
                     List.of("OUTLET bar"), new float[]{(float) outlet}, List.of());
+        }
+        if (be instanceof io.hookdev.setpoint.block.entity.FuelCellBlockEntity cell) {
+            boolean ok = cell.status().equals("RUNNING") || cell.status().equals("FULL");
+            return new Reading(be.getBlockPos(), cell.tag(), "FUEL CELL", cell.status(), ok ? Reading.NORMAL : Reading.ATTENTION,
+                    cell.status().equals("RUNNING") ? io.hookdev.setpoint.block.entity.FuelCellBlockEntity.POWER + " FE/t" : "0 FE/t", List.of(), new float[0], List.of());
+        }
+        if (be instanceof io.hookdev.setpoint.block.entity.AmmoniaReactorBlockEntity reactor) {
+            boolean ok = reactor.status().equals("RUNNING") || reactor.status().equals("FULL");
+            return new Reading(be.getBlockPos(), reactor.tag(), "REACTOR", reactor.status(), ok ? Reading.NORMAL : Reading.ATTENTION,
+                    String.format("feed %.0f bar  %d mB/t", reactor.feedPressure(), reactor.made()), List.of("FEED bar"), new float[]{(float) reactor.feedPressure()}, List.of());
+        }
+        if (be instanceof io.hookdev.setpoint.block.entity.FertilizerMixerBlockEntity mixer) {
+            boolean ok = mixer.status().equals("RUNNING") || mixer.status().equals("FULL");
+            return new Reading(be.getBlockPos(), mixer.tag(), "MIXER", mixer.status(), ok ? Reading.NORMAL : Reading.ATTENTION, mixer.status(), List.of(), new float[0], List.of());
         }
         if (be instanceof io.hookdev.setpoint.block.entity.CompressorBlockEntity compressor) {
             int severity = compressor.status().equals("RUNNING") || compressor.status().equals("FULL") ? Reading.NORMAL : Reading.ATTENTION;

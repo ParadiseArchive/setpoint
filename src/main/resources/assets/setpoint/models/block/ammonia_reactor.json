@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "north": "setpoint:block/ammonia_reactor_front",
+    "east": "setpoint:block/reactor_nitrogen",
+    "west": "setpoint:block/reactor_hydrogen",
+    "south": "setpoint:block/ammonia_reactor_side",
+    "up": "setpoint:block/ammonia_reactor_top",
+    "down": "setpoint:block/ammonia_reactor_side",
+    "particle": "setpoint:block/ammonia_reactor_side"
+  }
+}

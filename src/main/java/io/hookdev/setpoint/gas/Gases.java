@@ -16,7 +16,7 @@ import net.neoforged.neoforge.transfer.fluid.FluidResource;
 /**
  * The gases. A gas is counted in mB at 1 bar (like normal cubic metres on a real plant): squeeze it into a vessel and
  * its pressure is how much is in it over how much room there is ({@link GasVessel#pressure()}).
- * Each has its own colour, the shoulder colour of its gas cylinder (red hydrogen, white oxygen, black nitrogen).
+ * Each has its own colour, the shoulder colour of its gas cylinder (red hydrogen, white oxygen, black nitrogen, yellow ammonia).
  */
 public final class Gases {
     public static final DeferredRegister<FluidType> TYPES = DeferredRegister.create(NeoForgeRegistries.Keys.FLUID_TYPES, Setpoint.MODID);
@@ -33,11 +33,13 @@ public final class Gases {
     public static final Gas OXYGEN = gas("oxygen", 0xFFF2F4F7, 1, 20);
     public static final Gas NITROGEN = gas("nitrogen", 0xFF2C2E33, 1, 20);
     public static final Gas STEAM = gas("steam", 0xFFD8DDE3, 0, 100);
-    public static final List<Gas> ALL = List.of(HYDROGEN, OXYGEN, NITROGEN, STEAM);
+    /** Yellow, like every toxic gas's cylinder. */
+    public static final Gas AMMONIA = gas("ammonia", 0xFFE8C547, -1, 20);
+    public static final List<Gas> ALL = List.of(HYDROGEN, OXYGEN, NITROGEN, STEAM, AMMONIA);
 
     private Gases() {}
 
-    /** density: below 0 rises in air (only hydrogen of these); temperature in °C. */
+    /** density: below 0 rises in air (hydrogen and ammonia); temperature in °C. */
     private static Gas gas(String id, int colour, int density, int celsius) {
         DeferredHolder<FluidType, FluidType> type = TYPES.register(id, () -> new FluidType(FluidType.Properties.create()
                 .descriptionId("fluid_type." + Setpoint.MODID + "." + id).density(density).viscosity(10).temperature(273 + celsius)));

@@ -1610,6 +1610,86 @@ BS('compressor', { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f,
   [`facing=${f},running=${run}`, { model: 'setpoint:block/compressor' + (run ? '_on' : ''), ...(y ? { y } : {}) }]))) });
 item('compressor', 'setpoint:block/compressor_on');
 recipe('compressor', ['IGI', 'PRP', 'III'], { I: 'minecraft:iron_ingot', G: 'setpoint:gas_pipe', P: 'minecraft:piston', R: 'minecraft:redstone_block' }, 'setpoint:compressor');
+// fuel cell, ammonia reactor and fertilizer mixer: gas machines you face, with their gas lines left and right
+GAS.ammonia = '#e8c547';
+texture('fuel_cell_hydrogen', gasPort(GAS.hydrogen));
+texture('fuel_cell_oxygen', gasPort(GAS.oxygen));
+const fuelCellFront = (led, ledDark) => (p) => { // the cell stack behind a window, a bolt for the power it makes
+  plate(p, '#3e6b5a');
+  p.rect(2, 2, 12, 7, C.steel0);
+  for (let x = 3; x < 13; x += 2) { p.rect(x, 3, 1, 5, '#cfe3da'); p.rect(x + 1, 3, 1, 5, '#55796b'); }
+  const bolt = [[8, 10], [7, 11], [7, 12], [8, 12], [9, 12], [8, 13], [7, 14]];
+  for (const [x, y] of bolt) p.set(x, y, C.amber);
+  p.rect(12, 12, 2, 2, led); p.set(13, 13, ledDark);
+};
+texture('fuel_cell_front', fuelCellFront(C.ledOff, C.outline));
+texture('fuel_cell_front_on', fuelCellFront(C.cyan, C.cyanDark));
+texture('fuel_cell_side', (p) => { plate(p, '#3e6b5a'); for (let y = 3; y < 14; y += 3) p.rect(3, y, 10, 1, '#2c4c40'); });
+texture('fuel_cell_back', (p) => { // the water outlet
+  plate(p, '#3e6b5a'); p.rect(4, 4, 8, 8, C.cu2); p.rect(5, 5, 6, 6, C.cu1); p.rect(6, 6, 4, 4, C.outline);
+});
+texture('reactor_nitrogen', gasPort(GAS.nitrogen));
+texture('reactor_hydrogen', gasPort(GAS.hydrogen));
+const reactorFront = (led, ledDark) => (p) => { // an insulated pressure vessel with its bolted head and a temperature gauge
+  plate(p, '#8c4a32');
+  p.rect(3, 1, 10, 14, '#c9cdd4'); p.rect(3, 1, 10, 1, '#e3e6ea'); p.rect(12, 1, 1, 14, '#9ea3ab');
+  for (let y = 3; y < 15; y += 3) p.rect(3, y, 10, 1, '#b2b7bf');                                   // cladding bands
+  p.rect(6, 6, 4, 4, '#f2f2f2'); p.set(7, 7, C.outline); p.set(8, 8, C.magenta);                    // the temperature gauge
+  p.rect(13, 13, 2, 2, led); p.set(14, 14, ledDark);
+};
+texture('ammonia_reactor_front', reactorFront(C.ledOff, C.outline));
+texture('ammonia_reactor_front_on', reactorFront(C.amber, '#c98a2c'));
+texture('ammonia_reactor_side', (p) => { plate(p, '#8c4a32'); p.rect(3, 1, 10, 14, '#c9cdd4'); for (let y = 3; y < 15; y += 3) p.rect(3, y, 10, 1, '#b2b7bf'); });
+texture('ammonia_reactor_top', (p) => { // the ammonia outlet, yellow band
+  plate(p, '#8c4a32'); p.rect(3, 3, 10, 10, GAS.ammonia); p.rect(4, 4, 8, 8, C.steel3); p.rect(5, 5, 6, 6, C.steel1); p.rect(6, 6, 4, 4, C.outline);
+});
+texture('mixer_ammonia', gasPort(GAS.ammonia));
+const mixerFront = (led, ledDark) => (p) => { // a hopper for bone meal on top of a mixing drum, the bagging spout below
+  plate(p, '#5a6b3a');
+  p.rect(3, 2, 10, 7, '#e8e4d2'); p.rect(3, 2, 10, 1, '#f6f3e6'); p.rect(4, 4, 8, 3, '#d2cdb4');      // the drum
+  p.rect(6, 10, 4, 4, C.steel1); p.rect(7, 14, 2, 1, C.steel0);                                     // the spout
+  p.rect(12, 12, 2, 2, led); p.set(13, 13, ledDark);
+};
+texture('fertilizer_mixer_front', mixerFront(C.ledOff, C.outline));
+texture('fertilizer_mixer_front_on', mixerFront(C.cyan, C.cyanDark));
+texture('fertilizer_mixer_side', (p) => { plate(p, '#5a6b3a'); rivets(p, [[2, 2], [12, 2], [2, 12], [12, 12]]); });
+texture('fertilizer_mixer_top', (p) => { plate(p, '#5a6b3a'); p.rect(3, 3, 10, 10, C.steel0); p.rect(4, 4, 8, 8, '#2a2c30'); }); // the hopper mouth
+texture('fertilizer', (p) => pixels(p, [ // a bag of NPK fertilizer
+  '................',
+  '.....######.....',
+  '....#aaaaaa#....',
+  '...#aaaaaaaa#...',
+  '...#abbbbbba#...',
+  '..#abbccccbba#..',
+  '..#abcbcbcbba#..',
+  '..#abbccccbba#..',
+  '..#abbbbbbbba#..',
+  '..#aaaaaaaaaa#..',
+  '..#adddddddda#..',
+  '..#aaaaaaaaaa#..',
+  '..#aaaaaaaaaa#..',
+  '...##########...',
+  '................',
+  '................',
+], { '#': '#3a3f2a', a: '#e8e4d2', b: '#7aa63c', c: '#f2f2ee', d: '#c9c4ad' }), 'item');
+for (const [name, left, right, back, top, side] of [
+  ['fuel_cell', 'fuel_cell_hydrogen', 'fuel_cell_oxygen', 'fuel_cell_back', 'fuel_cell_side', 'fuel_cell_side'],
+  ['ammonia_reactor', 'reactor_nitrogen', 'reactor_hydrogen', 'ammonia_reactor_side', 'ammonia_reactor_top', 'ammonia_reactor_side'],
+  ['fertilizer_mixer', 'mixer_ammonia', 'fertilizer_mixer_side', 'fertilizer_mixer_side', 'fertilizer_mixer_top', 'fertilizer_mixer_side'],
+]) {
+  for (const on of [false, true]) {
+    M(name + (on ? '_on' : ''), { parent: 'minecraft:block/cube', textures: {
+      north: tex(name + '_front' + (on ? '_on' : '')), east: tex(left), west: tex(right), south: tex(back), up: tex(top), down: tex(side), particle: tex(side) } });
+  }
+  BS(name, { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => [false, true].map((run) =>
+    [`facing=${f},running=${run}`, { model: 'setpoint:block/' + name + (run ? '_on' : ''), ...(y ? { y } : {}) }]))) });
+  item(name, 'setpoint:block/' + name + '_on');
+}
+item('fertilizer', 'setpoint:item/fertilizer');
+json(join(ASSETS, 'models/item', 'fertilizer.json'), { parent: 'minecraft:item/generated', textures: { layer0: 'setpoint:item/fertilizer' } });
+recipe('fuel_cell', ['IGI', 'PCP', 'IRI'], { I: 'minecraft:iron_ingot', G: 'minecraft:gold_ingot', P: 'setpoint:gas_pipe', C: 'minecraft:copper_block', R: 'minecraft:redstone' }, 'setpoint:fuel_cell');
+recipe('ammonia_reactor', ['IPI', 'PTP', 'IFI'], { I: 'minecraft:iron_block', P: 'setpoint:gas_pipe', T: 'setpoint:tank', F: 'minecraft:blast_furnace' }, 'setpoint:ammonia_reactor');
+recipe('fertilizer_mixer', ['IPI', 'IHI', 'III'], { I: 'minecraft:iron_ingot', P: 'setpoint:gas_pipe', H: 'minecraft:hopper' }, 'setpoint:fertilizer_mixer');
 recipe('gas_pipe', [' Y ', 'III'], { Y: 'minecraft:yellow_dye', I: 'minecraft:iron_ingot' }, 'setpoint:gas_pipe', 6);
 recipe('electrolyser', ['IGI', 'CTC', 'IRI'], { I: 'minecraft:iron_ingot', G: 'minecraft:glass', C: 'minecraft:copper_block', T: 'setpoint:tank', R: 'minecraft:redstone' }, 'setpoint:electrolyser');
 recipe('nitrogen_generator', ['ITI', 'TRT', 'IPI'], { I: 'minecraft:iron_ingot', T: 'setpoint:tank', R: 'minecraft:redstone', P: 'minecraft:piston' }, 'setpoint:nitrogen_generator');
@@ -2081,7 +2161,7 @@ const lootOre = (name, drop) => json(join(DATA, 'loot_table/blocks', name + '.js
 });
 const MACHINES = ['pipe', 'tank', 'centrifugal_pump', 'creative_generator', 'level_transmitter', 'control_valve', 'controller',
   'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine', 'dcs_console', 'hand_valve', 'water_intake', 'flow_transmitter',
-  'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve', 'pid_board', 'pallet', 'gas_pipe', 'electrolyser', 'nitrogen_generator', 'compressor'];
+  'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve', 'pid_board', 'pallet', 'gas_pipe', 'electrolyser', 'nitrogen_generator', 'compressor', 'fuel_cell', 'ammonia_reactor', 'fertilizer_mixer'];
 for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) lootSelf(name);
 // factory blocks: each drops itself; a handrail drops one for every side it rails
 const FACTORY = ['rack_upright', 'rack_beam', 'grating', 'grating_stairs', 'caged_ladder', 'steel_beam', 'checker_plate', 'hazard_stripes', 'corrugated_steel', 'industrial_lamp'];

@@ -108,6 +108,10 @@ public class Setpoint {
         event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.ELECTROLYSER_ENTITY.get(), (maker, side) -> maker.energy());
         event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.NITROGEN_GENERATOR_ENTITY.get(), (maker, side) -> maker.energy());
         event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.COMPRESSOR_ENTITY.get(), (compressor, side) -> compressor.energy());
+        event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.FUEL_CELL_ENTITY.get(), (cell, side) -> cell.energy());
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, SetpointContent.FUEL_CELL_ENTITY.get(), (cell, side) -> cell.fluid());
+        event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.AMMONIA_REACTOR_ENTITY.get(), (reactor, side) -> reactor.energy());
+        event.registerBlockEntity(Capabilities.Item.BLOCK, SetpointContent.FERTILIZER_MIXER_ENTITY.get(), (mixer, side) -> mixer.items());
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, SetpointContent.ELECTROLYSER_ENTITY.get(), (electrolyser, side) -> electrolyser.fluid());
     }
 }

@@ -157,6 +157,10 @@ public final class SetpointGameTests {
         BIG.add("a_gas_sphere_takes_gas_and_breaks_whole");
         test("compressor_pushes_gas_uphill", SetpointGameTests::compressorPushesGasUphill, 200);
         test("forklift_racks_a_pallet", SetpointGameTests::forkliftRacksAPallet, 40);
+        test("fuel_cell_makes_power_and_water", SetpointGameTests::fuelCellMakesPowerAndWater, 100);
+        test("ammonia_reactor_wants_pressure", SetpointGameTests::ammoniaReactorWantsPressure, 100);
+        test("fertilizer_grows_crops_at_once", SetpointGameTests::fertilizerGrowsCropsAtOnce, 100);
+        test("oxygen_feeds_the_boiler_burner", SetpointGameTests::oxygenFeedsTheBoilerBurner, 100);
     }
 
     private static void test(String name, Consumer<GameTestHelper> function, int maxTicks) {
@@ -1379,6 +1383,92 @@ public final class SetpointGameTests {
             helper.assertTrue(helper.getLevel().getBlockState(abs).isAir(), "breaking a part should break the whole sphere");
             for (BlockPos p : parts) helper.assertTrue(helper.getLevel().getBlockState(p).isAir(), "every part should be gone, not " + p);
             helper.succeed();
+        });
+    }
+
+    private static io.hookdev.setpoint.block.entity.GasCylinderBlockEntity cylinder(GameTestHelper helper, BlockPos pos, io.hookdev.setpoint.gas.Gases.Gas gas, int amount) {
+        helper.setBlock(pos, SetpointContent.GAS_CYLINDER.get());
+        var cylinder = helper.getBlockEntity(pos, io.hookdev.setpoint.block.entity.GasCylinderBlockEntity.class);
+        cylinder.tank().set(gas.resource(), amount);
+        return cylinder;
+    }
+
+    /** A fuel cell between a cylinder of hydrogen (left) and one of oxygen (right): it makes power and water from them. */
+    private static void fuelCellMakesPowerAndWater(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(3, 1, 1);
+        helper.setBlock(pos, SetpointContent.FUEL_CELL.get().defaultBlockState().setValue(io.hookdev.setpoint.block.GasMakerBlock.FACING, Direction.NORTH));
+        var h2 = cylinder(helper, new BlockPos(4, 1, 1), io.hookdev.setpoint.gas.Gases.HYDROGEN, 20_000); // facing north: left is east
+        var o2 = cylinder(helper, new BlockPos(2, 1, 1), io.hookdev.setpoint.gas.Gases.OXYGEN, 20_000);
+        helper.succeedWhen(() -> {
+            var cell = helper.getBlockEntity(pos, io.hookdev.setpoint.block.entity.FuelCellBlockEntity.class);
+            helper.assertTrue(cell.energy().getAmountAsInt() >= 240, "the fuel cell should store the power it makes, has " + cell.energy().getAmountAsInt());
+            helper.assertTrue(cell.amount() >= 50, "it should make water, has " + cell.amount());
+            helper.assertTrue(20_000 - h2.tank().amount() == 2 * (20_000 - o2.tank().amount()), "two hydrogen for one oxygen");
+        });
+    }
+
+    /**
+     * An ammonia reactor with nitrogen and hydrogen above 100 bar runs at full speed; at 10 bar it runs at a tenth. Its
+     * ammonia goes up into a cylinder on top.
+     */
+    private static void ammoniaReactorWantsPressure(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(3, 1, 1);
+        helper.setBlock(pos, SetpointContent.AMMONIA_REACTOR.get().defaultBlockState().setValue(io.hookdev.setpoint.block.GasMakerBlock.FACING, Direction.NORTH));
+        helper.setBlock(3, 0, 1, SetpointContent.CREATIVE_GENERATOR.get());
+        cylinder(helper, new BlockPos(4, 1, 1), io.hookdev.setpoint.gas.Gases.NITROGEN, 120_000); // 120 bar, on its left: above 100 for the whole test
+        var h2 = cylinder(helper, new BlockPos(2, 1, 1), io.hookdev.setpoint.gas.Gases.HYDROGEN, 200_000);
+        helper.setBlock(3, 2, 1, SetpointContent.GAS_PIPE.get()); // out of its top, along to a cylinder
+        var nh3 = cylinder(helper, new BlockPos(4, 2, 1), io.hookdev.setpoint.gas.Gases.AMMONIA, 0);
+        var reactor = helper.getBlockEntity(pos, io.hookdev.setpoint.block.entity.AmmoniaReactorBlockEntity.class);
+        helper.runAfterDelay(30, () -> {
+            helper.assertTrue(reactor.made() == 2 * io.hookdev.setpoint.block.entity.AmmoniaReactorBlockEntity.NITROGEN_PER_TICK || reactor.status().equals("FULL"),
+                    "at 100 bar it should run flat out: " + reactor.status() + " " + reactor.made());
+            helper.assertTrue(nh3.tank().amount() > 0, "the ammonia should go up into the cylinder");
+            h2.tank().set(io.hookdev.setpoint.gas.Gases.HYDROGEN.resource(), 10_000); // now 10 bar
+            helper.runAfterDelay(25, () -> {
+                helper.assertTrue(reactor.made() <= 4 && reactor.feedPressure() < 11, "at 10 bar it should crawl: makes " + reactor.made() + " at " + reactor.feedPressure());
+                helper.succeed();
+            });
+        });
+    }
+
+    /** Fertilizer from the mixer (bone meal and ammonia) grows every crop around it up at once. */
+    private static void fertilizerGrowsCropsAtOnce(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(3, 1, 1);
+        helper.setBlock(pos, SetpointContent.FERTILIZER_MIXER.get().defaultBlockState().setValue(io.hookdev.setpoint.block.GasMakerBlock.FACING, Direction.NORTH));
+        cylinder(helper, new BlockPos(4, 1, 1), io.hookdev.setpoint.gas.Gases.AMMONIA, 10_000);
+        var mixer = helper.getBlockEntity(pos, io.hookdev.setpoint.block.entity.FertilizerMixerBlockEntity.class);
+        mixer.insert(new ItemStack(Items.BONE_MEAL, 3));
+        helper.runAfterDelay(25, () -> {
+            ItemStack made = mixer.takeOutput();
+            helper.assertTrue(made.is(SetpointContent.FERTILIZER.get()) && made.getCount() >= 2, "a batch should make two fertilizer, got " + made);
+            for (int x = 0; x < 3; x++) for (int z = 0; z < 3; z++) {
+                helper.setBlock(x, 4, z, Blocks.FARMLAND);
+                helper.setBlock(x, 5, z, Blocks.WHEAT);
+            }
+            var player = helper.makeMockPlayer(GameType.SURVIVAL);
+            player.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, made);
+            BlockPos middle = helper.absolutePos(new BlockPos(1, 5, 1));
+            made.useOn(new net.minecraft.world.item.context.UseOnContext(player, net.minecraft.world.InteractionHand.MAIN_HAND,
+                    new net.minecraft.world.phys.BlockHitResult(Vec3.atCenterOf(middle), Direction.UP, middle, false)));
+            for (int x = 0; x < 3; x++) for (int z = 0; z < 3; z++) {
+                helper.assertBlockProperty(new BlockPos(x, 5, z), net.minecraft.world.level.block.CropBlock.AGE, 7);
+            }
+            helper.succeed();
+        });
+    }
+
+    /** A boiler firing with a cylinder of oxygen at its back burns with oxygen. */
+    private static void oxygenFeedsTheBoilerBurner(GameTestHelper helper) {
+        BlockPos pos = new BlockPos(3, 1, 1);
+        helper.setBlock(pos, SetpointContent.BOILER.get()); // faces north: its back is south
+        var o2 = cylinder(helper, new BlockPos(3, 1, 2), io.hookdev.setpoint.gas.Gases.OXYGEN, 10_000);
+        BoilerBlockEntity boiler = helper.getBlockEntity(pos, BoilerBlockEntity.class);
+        boiler.fluid().set(0, FluidResource.of(Fluids.WATER), 4_000);
+        boiler.insertFromHand(new ItemStack(Items.COAL, 4));
+        helper.succeedWhen(() -> {
+            helper.assertTrue(boiler.firing() && boiler.enriched(), "the boiler should fire with oxygen");
+            helper.assertTrue(o2.tank().amount() < 10_000, "it should use the oxygen");
         });
     }
 

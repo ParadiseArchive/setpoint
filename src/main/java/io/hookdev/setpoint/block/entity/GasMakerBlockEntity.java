@@ -29,7 +29,7 @@ import net.neoforged.neoforge.transfer.energy.SimpleEnergyHandler;
  * A machine that turns power into a gas. The gas collects in its outlet (on your left as you face it) and flows into
  * the gas pipe there by itself; once nothing takes it and the outlet stands at {@link #OUTLET_PRESSURE}, it stops.
  */
-public abstract class GasMakerBlockEntity extends BlockEntity implements NamedEquipment, GasPortBlock.Ports {
+public abstract class GasMakerBlockEntity extends BlockEntity implements NamedEquipment, GasPortBlock.Ports, Describable {
     public static final int ENERGY_CAPACITY = 4_000, ENERGY_MAX_INPUT = 400;
     /** The outlet: this much room, filled up to this pressure (bar). */
     public static final int OUTLET_VOLUME = 500;
@@ -116,6 +116,7 @@ public abstract class GasMakerBlockEntity extends BlockEntity implements NamedEq
     }
 
     /** Right-click with an empty hand: what it is doing. */
+    @Override
     public void describe(Player player) {
         ChatFormatting colour = status.equals("RUNNING") ? ChatFormatting.WHITE : ChatFormatting.GOLD;
         player.sendSystemMessage(Component.literal(tag() + "  ").withStyle(ChatFormatting.AQUA)

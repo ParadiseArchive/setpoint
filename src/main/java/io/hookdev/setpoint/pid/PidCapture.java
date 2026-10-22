@@ -168,6 +168,9 @@ public final class PidCapture {
         if (be instanceof io.hookdev.setpoint.block.entity.ElectrolyserBlockEntity electrolyser) return new Found(PidDrawing.ELECTROLYSER, 0, electrolyser.tag(), 5);
         if (be instanceof io.hookdev.setpoint.block.entity.NitrogenGeneratorBlockEntity generator) return new Found(PidDrawing.NITROGEN_GENERATOR, 0, generator.tag(), 5);
         if (be instanceof io.hookdev.setpoint.block.entity.GasCylinderBlockEntity cylinder) return new Found(PidDrawing.GAS_CYLINDER, 0, cylinder.tag(), 5);
+        if (be instanceof io.hookdev.setpoint.block.entity.FuelCellBlockEntity cell) return new Found(PidDrawing.FUEL_CELL, 0, cell.tag(), 5);
+        if (be instanceof io.hookdev.setpoint.block.entity.AmmoniaReactorBlockEntity reactor) return new Found(PidDrawing.AMMONIA_REACTOR, 0, reactor.tag(), 5);
+        if (be instanceof io.hookdev.setpoint.block.entity.FertilizerMixerBlockEntity mixer) return new Found(PidDrawing.FERTILIZER_MIXER, 0, mixer.tag(), 5);
         if (be instanceof io.hookdev.setpoint.block.entity.CompressorBlockEntity compressor) {
             return new Found(PidDrawing.COMPRESSOR, quarter(state.getValue(io.hookdev.setpoint.block.CompressorBlock.FACING)), compressor.tag(), 5);
         }

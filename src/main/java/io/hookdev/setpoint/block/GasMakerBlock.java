@@ -1,6 +1,6 @@
 package io.hookdev.setpoint.block;
 
-import io.hookdev.setpoint.block.entity.GasMakerBlockEntity;
+import io.hookdev.setpoint.block.entity.Describable;
 import io.hookdev.setpoint.gas.GasPortBlock;
 
 import net.minecraft.core.BlockPos;
@@ -22,8 +22,8 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
 /**
- * A machine that makes gas from power (an electrolyser, a nitrogen generator). Its product comes out on your left as
- * you face it, to a gas pipe; right-click it to read it.
+ * A gas machine you face: an electrolyser, a nitrogen generator, a fuel cell, an ammonia reactor. Its gas lines join on
+ * your left and right as you face it (and on top for some); right-click it to read it.
  */
 public abstract class GasMakerBlock extends BaseEntityBlock implements GasPortBlock {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
@@ -51,7 +51,7 @@ public abstract class GasMakerBlock extends BaseEntityBlock implements GasPortBl
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof GasMakerBlockEntity maker) maker.describe(player);
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof Describable machine) machine.describe(player);
         return InteractionResult.SUCCESS;
     }
 

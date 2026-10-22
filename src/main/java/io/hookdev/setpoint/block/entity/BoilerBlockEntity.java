@@ -109,6 +109,11 @@ public class BoilerBlockEntity extends BlockEntity implements MenuProvider, Vess
     private double rate = 1.0; // firing rate asked for by a pressure controller, 0 to 1
     private long rateUntil = -1;
     private double steamCredit, fuelCredit; // fractions of a mB and of a burn tick at part fire
+    /** Oxygen for the burner, from a gas line at the back: this much a tick at full fire, and then the coal lasts longer. */
+    public static final int OXYGEN_PER_TICK = 5;
+    public static final double OXYGEN_FUEL_SAVING = 1.5;
+    private final io.hookdev.setpoint.gas.GasDraw oxygen = new io.hookdev.setpoint.gas.GasDraw();
+    private boolean enriched;
     private @Nullable Boolean protectionOverride; // game tests switch the trips off without touching the config
     private @Nullable Boolean pressureTripOverride;
 
@@ -164,6 +169,8 @@ public class BoilerBlockEntity extends BlockEntity implements MenuProvider, Vess
     public int steam() { return steam; }
     public double temperature() { return temperature; }
     public boolean firing() { return firing; }
+    /** Firing with oxygen: a hotter flame that gets more steam out of the coal. */
+    public boolean enriched() { return enriched; }
     public boolean tripped() { return tripped; }
     public boolean pressureTripped() { return pressureTripped; }
     @Override public String tag() { return name.tag(worldPosition); }
@@ -292,8 +299,17 @@ public class BoilerBlockEntity extends BlockEntity implements MenuProvider, Vess
         }
 
         firing = burnLeft > 0 && wantFire;
+        enriched = false;
+        if (firing) { // with oxygen from the line at the back the flame is hotter: the coal lasts half as long again
+            int need = (int) Math.ceil(OXYGEN_PER_TICK * fire);
+            var o2 = oxygen.fullest(level, pos, state.getValue(BoilerBlock.FACING).getOpposite(), io.hookdev.setpoint.gas.Gases.OXYGEN.resource());
+            if (o2 != null && o2.amount() >= need) {
+                o2.extract(need);
+                enriched = true;
+            }
+        }
         if (firing) { // at part fire the coal lasts longer and makes steam slower
-            fuelCredit += fire;
+            fuelCredit += enriched ? fire / OXYGEN_FUEL_SAVING : fire;
             while (fuelCredit >= 1 && burnLeft > 0) { burnLeft--; fuelCredit--; }
             steamCredit += BoilerModel.STEAM_RATE * fire;
         }

@@ -24,6 +24,9 @@
     "setpoint:gas_pipe",
     "setpoint:electrolyser",
     "setpoint:nitrogen_generator",
-    "setpoint:compressor"
+    "setpoint:compressor",
+    "setpoint:fuel_cell",
+    "setpoint:ammonia_reactor",
+    "setpoint:fertilizer_mixer"
   ]
 }

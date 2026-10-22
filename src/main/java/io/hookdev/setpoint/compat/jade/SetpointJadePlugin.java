@@ -50,7 +50,9 @@ public class SetpointJadePlugin implements IWailaPlugin {
             io.hookdev.setpoint.block.entity.WaterIntakeBlockEntity.class, io.hookdev.setpoint.block.entity.PortableTankBlockEntity.class,
             io.hookdev.setpoint.block.entity.TankPartBlockEntity.class, io.hookdev.setpoint.block.entity.GasMakerBlockEntity.class,
             io.hookdev.setpoint.block.entity.GasCylinderBlockEntity.class, io.hookdev.setpoint.block.entity.GasSphereBlockEntity.class,
-            io.hookdev.setpoint.block.entity.GasSpherePartBlockEntity.class, io.hookdev.setpoint.block.entity.CompressorBlockEntity.class};
+            io.hookdev.setpoint.block.entity.GasSpherePartBlockEntity.class, io.hookdev.setpoint.block.entity.CompressorBlockEntity.class,
+            io.hookdev.setpoint.block.entity.FuelCellBlockEntity.class, io.hookdev.setpoint.block.entity.AmmoniaReactorBlockEntity.class,
+            io.hookdev.setpoint.block.entity.FertilizerMixerBlockEntity.class};
     @SuppressWarnings("unchecked")
     private static final Class<? extends Block>[] BLOCKS = new Class[]{PumpBlock.class, TankBlock.class, ControlValveBlock.class,
             ControllerBlock.class, LevelTransmitterBlock.class, BoilerBlock.class, SteamTurbineBlock.class, GeneratorBlock.class,

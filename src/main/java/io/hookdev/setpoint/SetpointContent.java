@@ -150,6 +150,12 @@ public final class SetpointContent {
             p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
     public static final DeferredBlock<io.hookdev.setpoint.block.NitrogenGeneratorBlock> NITROGEN_GENERATOR = BLOCKS.registerBlock("nitrogen_generator", io.hookdev.setpoint.block.NitrogenGeneratorBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
+    public static final DeferredBlock<io.hookdev.setpoint.block.FuelCellBlock> FUEL_CELL = BLOCKS.registerBlock("fuel_cell", io.hookdev.setpoint.block.FuelCellBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
+    public static final DeferredBlock<io.hookdev.setpoint.block.AmmoniaReactorBlock> AMMONIA_REACTOR = BLOCKS.registerBlock("ammonia_reactor", io.hookdev.setpoint.block.AmmoniaReactorBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
+    public static final DeferredBlock<io.hookdev.setpoint.block.FertilizerMixerBlock> FERTILIZER_MIXER = BLOCKS.registerBlock("fertilizer_mixer", io.hookdev.setpoint.block.FertilizerMixerBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
     public static final DeferredBlock<io.hookdev.setpoint.block.CompressorBlock> COMPRESSOR = BLOCKS.registerBlock("compressor", io.hookdev.setpoint.block.CompressorBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
     public static final DeferredBlock<io.hookdev.setpoint.block.GasCylinderBlock> GAS_CYLINDER = BLOCKS.registerBlock("gas_cylinder", io.hookdev.setpoint.block.GasCylinderBlock::new,
@@ -263,6 +269,10 @@ public final class SetpointContent {
     public static final DeferredItem<BlockItem> ELECTROLYSER_ITEM = ITEMS.registerSimpleBlockItem(ELECTROLYSER);
     public static final DeferredItem<BlockItem> NITROGEN_GENERATOR_ITEM = ITEMS.registerSimpleBlockItem(NITROGEN_GENERATOR);
     public static final DeferredItem<BlockItem> COMPRESSOR_ITEM = ITEMS.registerSimpleBlockItem(COMPRESSOR);
+    public static final DeferredItem<BlockItem> FUEL_CELL_ITEM = ITEMS.registerSimpleBlockItem(FUEL_CELL);
+    public static final DeferredItem<BlockItem> AMMONIA_REACTOR_ITEM = ITEMS.registerSimpleBlockItem(AMMONIA_REACTOR);
+    public static final DeferredItem<BlockItem> FERTILIZER_MIXER_ITEM = ITEMS.registerSimpleBlockItem(FERTILIZER_MIXER);
+    public static final DeferredItem<io.hookdev.setpoint.item.FertilizerItem> FERTILIZER = ITEMS.registerItem("fertilizer", io.hookdev.setpoint.item.FertilizerItem::new);
     public static final DeferredItem<BlockItem> GAS_CYLINDER_ITEM = ITEMS.registerSimpleBlockItem(GAS_CYLINDER, p -> p.stacksTo(16));
     public static final DeferredItem<BlockItem> GAS_SPHERE_ITEM = ITEMS.registerSimpleBlockItem(GAS_SPHERE, p -> p.rarity(Rarity.RARE).stacksTo(1));
     public static final DeferredItem<BlockItem> CHECKER_PLATE_ITEM = ITEMS.registerSimpleBlockItem(CHECKER_PLATE);
@@ -368,6 +378,12 @@ public final class SetpointContent {
             () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.ElectrolyserBlockEntity::new, ELECTROLYSER.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.NitrogenGeneratorBlockEntity>> NITROGEN_GENERATOR_ENTITY = BLOCK_ENTITIES.register("nitrogen_generator",
             () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.NitrogenGeneratorBlockEntity::new, NITROGEN_GENERATOR.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.FuelCellBlockEntity>> FUEL_CELL_ENTITY = BLOCK_ENTITIES.register("fuel_cell",
+            () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.FuelCellBlockEntity::new, FUEL_CELL.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.AmmoniaReactorBlockEntity>> AMMONIA_REACTOR_ENTITY = BLOCK_ENTITIES.register("ammonia_reactor",
+            () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.AmmoniaReactorBlockEntity::new, AMMONIA_REACTOR.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.FertilizerMixerBlockEntity>> FERTILIZER_MIXER_ENTITY = BLOCK_ENTITIES.register("fertilizer_mixer",
+            () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.FertilizerMixerBlockEntity::new, FERTILIZER_MIXER.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.CompressorBlockEntity>> COMPRESSOR_ENTITY = BLOCK_ENTITIES.register("compressor",
             () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.CompressorBlockEntity::new, COMPRESSOR.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.GasCylinderBlockEntity>> GAS_CYLINDER_ENTITY = BLOCK_ENTITIES.register("gas_cylinder",
@@ -410,6 +426,10 @@ public final class SetpointContent {
                 output.accept(ELECTROLYSER_ITEM.get());
                 output.accept(NITROGEN_GENERATOR_ITEM.get());
                 output.accept(COMPRESSOR_ITEM.get());
+                output.accept(FUEL_CELL_ITEM.get());
+                output.accept(AMMONIA_REACTOR_ITEM.get());
+                output.accept(FERTILIZER_MIXER_ITEM.get());
+                output.accept(FERTILIZER.get());
                 output.accept(GAS_CYLINDER_ITEM.get());
                 output.accept(GAS_SPHERE_ITEM.get());
                 for (var gas : io.hookdev.setpoint.gas.Gases.ALL) { // a cylinder of each gas at 10 bar, to try things with

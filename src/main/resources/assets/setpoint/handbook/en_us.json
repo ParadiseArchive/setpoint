@@ -441,6 +441,62 @@
         },
         {
           "type": "p",
+          "text": "Using the gases. A **fuel cell** turns hydrogen (left) and oxygen (right) back into power, 24 FE/t, and water: with an electrolyser and a gas sphere you can store power. Pipe **oxygen** into the back of a **boiler** and its coal lasts half as long again."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:fuel_cell",
+          "grid": [
+            "minecraft:iron_ingot",
+            "minecraft:gold_ingot",
+            "minecraft:iron_ingot",
+            "setpoint:gas_pipe",
+            "minecraft:copper_block",
+            "setpoint:gas_pipe",
+            "minecraft:iron_ingot",
+            "minecraft:redstone",
+            "minecraft:iron_ingot"
+          ],
+          "count": 1
+        },
+        {
+          "type": "p",
+          "text": "The **ammonia reactor** makes ammonia, the fifth gas, from nitrogen (left) and hydrogen (right), out on top. It wants pressure: full speed with its feed at 100 bar, so put a compressor on its feed lines. In a **fertilizer mixer**, ammonia (left) and bone meal make **NPK fertilizer**: use it on a crop and every crop in the three by three around it grows up at once."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:ammonia_reactor",
+          "grid": [
+            "minecraft:iron_block",
+            "setpoint:gas_pipe",
+            "minecraft:iron_block",
+            "setpoint:gas_pipe",
+            "setpoint:tank",
+            "setpoint:gas_pipe",
+            "minecraft:iron_block",
+            "minecraft:blast_furnace",
+            "minecraft:iron_block"
+          ],
+          "count": 1
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:fertilizer_mixer",
+          "grid": [
+            "minecraft:iron_ingot",
+            "setpoint:gas_pipe",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "minecraft:hopper",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot"
+          ],
+          "count": 1
+        },
+        {
+          "type": "p",
           "text": "For a lot of gas there is the **gas sphere**: a round pressure vessel on eight columns, like the spheres that hold propane and hydrogen on a real plant. It takes eight by eight blocks and is ten high, has 220 B of room and is built for **16 bar**, so it holds up to 3520 B of gas. Place it with one block: that block is its valve station at the front, where gas pipes join. It reaches four blocks to your left, three to your right and eight away from you."
         },
         {

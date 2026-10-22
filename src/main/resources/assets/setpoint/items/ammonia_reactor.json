@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "setpoint:block/ammonia_reactor_on"
+  }
+}

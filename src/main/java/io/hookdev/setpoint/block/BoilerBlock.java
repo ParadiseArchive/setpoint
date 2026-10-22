@@ -33,10 +33,10 @@ import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 
 /** Coal-fired boiler. Pipes connect to its water drum, a water bucket fills it, right-click opens its screen. */
 public class BoilerBlock extends BaseEntityBlock implements VesselBlock, io.hookdev.setpoint.gas.GasPortBlock {
-    /** Steam leaves the drum on top, into a gas pipe. */
+    /** Steam leaves the drum on top, into a gas pipe; oxygen for the burner comes in at the back. */
     @Override
     public boolean gasPort(BlockState state, Direction side) {
-        return side == Direction.UP;
+        return side == Direction.UP || side == state.getValue(FACING).getOpposite();
     }
 
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
