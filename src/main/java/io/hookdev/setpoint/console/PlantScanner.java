@@ -36,7 +36,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 public final class PlantScanner {
     /** How far a console sees, in blocks, in every direction. */
     public static final int RANGE = 32;
-    private static final List<String> KIND_ORDER = List.of("LIC", "FIC", "PIC", "PUMP", "VALVE", "FT", "PT", "TANK", "IBC", "DRUM", "LT", "BOILER", "PSV", "TURBINE", "GEN", "INTAKE", "ELECTROLYSER", "N2 GEN", "CYLINDER");
+    private static final List<String> KIND_ORDER = List.of("LIC", "FIC", "PIC", "PUMP", "VALVE", "FT", "PT", "TANK", "IBC", "DRUM", "LT", "BOILER", "PSV", "TURBINE", "GEN", "INTAKE", "ELECTROLYSER", "N2 GEN", "SPHERE", "CYLINDER");
 
     private PlantScanner() {}
 
@@ -164,6 +164,13 @@ public final class PlantScanner {
             int severity = maker.status().equals("RUNNING") || maker.status().equals("FULL") ? Reading.NORMAL : Reading.ATTENTION;
             return new Reading(be.getBlockPos(), maker.tag(), kind, maker.status(), severity, String.format("%.1f bar  %d mB/t", outlet, maker.made()),
                     List.of("OUTLET bar"), new float[]{(float) outlet}, List.of());
+        }
+        if (be instanceof io.hookdev.setpoint.block.entity.GasSphereBlockEntity sphere) {
+            var gas = sphere.tank().gas();
+            String what = gas.isEmpty() ? "EMPTY" : gas.getFluidType().getDescription().getString().toUpperCase();
+            int severity = sphere.pressure() >= io.hookdev.setpoint.block.entity.GasSphereBlockEntity.MAX_PRESSURE * 0.95 ? Reading.ATTENTION : Reading.NORMAL;
+            return new Reading(be.getBlockPos(), sphere.tag(), "SPHERE", what, severity, String.format("%.2f bar", sphere.pressure()),
+                    List.of("PRESS bar"), new float[]{(float) sphere.pressure()}, List.of());
         }
         if (be instanceof io.hookdev.setpoint.block.entity.GasCylinderBlockEntity cylinder) {
             var gas = cylinder.tank().gas();

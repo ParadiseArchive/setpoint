@@ -152,8 +152,11 @@ public class FloatingRoofTankBlock extends PortableTankBlock {
      * climb, like a vanilla ladder; you go up through the rest of it.
      */
     public static VoxelShape ladderShape(@Nullable FloatingRoofTankBlockEntity tank, BlockPos pos) {
-        if (tank == null) return Shapes.empty();
-        Vec3 centre = tank.centre();
+        return tank == null ? Shapes.empty() : ladderShape(tank.centre(), pos);
+    }
+
+    /** The same for any eight-by-eight thing with its corner ladder (the gas sphere has one too), from its middle. */
+    public static VoxelShape ladderShape(Vec3 centre, BlockPos pos) {
         boolean east = pos.getX() >= centre.x, south = pos.getZ() >= centre.z;
         return Shapes.or(east ? Block.box(0, 0, 0, 3, 16, 16) : Block.box(13, 0, 0, 16, 16, 16),
                 south ? Block.box(0, 0, 0, 16, 16, 3) : Block.box(0, 0, 13, 16, 16, 16));

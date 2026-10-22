@@ -351,6 +351,46 @@ const floatingRoofTank = (deck) => {
   for (let n = 0; n < 3; n++) piece('rolling_ladder', 0, [0, 0, -28 * n], hinge);
   return parts;
 };
+// the gas sphere, put together like GasSphereRenderer does (SPHERE_SHIFT in gen-assets.mjs), the corner with its
+// ladder toward the camera. Each step below is one call on the renderer's pose, applied to a model point, last first.
+const SPHERE_SHIFT = { plate: [0, 8, 0], leg: [0, 0, 0], foot: [0, 0, 0], rod: [0, 8, 0], bridge: [0, 1, 16], platform: [0, 1, 0],
+  pipe_up: [0, 0, 0], pipe_along: [0, 0, 0], station: [-8, 0, -8], ladder: [0, 0, -66], cage: [0, 0, -66] };
+const gasSphere = () => {
+  const parts = [];
+  const ry = (deg) => { const a = deg * Math.PI / 180; return ([x, y, z]) => [x * Math.cos(a) + z * Math.sin(a), y, -x * Math.sin(a) + z * Math.cos(a)]; };
+  const rx = (deg) => { const a = deg * Math.PI / 180; return ([x, y, z]) => [x, y * Math.cos(a) - z * Math.sin(a), y * Math.sin(a) + z * Math.cos(a)]; };
+  const mv = (dx, dy, dz) => ([x, y, z]) => [x + dx, y + dy, z + dz];
+  const sc = (kx, ky, kz) => ([x, y, z]) => [x * kx, y * ky, z * kz];
+  // a part at (x, y, z) pixels in a frame made of these steps (outermost first)
+  const piece = (name, [x, y, z], ...frame) => {
+    const sh = SPHERE_SHIFT[name], model = name === 'ladder' || name === 'cage' ? 'floating_roof_tank_' + name : 'gas_sphere_' + name;
+    const steps = [...frame, mv(x - 8 - sh[0], y - sh[1], z - 8 - sh[2])];
+    parts.push({ model, xf: (p) => steps.reduceRight((q, step) => step(q), p) });
+  };
+  const R = 60, EQ = 88, step = 15, turn = 15, h = 2 * R * Math.sin(step / 2 * Math.PI / 180);
+  for (let band = 0; band < 12; band++) {
+    const low = -90 + band * step, high = low + step, mid = (low + high) / 2;
+    const wide = Math.max(Math.cos(low * Math.PI / 180), Math.cos(high * Math.PI / 180)), w = 2 * R * wide * Math.tan(turn / 2 * Math.PI / 180);
+    for (let k = 0; k < 24; k++) piece('plate', [0, 0, 0], ry(k * turn), mv(0, EQ, 0), rx(-mid), mv(0, 0, R), sc(w / 16, h / 16, 1));
+  }
+  const rod = (x1, y1, z1, x2, y2, z2) => {
+    const dx = x2 - x1, dy = y2 - y1, dz = z2 - z1, flat = Math.hypot(dx, dz), len = Math.hypot(flat, dy);
+    piece('rod', [0, 0, 0], mv(x1, y1, z1), ry(Math.atan2(dx, dz) * 180 / Math.PI), rx(-Math.atan2(dy, flat) * 180 / Math.PI), sc(1, 1, len / 16));
+  };
+  for (let leg = 0; leg < 8; leg++) {
+    const a = (22.5 + 45 * leg) * Math.PI / 180, b = (22.5 + 45 * (leg + 1)) * Math.PI / 180;
+    const x = 62 * Math.sin(a), z = 62 * Math.cos(a), nx = 62 * Math.sin(b), nz = 62 * Math.cos(b);
+    piece('foot', [x, 0, z]);
+    for (const y of [0, 32, 56]) piece('leg', [x, y, z]);
+    rod(x, 10, z, nx, 80, nz); rod(nx, 10, nz, x, 80, z);
+  }
+  piece('pipe_up', [8, 0, 8]); piece('pipe_along', [8, 0, 8]); piece('pipe_along', [8, 0, 32]); piece('station', [0, 0, 48]);
+  for (let c = 0; c < 5; c++) { piece('ladder', [0, c * 32, 0], ry(45)); if (c) piece('cage', [0, c * 32, 0], ry(45)); }
+  for (let n = 0; n < 3; n++) piece('bridge', [0, 152, 72 - 24 * n], ry(45));
+  piece('platform', [0, 152, 0], ry(45));
+  return parts;
+};
+render('gas_sphere', gasSphere(), 2);
 render('floating_roof_tank', floatingRoofTank(52), 2);
 render('floating_roof_tank_full', floatingRoofTank(88), 2);
 render('floating_roof_tank_low', floatingRoofTank(14), 2);

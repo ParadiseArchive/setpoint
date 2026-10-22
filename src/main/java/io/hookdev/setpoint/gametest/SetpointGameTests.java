@@ -153,6 +153,8 @@ public final class SetpointGameTests {
         test("gas_pipes_keep_to_gas", SetpointGameTests::gasPipesKeepToGas, 20);
         test("boiler_steam_runs_a_turbine_through_a_gas_pipe", SetpointGameTests::boilerSteamRunsATurbineThroughAGasPipe, 200);
         test("a_gas_cylinder_keeps_its_gas", SetpointGameTests::aGasCylinderKeepsItsGas, 20);
+        test("a_gas_sphere_takes_gas_and_breaks_whole", SetpointGameTests::aGasSphereTakesGasAndBreaksWhole, 100);
+        BIG.add("a_gas_sphere_takes_gas_and_breaks_whole");
     }
 
     private static void test(String name, Consumer<GameTestHelper> function, int maxTicks) {
@@ -774,9 +776,9 @@ public final class SetpointGameTests {
         for (var block : SetpointContent.BLOCKS.getEntries()) {
             if (block.get() == SetpointContent.HOOKONIUM_ORE.get() || block.get() == SetpointContent.DEEPSLATE_HOOKONIUM_ORE.get()) continue;
             if (block.get() == SetpointContent.TANK_PART.get() || block.get() == SetpointContent.PALLET_PART.get()
-                    || block.get() == SetpointContent.ROOF_TANK_PART.get()) continue; // parts: their base drops
+                    || block.get() == SetpointContent.ROOF_TANK_PART.get() || block.get() == SetpointContent.GAS_SPHERE_PART.get()) continue; // parts: their base drops
             if (block.get() == SetpointContent.PALLET_TRUCK_MODEL.get() || block.get() == SetpointContent.FORKLIFT_MODEL.get()
-                    || block.get() == SetpointContent.FLOATING_ROOF_TANK_MODEL.get()) continue; // only hold models
+                    || block.get() == SetpointContent.FLOATING_ROOF_TANK_MODEL.get() || block.get() == SetpointContent.GAS_SPHERE_MODEL.get()) continue; // only hold models
             var drops = Block.getDrops(block.get().defaultBlockState(), helper.getLevel(), pos, null, null, new ItemStack(Items.DIAMOND_PICKAXE));
             helper.assertTrue(drops.size() == 1 && drops.get(0).is(block.get().asItem()), block.getId() + " should drop itself, got " + drops);
         }
@@ -1331,6 +1333,48 @@ public final class SetpointGameTests {
             var turbine = helper.getBlockEntity(new BlockPos(4, 2, 1), SteamTurbineBlockEntity.class);
             helper.assertTrue(turbine.output() > 0, "the turbine should make power from the piped steam, speed " + turbine.speed());
             helper.assertTrue(boiler.steam() < 2_400, "the steam should come out of the boiler");
+        });
+    }
+
+    /**
+     * A gas sphere: placed with one block it fills its space (a solid middle, open between its columns, a ladder in the
+     * corner), a cylinder piped to its valve station empties into it, a pressure transmitter on its shell reads it, and
+     * breaking any part breaks the whole sphere with the gas going along in the item.
+     */
+    private static void aGasSphereTakesGasAndBreaksWhole(GameTestHelper helper) {
+        BlockPos base = new BlockPos(4, 1, 1);
+        BlockState state = SetpointContent.GAS_SPHERE.get().defaultBlockState().setValue(io.hookdev.setpoint.block.GasSphereBlock.FACING, Direction.NORTH);
+        helper.setBlock(base, state);
+        BlockPos abs = helper.absolutePos(base);
+        state.getBlock().setPlacedBy(helper.getLevel(), abs, helper.getLevel().getBlockState(abs), null, new ItemStack(SetpointContent.GAS_SPHERE_ITEM.get()));
+        var parts = ((io.hookdev.setpoint.block.GasSphereBlock) state.getBlock()).parts(abs, state);
+        for (BlockPos part : parts) helper.assertTrue(helper.getLevel().getBlockState(part).is(SetpointContent.GAS_SPHERE_PART.get()), "a part should stand at " + part);
+        BlockPos middle = FloatingRoofTankBlock.cell(abs, state, 3, 3, 5);
+        helper.assertTrue(helper.getLevel().getBlockState(middle).getCollisionShape(helper.getLevel(), middle).max(Direction.Axis.Y) == 1.0, "the middle of the sphere should be solid");
+        BlockPos under = FloatingRoofTankBlock.cell(abs, state, 4, 4, 0);
+        helper.assertTrue(!parts.contains(under), "under the sphere, between the columns, should stay free");
+        helper.assertBlockProperty(new BlockPos(1, 9, 1), io.hookdev.setpoint.block.GasSpherePartBlock.LADDER, true);
+        // a cylinder of hydrogen beside the valve station, joined by a gas pipe on top of it
+        helper.assertTrue(!parts.contains(helper.absolutePos(new BlockPos(4, 2, 1))) && !parts.contains(helper.absolutePos(new BlockPos(5, 2, 1))), "above the station should be free");
+        helper.setBlock(4, 2, 1, SetpointContent.GAS_PIPE.get());
+        helper.setBlock(5, 2, 1, SetpointContent.GAS_CYLINDER.get());
+        var cylinder = helper.getBlockEntity(new BlockPos(5, 2, 1), io.hookdev.setpoint.block.entity.GasCylinderBlockEntity.class);
+        cylinder.tank().set(io.hookdev.setpoint.gas.Gases.HYDROGEN.resource(), 10_000);
+        var sphere = helper.getBlockEntity(base, io.hookdev.setpoint.block.entity.GasSphereBlockEntity.class);
+        helper.runAfterDelay(60, () -> {
+            helper.assertTrue(sphere.tank().amount() > 9_000 && sphere.tank().gas().equals(io.hookdev.setpoint.gas.Gases.HYDROGEN.resource()),
+                    "the hydrogen should flow into the sphere, it holds " + sphere.tank().amount());
+            helper.assertTrue(Math.abs(sphere.pressure() - cylinder.pressure()) < 0.01, "both should end at the same pressure");
+            var part = (io.hookdev.setpoint.hydraulics.PressureVessel) helper.getLevel().getBlockEntity(middle);
+            helper.assertTrue(Math.abs(part.pressure() - sphere.pressure()) < 1e-9, "a part should read the sphere's pressure");
+            var drops = Block.getDrops(helper.getLevel().getBlockState(abs), helper.getLevel(), abs, sphere, null, new ItemStack(Items.DIAMOND_PICKAXE));
+            ItemStack item = drops.stream().filter(i -> i.is(SetpointContent.GAS_SPHERE_ITEM.get())).findFirst().orElse(ItemStack.EMPTY);
+            var contents = item.get(SetpointContent.FLUID_CONTENTS.get());
+            helper.assertTrue(contents != null && contents.copy().getAmount() == sphere.tank().amount(), "the dropped sphere should hold its gas, drops: " + drops);
+            helper.getLevel().destroyBlock(middle, false);
+            helper.assertTrue(helper.getLevel().getBlockState(abs).isAir(), "breaking a part should break the whole sphere");
+            for (BlockPos p : parts) helper.assertTrue(helper.getLevel().getBlockState(p).isAir(), "every part should be gone, not " + p);
+            helper.succeed();
         });
     }
 

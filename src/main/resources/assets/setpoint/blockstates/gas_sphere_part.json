@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "ladder=false": {
+      "model": "setpoint:block/gas_sphere"
+    },
+    "ladder=true": {
+      "model": "setpoint:block/gas_sphere"
+    }
+  }
+}

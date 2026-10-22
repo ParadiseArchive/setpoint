@@ -1,0 +1,211 @@
+{
+  "parent": "minecraft:block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "plate": "setpoint:block/sphere_plate",
+    "leg": "setpoint:block/sphere_leg",
+    "rod": "setpoint:block/sphere_rod",
+    "concrete": "setpoint:block/sphere_concrete",
+    "rail": "setpoint:block/sphere_rail",
+    "valve": "setpoint:block/sphere_valve",
+    "gauge": "setpoint:block/sphere_gauge",
+    "station": "setpoint:block/sphere_station",
+    "steel": "setpoint:block/frt_steel",
+    "grating": "setpoint:block/frt_grating",
+    "pipe": "setpoint:block/gas_pipe",
+    "particle": "setpoint:block/sphere_plate"
+  },
+  "elements": [
+    {
+      "from": [
+        5,
+        4,
+        5
+      ],
+      "to": [
+        11,
+        16,
+        11
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5,
+            0,
+            11,
+            12
+          ],
+          "texture": "#pipe"
+        },
+        "south": {
+          "uv": [
+            5,
+            0,
+            11,
+            12
+          ],
+          "texture": "#pipe"
+        },
+        "east": {
+          "uv": [
+            5,
+            0,
+            11,
+            12
+          ],
+          "texture": "#pipe"
+        },
+        "west": {
+          "uv": [
+            5,
+            0,
+            11,
+            12
+          ],
+          "texture": "#pipe"
+        }
+      }
+    },
+    {
+      "from": [
+        5,
+        16,
+        5
+      ],
+      "to": [
+        11,
+        26,
+        11
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5,
+            6,
+            11,
+            16
+          ],
+          "texture": "#pipe"
+        },
+        "south": {
+          "uv": [
+            5,
+            6,
+            11,
+            16
+          ],
+          "texture": "#pipe"
+        },
+        "east": {
+          "uv": [
+            5,
+            6,
+            11,
+            16
+          ],
+          "texture": "#pipe"
+        },
+        "west": {
+          "uv": [
+            5,
+            6,
+            11,
+            16
+          ],
+          "texture": "#pipe"
+        }
+      }
+    },
+    {
+      "from": [
+        3.5,
+        26,
+        3.5
+      ],
+      "to": [
+        12.5,
+        28,
+        12.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3.5,
+            4,
+            12.5,
+            6
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            3.5,
+            4,
+            12.5,
+            6
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            3.5,
+            4,
+            12.5,
+            6
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            3.5,
+            4,
+            12.5,
+            6
+          ],
+          "texture": "#steel"
+        },
+        "up": {
+          "uv": [
+            3.5,
+            3.5,
+            12.5,
+            12.5
+          ],
+          "texture": "#steel"
+        },
+        "down": {
+          "uv": [
+            3.5,
+            3.5,
+            12.5,
+            12.5
+          ],
+          "texture": "#steel"
+        }
+      }
+    },
+    {
+      "from": [
+        5,
+        4,
+        5
+      ],
+      "to": [
+        11,
+        11,
+        11
+      ],
+      "faces": {
+        "down": {
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ],
+          "texture": "#pipe"
+        }
+      }
+    }
+  ]
+}

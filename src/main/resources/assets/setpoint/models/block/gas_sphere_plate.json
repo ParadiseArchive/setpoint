@@ -1,0 +1,43 @@
+{
+  "parent": "minecraft:block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "plate": "setpoint:block/sphere_plate",
+    "leg": "setpoint:block/sphere_leg",
+    "rod": "setpoint:block/sphere_rod",
+    "concrete": "setpoint:block/sphere_concrete",
+    "rail": "setpoint:block/sphere_rail",
+    "valve": "setpoint:block/sphere_valve",
+    "gauge": "setpoint:block/sphere_gauge",
+    "station": "setpoint:block/sphere_station",
+    "steel": "setpoint:block/frt_steel",
+    "grating": "setpoint:block/frt_grating",
+    "pipe": "setpoint:block/gas_pipe",
+    "particle": "setpoint:block/sphere_plate"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        7
+      ],
+      "to": [
+        16,
+        16,
+        8
+      ],
+      "faces": {
+        "south": {
+          "uv": [
+            0,
+            0,
+            16,
+            16
+          ],
+          "texture": "#plate"
+        }
+      }
+    }
+  ]
+}

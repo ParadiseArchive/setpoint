@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "setpoint:block/gas_sphere_item"
+  }
+}

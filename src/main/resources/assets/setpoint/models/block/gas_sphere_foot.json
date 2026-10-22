@@ -1,0 +1,138 @@
+{
+  "parent": "minecraft:block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "plate": "setpoint:block/sphere_plate",
+    "leg": "setpoint:block/sphere_leg",
+    "rod": "setpoint:block/sphere_rod",
+    "concrete": "setpoint:block/sphere_concrete",
+    "rail": "setpoint:block/sphere_rail",
+    "valve": "setpoint:block/sphere_valve",
+    "gauge": "setpoint:block/sphere_gauge",
+    "station": "setpoint:block/sphere_station",
+    "steel": "setpoint:block/frt_steel",
+    "grating": "setpoint:block/frt_grating",
+    "pipe": "setpoint:block/gas_pipe",
+    "particle": "setpoint:block/sphere_plate"
+  },
+  "elements": [
+    {
+      "from": [
+        3,
+        0,
+        3
+      ],
+      "to": [
+        13,
+        3,
+        13
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            3,
+            13,
+            13,
+            16
+          ],
+          "texture": "#concrete"
+        },
+        "south": {
+          "uv": [
+            3,
+            13,
+            13,
+            16
+          ],
+          "texture": "#concrete"
+        },
+        "east": {
+          "uv": [
+            3,
+            13,
+            13,
+            16
+          ],
+          "texture": "#concrete"
+        },
+        "west": {
+          "uv": [
+            3,
+            13,
+            13,
+            16
+          ],
+          "texture": "#concrete"
+        },
+        "up": {
+          "uv": [
+            3,
+            3,
+            13,
+            13
+          ],
+          "texture": "#concrete"
+        }
+      }
+    },
+    {
+      "from": [
+        4.5,
+        3,
+        4.5
+      ],
+      "to": [
+        11.5,
+        3.5,
+        11.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            4.5,
+            12.5,
+            11.5,
+            13
+          ],
+          "texture": "#steel"
+        },
+        "south": {
+          "uv": [
+            4.5,
+            12.5,
+            11.5,
+            13
+          ],
+          "texture": "#steel"
+        },
+        "east": {
+          "uv": [
+            4.5,
+            12.5,
+            11.5,
+            13
+          ],
+          "texture": "#steel"
+        },
+        "west": {
+          "uv": [
+            4.5,
+            12.5,
+            11.5,
+            13
+          ],
+          "texture": "#steel"
+        },
+        "up": {
+          "uv": [
+            4.5,
+            4.5,
+            11.5,
+            11.5
+          ],
+          "texture": "#steel"
+        }
+      }
+    }
+  ]
+}

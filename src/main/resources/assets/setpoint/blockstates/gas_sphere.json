@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "setpoint:block/gas_sphere"
+    },
+    "facing=east": {
+      "model": "setpoint:block/gas_sphere"
+    },
+    "facing=south": {
+      "model": "setpoint:block/gas_sphere"
+    },
+    "facing=west": {
+      "model": "setpoint:block/gas_sphere"
+    }
+  }
+}

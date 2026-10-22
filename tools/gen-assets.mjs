@@ -1581,6 +1581,113 @@ recipe('gas_pipe', [' Y ', 'III'], { Y: 'minecraft:yellow_dye', I: 'minecraft:ir
 recipe('electrolyser', ['IGI', 'CTC', 'IRI'], { I: 'minecraft:iron_ingot', G: 'minecraft:glass', C: 'minecraft:copper_block', T: 'setpoint:tank', R: 'minecraft:redstone' }, 'setpoint:electrolyser');
 recipe('nitrogen_generator', ['ITI', 'TRT', 'IPI'], { I: 'minecraft:iron_ingot', T: 'setpoint:tank', R: 'minecraft:redstone', P: 'minecraft:piston' }, 'setpoint:nitrogen_generator');
 recipe('gas_cylinder', [' V ', 'I I', 'III'], { V: 'setpoint:hand_valve', I: 'minecraft:iron_ingot' }, 'setpoint:gas_cylinder');
+
+// =====================================================================================
+// Gas sphere: a Horton sphere on eight columns, eight by eight blocks and ten high
+// =====================================================================================
+// Like the floating roof tank, its renderer puts it together from part models (the never-placed block
+// setpoint:gas_sphere_model, one per part=), built in pixels from the middle of its footprint and moved into a model's
+// bounds by SPHERE_SHIFT; GasSphereRenderer.SHIFT must match, and the sizes GasSphereBlock. The shell is one plate,
+// stretched and turned into 12 bands of 24. The corner ladder and its cage are the floating roof tank's own models.
+texture('sphere_plate', (p) => { // white steel, the weld seams to the next plates on its right and bottom edges
+  p.rect(0, 0, 16, 16, '#eceef1');
+  for (const [x, y] of [[4, 3], [11, 6], [7, 11], [2, 9], [13, 13]]) p.set(x, y, '#e1e4e9');
+  p.rect(15, 0, 1, 16, '#c4c9d1'); p.rect(0, 15, 16, 1, '#c4c9d1');
+});
+texture('sphere_leg', (p) => { p.rect(0, 0, 16, 16, '#d9dce2'); p.rect(0, 0, 1, 16, '#eef0f3'); p.rect(15, 0, 1, 16, '#a9aeb7'); });
+texture('sphere_rod', (p) => p.rect(0, 0, 16, 16, '#4f555f'));
+texture('sphere_concrete', (p) => {
+  p.rect(0, 0, 16, 16, '#9c9b96');
+  for (const [x, y] of [[2, 3], [9, 1], [12, 7], [5, 10], [14, 13], [7, 14], [1, 12]]) p.set(x, y, '#86857f');
+  for (const [x, y] of [[4, 6], [11, 11], [13, 3]]) p.set(x, y, '#b2b1ab');
+});
+texture('sphere_rail', (p) => { p.rect(0, 0, 16, 16, '#e2b13c'); p.rect(0, 15, 16, 1, '#a87f22'); });
+texture('sphere_valve', (p) => { p.rect(0, 0, 16, 16, '#c0392b'); p.rect(0, 0, 16, 1, '#e0574a'); p.rect(0, 15, 16, 1, '#8e2a20'); });
+texture('sphere_gauge', (p) => { p.rect(0, 0, 16, 16, '#f2f2f2'); p.rect(0, 0, 16, 1, '#2a2c30'); p.rect(0, 15, 16, 1, '#2a2c30'); p.rect(7, 4, 2, 6, '#2a2c30'); });
+texture('sphere_station', (p) => { plate(p, '#6a707b'); });
+const SPHERE_SHIFT = { plate: [0, 8, 0], leg: [0, 0, 0], foot: [0, 0, 0], rod: [0, 8, 0], bridge: [0, 1, 16], platform: [0, 1, 0],
+  pipe_up: [0, 0, 0], pipe_along: [0, 0, 0], station: [-8, 0, -8] };
+{
+  const P = Object.fromEntries(Object.keys(SPHERE_SHIFT).map((k) => [k, []]));
+  const add = (part, from, to, faces, stretch = false) => P[part].push({ from, to, faces, stretch });
+  const sides = (t, skip = []) => Object.fromEntries(['north', 'south', 'east', 'west', 'up', 'down'].filter((f) => !skip.includes(f)).map((f) => [f, t]));
+  const mirror = (part, [x1, y1, z1], [x2, y2, z2], faces) => { add(part, [x1, y1, z1], [x2, y2, z2], faces); add(part, [-x2, y1, z1], [-x1, y2, z2], faces); };
+
+  add('plate', [-8, -8, -1], [8, 8, 0], { south: { t: 'plate', uv: [0, 0, 16, 16] } }, true);
+  add('leg', [-2.5, 0, -2.5], [2.5, 32, 2.5], sides('leg', ['up', 'down']));
+  add('foot', [-5, 0, -5], [5, 3, 5], sides('concrete', ['down']));
+  add('foot', [-3.5, 3, -3.5], [3.5, 3.5, 3.5], sides('steel', ['down']));
+  add('rod', [-0.5, -0.5, 0], [0.5, 0.5, 16], Object.fromEntries(['north', 'south', 'east', 'west', 'up', 'down'].map((f) => [f, { t: 'rod', uv: [0, 0, 1, 16] }])), true);
+  // the bridge, one length of it, from its outer end (0, 0, 0) towards the middle (-z)
+  add('bridge', [-6, -1, -24], [6, 0, 0], { up: 'grating', down: 'grating', east: 'steel', west: 'steel' });
+  for (const z of [-0.5, -12, -23.5]) mirror('bridge', [5.5, 0, z - 0.5], [6.5, 12, z + 0.5], sides('rail', ['up', 'down']));
+  for (const y of [6, 11]) mirror('bridge', [5.5, y, -24], [6.5, y + 1, 0], sides('rail'));
+  // the platform on top, the bridge arriving in the middle of its +z side; two safety valves and a gauge
+  add('platform', [-18, -1, -18], [18, 0, 18], { up: 'grating', down: 'grating', north: 'steel', south: 'steel', east: 'steel', west: 'steel' });
+  for (const [x, z] of [[-17.5, -17.5], [17.5, -17.5], [-17.5, 17.5], [17.5, 17.5], [0, -17.5], [-17.5, 0], [17.5, 0], [-7.5, 17.5], [7.5, 17.5]]) {
+    add('platform', [x - 0.5, 0, z - 0.5], [x + 0.5, 12, z + 0.5], sides('rail', ['up', 'down']));
+  }
+  for (const y of [6, 11]) {
+    add('platform', [-18, y, -18], [18, y + 1, -17], sides('rail'));
+    mirror('platform', [17, y, -18], [18, y + 1, 18], sides('rail'));
+    mirror('platform', [7, y, 17], [18, y + 1, 18], sides('rail'));
+  }
+  for (const x of [-8, 8]) {
+    add('platform', [x - 1.5, 0, -9.5], [x + 1.5, 5, -6.5], sides('valve', ['down']));       // a safety valve
+    add('platform', [x - 1, 3, -12], [x + 1, 4.5, -9.5], sides('valve', ['down']));          // its outlet
+  }
+  add('platform', [-0.5, 0, -14.5], [0.5, 8, -13.5], sides('steel', ['down']));              // the gauge on its post
+  add('platform', [-2, 8, -14.5], [2, 12, -13.5], { south: { t: 'gauge', uv: [0, 0, 16, 16] }, north: { t: 'steel', uv: [0, 0, 4, 4] },
+    east: { t: 'steel', uv: [0, 0, 1, 4] }, west: { t: 'steel', uv: [0, 0, 1, 4] }, up: { t: 'steel', uv: [0, 0, 4, 1] } }, true);
+  // the pipe from the bottom of the sphere down to the ground, and one length of it along the ground
+  add('pipe_up', [-3, 4, -3], [3, 26, 3], sides('pipe', ['up', 'down']));
+  add('pipe_up', [-4.5, 26, -4.5], [4.5, 28, 4.5], sides('steel'));
+  add('pipe_up', [-3, 4, -3], [3, 11, 3], { down: 'pipe' });
+  add('pipe_along', [-3, 5, 0], [3, 11, 24], sides('pipe', ['north', 'south']));
+  // the valve station at the front, in its own block's pixels: a plinth, a valve with its wheel, pipe stubs to every side
+  add('station', [1, 0, 1], [15, 2, 15], sides('concrete', ['down']));
+  add('station', [5, 2, 5], [11, 10, 11], sides('station', ['down']));
+  add('station', [7.5, 10, 7.5], [8.5, 13, 8.5], sides('steel', ['down']));
+  add('station', [4, 13, 4], [12, 14, 12], sides('valve'));
+  add('station', [0, 4, 5], [5, 10, 11], sides('pipe', ['east']));
+  add('station', [11, 4, 5], [16, 10, 11], sides('pipe', ['west']));
+  add('station', [5, 4, 11], [11, 10, 16], sides('pipe', ['north']));
+  add('station', [5, 4, 0], [11, 10, 5], sides('pipe', ['south']));
+
+  const BUILD = (list, shift) => list.flatMap(({ from, to, faces, stretch }) => {
+    const m = (p) => p.map((v, k) => +(v + 8 * (k !== 1) + shift[k]).toFixed(4));
+    if (stretch) return [box(m(from), m(to), Object.fromEntries(Object.entries(faces).map(([f, { t, uv }]) => [f, { uv, texture: '#' + t }])))];
+    return tiled(m(from), m(to), (f) => (faces[f] ? '#' + faces[f] : null));
+  });
+  const textures = { plate: tex('sphere_plate'), leg: tex('sphere_leg'), rod: tex('sphere_rod'), concrete: tex('sphere_concrete'), rail: tex('sphere_rail'),
+    valve: tex('sphere_valve'), gauge: tex('sphere_gauge'), station: tex('sphere_station'), steel: tex('frt_steel'), grating: tex('frt_grating'),
+    pipe: tex('gas_pipe'), particle: tex('sphere_plate') };
+  const parts = Object.keys(SPHERE_SHIFT);
+  for (const part of parts) M('gas_sphere_' + part, { parent: 'minecraft:block/block', ambientocclusion: false, textures, elements: BUILD(P[part], SPHERE_SHIFT[part]) });
+  const models = [...parts.map((p) => 'gas_sphere_' + p), 'floating_roof_tank_ladder', 'floating_roof_tank_cage'];
+  BS('gas_sphere_model', { variants: Object.fromEntries(Array.from({ length: 16 }, (_, i) => [`part=${i}`, { model: 'setpoint:block/' + (models[i] ?? 'gas_sphere_plate') }])) });
+  M('gas_sphere', { textures: { particle: tex('sphere_plate') } });
+  BS('gas_sphere', { variants: Object.fromEntries(['north', 'east', 'south', 'west'].map((f) => [`facing=${f}`, { model: 'setpoint:block/gas_sphere' }])) });
+  BS('gas_sphere_part', { variants: { 'ladder=false': { model: 'setpoint:block/gas_sphere' }, 'ladder=true': { model: 'setpoint:block/gas_sphere' } } });
+
+  // the item: the sphere as slices, on its eight columns, shrunk to one block
+  const whole = [];
+  for (let y = 28; y < 148; y += 8) {
+    const mid = y + 4 - 88, r = Math.sqrt(Math.max(0, 60 * 60 - mid * mid));
+    for (let z = -Math.floor(r / 8) * 8 - 8; z < r; z += 8) {
+      const zc = z + 4; if (Math.abs(zc) >= r) continue;
+      const w = Math.sqrt(r * r - zc * zc);
+      whole.push({ from: [-w, y, z], to: [w, y + 8, z + 8], faces: Object.fromEntries(['north', 'south', 'east', 'west', 'up'].map((f) => [f, { uv: [0, 0, 16, 16], texture: '#plate' }])) });
+    }
+  }
+  for (let k = 0; k < 8; k++) {
+    const a = (22.5 + 45 * k) * Math.PI / 180, x = 62 * Math.sin(a), z = 62 * Math.cos(a);
+    whole.push({ from: [x - 3, 0, z - 3], to: [x + 3, 88, z + 3], faces: Object.fromEntries(['north', 'south', 'east', 'west'].map((f) => [f, { uv: [0, 0, 16, 16], texture: '#leg' }])) });
+  }
+  M('gas_sphere_item', { parent: 'minecraft:block/block', textures, elements: shrunk(whole, [0, 76, 0], 16 / 152) });
+  item('gas_sphere', 'setpoint:block/gas_sphere_item');
+}
+recipe('gas_sphere', ['IGI', 'GPG', 'IGI'], { I: 'minecraft:iron_block', G: 'setpoint:gas_cylinder', P: 'setpoint:gas_pipe' }, 'setpoint:gas_sphere');
 recipe('floating_roof_tank', ['IBI', 'BTB', 'IBI'], { I: 'setpoint:hookonium_ingot', B: 'setpoint:hookonium_block', T: 'setpoint:tank' }, 'setpoint:floating_roof_tank');
 recipe('ibc', ['BBB', 'BCB', 'SSS'], { B: 'minecraft:iron_bars', C: 'minecraft:cauldron', S: 'minecraft:oak_slab' }, 'setpoint:ibc');
 
@@ -1779,7 +1886,7 @@ const MACHINES = ['pipe', 'tank', 'centrifugal_pump', 'creative_generator', 'lev
   'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine', 'dcs_console', 'hand_valve', 'water_intake', 'flow_transmitter',
   'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve', 'pid_board', 'pallet', 'gas_pipe', 'electrolyser', 'nitrogen_generator'];
 for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) lootSelf(name);
-for (const name of ['drum', 'ibc', 'floating_roof_tank', 'gas_cylinder']) json(join(DATA, 'loot_table/blocks', name + '.json'), {
+for (const name of ['drum', 'ibc', 'floating_roof_tank', 'gas_cylinder', 'gas_sphere']) json(join(DATA, 'loot_table/blocks', name + '.json'), {
   type: 'minecraft:block', random_sequence: 'setpoint:blocks/' + name,
   pools: [{ rolls: 1, conditions: [{ condition: 'minecraft:survives_explosion' }], entries: [{ type: 'minecraft:item', name: 'setpoint:' + name,
     modifier: { type: 'minecraft:copy_components', source: 'block_entity', include: ['minecraft:custom_name', 'setpoint:fluid_contents', 'minecraft:dyed_color'] } }] }],
@@ -1788,7 +1895,7 @@ lootOre('hookonium_ore', 'setpoint:raw_hookonium');
 lootOre('deepslate_hookonium_ore', 'setpoint:raw_hookonium');
 const HOOKONIUM_BLOCKS = ['hookonium_ore', 'deepslate_hookonium_ore', 'hookonium_block', 'raw_hookonium_block'].map((n) => 'setpoint:' + n);
 const tag = (path, values) => json(join(ROOT, 'data', path + '.json'), { values });
-tag('minecraft/tags/block/mineable/pickaxe', [...MACHINES.map((n) => 'setpoint:' + n), 'setpoint:drum', 'setpoint:ibc', 'setpoint:floating_roof_tank', 'setpoint:roof_tank_part', 'setpoint:gas_cylinder', ...HOOKONIUM_BLOCKS]);
+tag('minecraft/tags/block/mineable/pickaxe', [...MACHINES.map((n) => 'setpoint:' + n), 'setpoint:drum', 'setpoint:ibc', 'setpoint:floating_roof_tank', 'setpoint:roof_tank_part', 'setpoint:gas_cylinder', 'setpoint:gas_sphere', 'setpoint:gas_sphere_part', ...HOOKONIUM_BLOCKS]);
 tag('minecraft/tags/block/needs_diamond_tool', HOOKONIUM_BLOCKS);
 // the pipe wrench turns, cuts and picks up these
 tag('setpoint/tags/block/wrenchable', MACHINES.map((n) => 'setpoint:' + n));
@@ -1820,7 +1927,7 @@ function nbt() {
   };
 }
 // the test benches: empty rooms, the normal one and a big one for the floating roof tank
-for (const [name, W, H, D] of [['bench', 7, 11, 3], ['big_bench', 10, 8, 10]]) {
+for (const [name, W, H, D] of [['bench', 7, 11, 3], ['big_bench', 10, 12, 10]]) {
 const n = nbt();
 n.named(10, '');                                       // root compound
 n.named(3, 'DataVersion'); n.i32(5023);                // Minecraft 26.3

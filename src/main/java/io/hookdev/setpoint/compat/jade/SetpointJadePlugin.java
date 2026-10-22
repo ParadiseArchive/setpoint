@@ -49,13 +49,15 @@ public class SetpointJadePlugin implements IWailaPlugin {
             io.hookdev.setpoint.block.entity.PressureTransmitterBlockEntity.class, io.hookdev.setpoint.block.entity.SafetyValveBlockEntity.class,
             io.hookdev.setpoint.block.entity.WaterIntakeBlockEntity.class, io.hookdev.setpoint.block.entity.PortableTankBlockEntity.class,
             io.hookdev.setpoint.block.entity.TankPartBlockEntity.class, io.hookdev.setpoint.block.entity.GasMakerBlockEntity.class,
-            io.hookdev.setpoint.block.entity.GasCylinderBlockEntity.class};
+            io.hookdev.setpoint.block.entity.GasCylinderBlockEntity.class, io.hookdev.setpoint.block.entity.GasSphereBlockEntity.class,
+            io.hookdev.setpoint.block.entity.GasSpherePartBlockEntity.class};
     @SuppressWarnings("unchecked")
     private static final Class<? extends Block>[] BLOCKS = new Class[]{PumpBlock.class, TankBlock.class, ControlValveBlock.class,
             ControllerBlock.class, LevelTransmitterBlock.class, BoilerBlock.class, SteamTurbineBlock.class, GeneratorBlock.class,
             io.hookdev.setpoint.block.FlowTransmitterBlock.class, io.hookdev.setpoint.block.PressureTransmitterBlock.class,
             io.hookdev.setpoint.block.SafetyValveBlock.class, io.hookdev.setpoint.block.WaterIntakeBlock.class, io.hookdev.setpoint.block.PortableTankBlock.class,
-            io.hookdev.setpoint.block.TankPartBlock.class, io.hookdev.setpoint.block.GasMakerBlock.class, io.hookdev.setpoint.block.GasCylinderBlock.class};
+            io.hookdev.setpoint.block.TankPartBlock.class, io.hookdev.setpoint.block.GasMakerBlock.class, io.hookdev.setpoint.block.GasCylinderBlock.class,
+            io.hookdev.setpoint.block.GasSphereBlock.class, io.hookdev.setpoint.block.GasSpherePartBlock.class};
 
     @Override
     public void register(IWailaCommonRegistration registration) {
@@ -73,7 +75,8 @@ public class SetpointJadePlugin implements IWailaPlugin {
 
         @Override
         public void appendServerData(CompoundTag data, BlockAccessor accessor) {
-            var be = accessor.getBlockEntity() instanceof io.hookdev.setpoint.block.entity.TankPartBlockEntity part ? part.tank() : accessor.getBlockEntity();
+            var be = accessor.getBlockEntity() instanceof io.hookdev.setpoint.block.entity.TankPartBlockEntity part ? part.tank()
+                    : accessor.getBlockEntity() instanceof io.hookdev.setpoint.block.entity.GasSpherePartBlockEntity part ? part.sphere() : accessor.getBlockEntity();
             Reading r = be == null ? null : PlantScanner.read(be);
             if (r == null) return;
             data.putString("setpoint_tag", r.tag());

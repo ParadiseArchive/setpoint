@@ -64,6 +64,9 @@ public final class PidSymbols {
     // a gas cylinder: a bottle with its valve on top
     private static final String[] GAS_CYLINDER = {
             "...##...", "..####..", ".#....#.", ".#++++#.", ".#....#.", ".#....#.", ".#....#.", ".######."};
+    // a gas sphere on its legs
+    private static final String[] GAS_SPHERE = {
+            "..####..", ".#....#.", "#......#", "#++++++#", ".#++++#.", "..####..", ".#.##.#.", "#..##..#"};
     private static final String[] CONSOLE = {
             "########", "#++++++#", "#+....+#", "#++++++#", "########", "...##...", "..####..", "........"};
 
@@ -92,6 +95,7 @@ public final class PidSymbols {
             case PidDrawing.ELECTROLYSER -> ELECTROLYSER;
             case PidDrawing.NITROGEN_GENERATOR -> NITROGEN_GENERATOR;
             case PidDrawing.GAS_CYLINDER -> GAS_CYLINDER;
+            case PidDrawing.GAS_SPHERE -> GAS_SPHERE;
             default -> null;
         };
     }

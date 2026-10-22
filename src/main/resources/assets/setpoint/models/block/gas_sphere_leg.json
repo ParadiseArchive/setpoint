@@ -1,0 +1,120 @@
+{
+  "parent": "minecraft:block/block",
+  "ambientocclusion": false,
+  "textures": {
+    "plate": "setpoint:block/sphere_plate",
+    "leg": "setpoint:block/sphere_leg",
+    "rod": "setpoint:block/sphere_rod",
+    "concrete": "setpoint:block/sphere_concrete",
+    "rail": "setpoint:block/sphere_rail",
+    "valve": "setpoint:block/sphere_valve",
+    "gauge": "setpoint:block/sphere_gauge",
+    "station": "setpoint:block/sphere_station",
+    "steel": "setpoint:block/frt_steel",
+    "grating": "setpoint:block/frt_grating",
+    "pipe": "setpoint:block/gas_pipe",
+    "particle": "setpoint:block/sphere_plate"
+  },
+  "elements": [
+    {
+      "from": [
+        5.5,
+        0,
+        5.5
+      ],
+      "to": [
+        10.5,
+        16,
+        10.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5.5,
+            0,
+            10.5,
+            16
+          ],
+          "texture": "#leg"
+        },
+        "south": {
+          "uv": [
+            5.5,
+            0,
+            10.5,
+            16
+          ],
+          "texture": "#leg"
+        },
+        "east": {
+          "uv": [
+            5.5,
+            0,
+            10.5,
+            16
+          ],
+          "texture": "#leg"
+        },
+        "west": {
+          "uv": [
+            5.5,
+            0,
+            10.5,
+            16
+          ],
+          "texture": "#leg"
+        }
+      }
+    },
+    {
+      "from": [
+        5.5,
+        16,
+        5.5
+      ],
+      "to": [
+        10.5,
+        32,
+        10.5
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            5.5,
+            0,
+            10.5,
+            16
+          ],
+          "texture": "#leg"
+        },
+        "south": {
+          "uv": [
+            5.5,
+            0,
+            10.5,
+            16
+          ],
+          "texture": "#leg"
+        },
+        "east": {
+          "uv": [
+            5.5,
+            0,
+            10.5,
+            16
+          ],
+          "texture": "#leg"
+        },
+        "west": {
+          "uv": [
+            5.5,
+            0,
+            10.5,
+            16
+          ],
+          "texture": "#leg"
+        }
+      }
+    }
+  ]
+}

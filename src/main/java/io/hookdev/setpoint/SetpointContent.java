@@ -152,6 +152,14 @@ public final class SetpointContent {
             p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
     public static final DeferredBlock<io.hookdev.setpoint.block.GasCylinderBlock> GAS_CYLINDER = BLOCKS.registerBlock("gas_cylinder", io.hookdev.setpoint.block.GasCylinderBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(2.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    /** A gas sphere: steel, as hard as the floating roof tank, its shape fixed but different in every block. */
+    public static final DeferredBlock<io.hookdev.setpoint.block.GasSphereBlock> GAS_SPHERE = BLOCKS.registerBlock("gas_sphere", io.hookdev.setpoint.block.GasSphereBlock::new,
+            p -> p.mapColor(MapColor.SNOW).strength(5.0f, 1200.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.GasSpherePartBlock> GAS_SPHERE_PART = BLOCKS.registerBlock("gas_sphere_part", io.hookdev.setpoint.block.GasSpherePartBlock::new,
+            p -> p.mapColor(MapColor.SNOW).strength(5.0f, 1200.0f).sound(SoundType.METAL).noOcclusion().dynamicShape().noLootTable());
+    /** Holds the gas sphere's models (plates, columns, bracing, ladder, platform), for its renderer; never placed. */
+    public static final DeferredBlock<VehicleModelBlock> GAS_SPHERE_MODEL = BLOCKS.registerBlock("gas_sphere_model", VehicleModelBlock::new,
+            p -> p.noCollision().noOcclusion().noLootTable());
     public static final DeferredBlock<TankBlock> TANK = BLOCKS.registerBlock("tank", TankBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
     public static final DeferredBlock<PumpBlock> PUMP = BLOCKS.registerBlock("centrifugal_pump", PumpBlock::new,
@@ -233,6 +241,7 @@ public final class SetpointContent {
     public static final DeferredItem<BlockItem> ELECTROLYSER_ITEM = ITEMS.registerSimpleBlockItem(ELECTROLYSER);
     public static final DeferredItem<BlockItem> NITROGEN_GENERATOR_ITEM = ITEMS.registerSimpleBlockItem(NITROGEN_GENERATOR);
     public static final DeferredItem<BlockItem> GAS_CYLINDER_ITEM = ITEMS.registerSimpleBlockItem(GAS_CYLINDER, p -> p.stacksTo(16));
+    public static final DeferredItem<BlockItem> GAS_SPHERE_ITEM = ITEMS.registerSimpleBlockItem(GAS_SPHERE, p -> p.rarity(Rarity.RARE).stacksTo(1));
     public static final DeferredItem<BlockItem> TANK_ITEM = ITEMS.registerSimpleBlockItem(TANK);
     public static final DeferredItem<BlockItem> PUMP_ITEM = ITEMS.registerSimpleBlockItem(PUMP);
     public static final DeferredItem<BlockItem> CREATIVE_GENERATOR_ITEM = ITEMS.registerSimpleBlockItem(CREATIVE_GENERATOR);
@@ -327,6 +336,10 @@ public final class SetpointContent {
             () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.NitrogenGeneratorBlockEntity::new, NITROGEN_GENERATOR.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.GasCylinderBlockEntity>> GAS_CYLINDER_ENTITY = BLOCK_ENTITIES.register("gas_cylinder",
             () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.GasCylinderBlockEntity::new, GAS_CYLINDER.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.GasSphereBlockEntity>> GAS_SPHERE_ENTITY = BLOCK_ENTITIES.register("gas_sphere",
+            () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.GasSphereBlockEntity::new, GAS_SPHERE.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.GasSpherePartBlockEntity>> GAS_SPHERE_PART_ENTITY = BLOCK_ENTITIES.register("gas_sphere_part",
+            () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.GasSpherePartBlockEntity::new, GAS_SPHERE_PART.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BoilerBlockEntity>> BOILER_ENTITY = BLOCK_ENTITIES.register("boiler",
             () -> new BlockEntityType<>(BoilerBlockEntity::new, BOILER.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WaterIntakeBlockEntity>> WATER_INTAKE_ENTITY = BLOCK_ENTITIES.register("water_intake",
@@ -361,6 +374,7 @@ public final class SetpointContent {
                 output.accept(ELECTROLYSER_ITEM.get());
                 output.accept(NITROGEN_GENERATOR_ITEM.get());
                 output.accept(GAS_CYLINDER_ITEM.get());
+                output.accept(GAS_SPHERE_ITEM.get());
                 for (var gas : io.hookdev.setpoint.gas.Gases.ALL) { // a cylinder of each gas at 10 bar, to try things with
                     net.minecraft.world.item.ItemStack cylinder = new net.minecraft.world.item.ItemStack(GAS_CYLINDER_ITEM.get());
                     cylinder.set(FLUID_CONTENTS.get(), SimpleFluidContent.copyOf(new net.neoforged.neoforge.fluids.FluidStack(gas.fluid().get(), 10_000)));
