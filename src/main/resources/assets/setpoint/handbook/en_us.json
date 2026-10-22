@@ -785,6 +785,46 @@
         },
         {
           "type": "h",
+          "text": "Flare stack"
+        },
+        {
+          "type": "p",
+          "text": "Where a plant burns the gas it cannot keep: a stack **forty blocks high** in a red and white derrick, the tallest thing in the mod. Place it with one block: that is the **ignition panel**, with the knock-out drum behind it and the tower behind that. It is seven blocks wide and reaches ten blocks away from you, so clear the space first."
+        },
+        {
+          "type": "p",
+          "text": "Three gas lines join the panel. The **flare header** at the front: everything that goes to the flare. **Pilot gas** on your left: a little LPG or hydrogen keeps the pilot flame alight. **Steam** on your right, blown into the flame so LPG burns without smoke. Right-click the panel to light it."
+        },
+        {
+          "type": "p",
+          "text": "Gas reaches the flare two ways. A **safety valve** with a gas pipe on its outlet blows off into the header instead of into the air. And the flare takes the excess off every vessel on its header that stands above its **set pressure** (sneak-right-click: 2, 5, 8 or 12 bar), so a column whose LPG has nowhere to go keeps running."
+        },
+        {
+          "type": "p",
+          "text": "Hydrogen, ammonia and LPG burn: the more gas, the bigger the flame, up to sixteen blocks of fire that leans with the wind. Nitrogen and steam just go up the stack. Without pilot gas the flame goes out when nothing flows, and gas that comes then goes up unburnt: **FLARE OUT** on the console."
+        },
+        {
+          "type": "p",
+          "text": "Climb the caged ladder up the inside of the tower to the three platforms; the top one is right under the tip. Do not stand in the flame."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:flare_stack",
+          "grid": [
+            "minecraft:iron_block",
+            "minecraft:flint_and_steel",
+            "minecraft:iron_block",
+            "minecraft:iron_bars",
+            "setpoint:gas_pipe",
+            "minecraft:iron_bars",
+            "minecraft:iron_block",
+            "setpoint:drum",
+            "minecraft:iron_block"
+          ],
+          "count": 1
+        },
+        {
+          "type": "h",
           "text": "Floating roof tank"
         },
         {
