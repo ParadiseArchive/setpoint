@@ -53,17 +53,19 @@ jobs:
             [ "$code" -lt 300 ] || { echo "::error::CurseForge answered HTTP $code on game/$what: $(head -c 600 "$what.json")"; exit 1; }
           done
           mv version-types.json types.json
-          # Minecraft itself, the loader and the Java version, each by its name in its own version type
+          # Minecraft itself, the loader, the Java version and both sides (CurseForge wants an environment), each by its name in its own version type
           jq --arg mc "$MC" --slurpfile types types.json '
             ($types[0] | map({key: (.id | tostring), value: .slug}) | from_entries) as $slug
             | map(. + {type: $slug[.gameVersionTypeID | tostring]})
             | map(select(
                 ((.type // "" | startswith("minecraft-")) and .name == $mc)
                 or (.type == "modloader" and .name == "NeoForge")
-                or (.type == "java" and .name == "Java 25")))' versions.json > found.json
+                or (.type == "java" and .name == "Java 25")
+                or ((.type // "" | test("environment")) and (.name == "Client" or .name == "Server"))))' versions.json > found.json
           jq -r '.[] | "  found: \(.name) (\(.type), id \(.id))"' found.json
           jq -e --arg mc "$MC" 'any(.name == $mc)' found.json > /dev/null || { echo "::error::CurseForge does not know Minecraft $MC yet"; exit 1; }
           jq -e 'any(.name == "NeoForge")' found.json > /dev/null || { echo "::error::NeoForge not found on CurseForge"; exit 1; }
+          jq -e 'any(.name == "Client")' found.json > /dev/null || { echo "::error::No Client environment found; version types: $(jq -c 'map(.slug)' types.json)"; exit 1; }
           echo "::notice::Game versions on CurseForge: $(jq -c 'map("\(.name) = \(.id)")' found.json)"
           echo "GAME_VERSIONS=$(jq -c 'map(.id)' found.json)" >> "$GITHUB_ENV"
 
