@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Read the version
         run: |
@@ -48,8 +48,11 @@ jobs:
           CF_TOKEN: ${{ secrets.CURSEFORGE }}
         run: |
           [ -n "$CF_TOKEN" ] || { echo "::error::The secret CURSEFORGE is missing"; exit 1; }
-          curl -sS --fail-with-body -H "X-Api-Token: $CF_TOKEN" "$CF_API/game/version-types" > types.json
-          curl -sS --fail-with-body -H "X-Api-Token: $CF_TOKEN" "$CF_API/game/versions" > versions.json
+          for what in version-types versions; do
+            code=$(curl -sS -o "$what.json" -w '%{http_code}' -H "X-Api-Token: $CF_TOKEN" "$CF_API/game/$what")
+            [ "$code" -lt 300 ] || { echo "::error::CurseForge answered HTTP $code on game/$what: $(head -c 600 "$what.json")"; exit 1; }
+          done
+          mv version-types.json types.json
           # Minecraft itself, the loader and the Java version, each by its name in its own version type
           jq --arg mc "$MC" --slurpfile types types.json '
             ($types[0] | map({key: (.id | tostring), value: .slug}) | from_entries) as $slug
@@ -61,11 +64,12 @@ jobs:
           jq -r '.[] | "  found: \(.name) (\(.type), id \(.id))"' found.json
           jq -e --arg mc "$MC" 'any(.name == $mc)' found.json > /dev/null || { echo "::error::CurseForge does not know Minecraft $MC yet"; exit 1; }
           jq -e 'any(.name == "NeoForge")' found.json > /dev/null || { echo "::error::NeoForge not found on CurseForge"; exit 1; }
+          echo "::notice::Game versions on CurseForge: $(jq -c 'map("\(.name) = \(.id)")' found.json)"
           echo "GAME_VERSIONS=$(jq -c 'map(.id)' found.json)" >> "$GITHUB_ENV"
 
       - name: Setup JDK 25
         if: github.event_name == 'push' || inputs.mode == 'upload'
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           java-version: '25'
           distribution: 'temurin'
@@ -89,7 +93,12 @@ jobs:
           [ -f "$jar" ] || { echo "::error::$jar was not built"; exit 1; }
           jq -n --rawfile changelog "$changelog" --arg name "Setpoint $VERSION" --arg type "$TYPE" --argjson ids "$GAME_VERSIONS" \
             '{changelog: $changelog, changelogType: "markdown", displayName: $name, gameVersions: $ids, releaseType: $type}' > metadata.json
-          curl -sS --fail-with-body -H "X-Api-Token: $CF_TOKEN" \
+          echo "::notice::Uploading $jar as $(jq -c '{displayName, gameVersions, releaseType}' metadata.json)"
+          # the answer of CurseForge goes into an annotation, so it can be read without the log
+          code=$(curl -sS -o response.txt -w '%{http_code}' -H "X-Api-Token: $CF_TOKEN" \
             -F "metadata=<metadata.json" -F "file=@$jar" \
-            "$CF_API/projects/$CF_PROJECT/upload-file"
-          echo; echo "Uploaded Setpoint $VERSION to CurseForge project $CF_PROJECT"
+            "$CF_API/projects/$CF_PROJECT/upload-file")
+          if [ "$code" -ge 300 ]; then
+            echo "::error::CurseForge answered HTTP $code: $(head -c 600 response.txt)"; exit 1
+          fi
+          echo "::notice::Uploaded Setpoint $VERSION to CurseForge project $CF_PROJECT: $(cat response.txt)"
