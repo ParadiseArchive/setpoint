@@ -1,39 +1,121 @@
-# Setpoint
+<p align="center">
+  <img src=".github/readme/banner.png" width="100%" alt="Setpoint: process engineering you can play. The Setpoint logo next to a gas sphere, a distillation column, a flare stack and a floating roof tank.">
+</p>
 
-Process engineering for Minecraft, by [Hook Development](https://hookdev.io).
+<p align="center">
+  <a href="https://github.com/ParadiseArchive/setpoint/actions/workflows/build.yml"><img src="https://img.shields.io/github/actions/workflow/status/ParadiseArchive/setpoint/build.yml?branch=main&style=flat-square&label=build&labelColor=0a0c13&color=2de2e6" alt="Build"></a>
+  <img src="https://img.shields.io/badge/minecraft-26.3-2de2e6?style=flat-square&labelColor=0a0c13" alt="Minecraft 26.3">
+  <img src="https://img.shields.io/badge/neoforge-26.3-2de2e6?style=flat-square&labelColor=0a0c13" alt="NeoForge 26.3">
+  <img src="https://img.shields.io/badge/status-alpha-ffb547?style=flat-square&labelColor=0a0c13" alt="Status: alpha">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-ff4f8b?style=flat-square&labelColor=0a0c13" alt="License: MIT"></a>
+</p>
 
-Build a working process plant of pumps, tanks, valves and controllers, run it from a DCS console, and draw it as
-a live P&ID. Easy by default, real physics underneath.
+<p align="center">
+  <a href="https://hookdev.io/projects/minecraft-mods/setpoint/"><b>Read the docs</b></a> &nbsp;·&nbsp;
+  <a href="https://hookdev.io/projects/minecraft-mods/"><b>Devlog</b></a> &nbsp;·&nbsp;
+  <a href="https://hookdev.io"><b>hookdev.io</b></a>
+</p>
 
-**Status:** alpha (0.1.0-alpha). Things still change between versions: back up your world before updating.
-Full documentation: https://hookdev.io/projects/minecraft-mods/setpoint/
+---
 
-## What is in it
-- **P&IDs:** draw your plant as a P&ID, show it live in the DCS console or on a wall of P&ID boards.
-- **Liquids:** pipes, tanks, centrifugal pumps that cavitate, hand, check, drain and control valves, gravity flow,
-  drums, IBCs and a floating roof tank.
-- **Control:** level, flow and pressure transmitters, self-linking DCS controllers with faceplates, a DCS console
-  with trends and alarms.
-- **Power and pressure:** Stirling engine, biogas generator, a coal-fired boiler with real steam pressure, a safety
-  valve and a steam turbine.
-- **Gases:** hydrogen, oxygen, nitrogen and steam with real pressure, gas pipes, an electrolyser, a nitrogen
-  generator and gas cylinders.
-- **Logistics:** pallets, an electric pallet truck and a forklift.
-- **Hookonium:** a purple endgame ore.
+Setpoint is a Minecraft mod built on real process engineering. Pumps, tanks, control valves and controllers behave
+like the real thing: starve a pump and it cavitates, put a controller against a tank and it holds the level by
+itself. Build a plant, run it from a control room, and draw it as a real P&ID.
 
-## How it is made
-Designed by Hook Development; the code and the first textures are written with Claude, an AI assistant.
+**Easy by default, real physics underneath.** Things link up and set themselves up, so any player can build a working
+plant. The depth is there for those who want it: pump curves, pressure, gravity, every liquid with its own weight.
 
-## Platform
-Minecraft 26.3 · NeoForge · Java 25
+## The heart of it: P&IDs
+
+A P&ID (piping and instrumentation diagram) is the map of a real process plant. Every operator learns to read one.
+In Setpoint you draw your own, straight from what you built.
+
+1. Right-click the ground with a **blank P&ID**: the first corner.
+2. Look at the opposite corner. The box shows in the world, ten blocks high.
+3. Right-click it. Your plant comes out as a P&ID: every pump, tank, valve and instrument as its symbol, with the
+   pipes and signal lines between them.
+
+Then put it to work. Right-click a DCS console with it and the drawing goes **live**: running equipment turns cyan,
+tanks fill up to their real level, alarms flash. Or hang it big on the wall on a **P&ID board** and run the plant from
+there: look at a symbol for its status, click a controller for its faceplate, start and stop the pumps.
+
+<p align="center">
+  <img src=".github/readme/pid.png" width="49%" alt="A P&ID named Steam plant north: tanks, pumps, valves, a flow transmitter and controllers with dashed signal lines.">
+  <img src=".github/readme/board.png" width="49%" alt="The same plant live on a P&ID board on the wall, a pump in alarm in magenta and an amber alarm lamp.">
+</p>
+
+## Run it from the control room
+
+The DCS console sees every tag in your plant: an overview, trends and an alarm list with ACK. Every controller has a
+faceplate like a real DCS: MAN, AUTO and CAS, setpoint and output, alarm limits and tuning. Build the room round it
+with a video wall, an amber alarm beacon, a red emergency stop, desks and a 24-hour chair.
+
+<p align="center">
+  <img src=".github/readme/console.png" width="56%" alt="The DCS console overview: tags, types, status and values, with a pump in DRY RUN alarm.">
+  <img src=".github/readme/faceplate.png" width="42%" alt="A controller faceplate: PV, SP and OP, the MAN AUTO CAS buttons, tuning, action and alarm limits.">
+</p>
+
+## What you can build
+
+### Liquids
+Pipes, tanks that stack into tall tanks, centrifugal pumps with a real pump curve, hand, check, drain and control
+valves, gravity flow, drums, IBCs and a floating roof tank of 8000 buckets.
+
+<img src=".github/readme/shelf-liquids.png" width="100%" alt="Water intake, centrifugal pump, hand valve, control valve, check valve, tank, tall tank, drum, IBC and floating roof tank.">
+
+### Control
+Level, flow and pressure transmitters, DCS controllers that find their own valve, a field communicator, the DCS
+console, P&ID boards and a whole control room.
+
+<img src=".github/readme/shelf-control.png" width="100%" alt="Level, flow and pressure transmitters, DCS controller, field communicator, DCS console, P&ID board, alarm beacon, emergency stop and a control room.">
+
+### Power and steam
+From a Stirling engine on coal up to diesel: a biogas generator, a boiler with real steam pressure and a safety
+valve, a steam turbine, a diesel generator and a fuel cell.
+
+<img src=".github/readme/shelf-power.png" width="100%" alt="Stirling engine, biogas generator, boiler, safety valve, steam turbine, diesel generator, fuel cell and a small steam plant.">
+
+### Gases and oil
+Hydrogen, oxygen, nitrogen, ammonia and LPG with real pressure. An electrolyser, a compressor up to 200 bar, gas
+cylinders and a gas sphere, an ammonia reactor for fertilizer. A pumpjack and a distillation column that splits crude
+into LPG, naphtha, kerosene, diesel and residue. And on top of it all, the tallest thing in the mod: a flare stack
+forty blocks high that burns what the plant cannot keep.
+
+<img src=".github/readme/shelf-gases.png" width="100%" alt="Electrolyser, nitrogen generator, compressor, gas cylinders, ammonia reactor, fertilizer mixer, gas sphere, pumpjack, distillation column and flare stack.">
+
+### Logistics
+Pallets of drums, an electric pallet truck, a forklift and pallet racking. Plus factory blocks to build round it all:
+grating, handrails, stairs, caged ladders, steel beams and hazard stripes. And Hookonium, a purple endgame ore.
+
+<img src=".github/readme/shelf-logistics.png" width="100%" alt="A pallet of drums, a loaded pallet truck, a forklift lifting a pallet and pallet racking.">
+
+## Get it
+
+Setpoint is in **alpha** (0.1.0-alpha): things still change between versions, so back up your world before updating.
+A download on CurseForge is coming; until then you can build it yourself (see below).
+
+- Minecraft 26.3 with NeoForge, Java 25
+- In-game help: the **Setpoint Handbook**, tooltips (hold Shift for more) and advancements
+- Works with Jade, and with other mods' tanks
+
+The full documentation, with every machine, recipe and screen, is on
+**[hookdev.io](https://hookdev.io/projects/minecraft-mods/setpoint/)**.
 
 ## Building
+
 ```
 ./gradlew build               # jar in build/libs
 ./gradlew runClient           # start a development client
 ./gradlew runGameTestServer   # run the automated in-game tests
 ```
 
+Every push is built and tested by GitHub Actions. The pictures in this README come from `tools/readme-art.mjs`.
+
 ## License
+
 MIT, see [LICENSE](LICENSE). Built on the NeoForge MDK (see TEMPLATE_LICENSE.txt).
 Minecraft names used in code come from Mojang's official mappings, see https://github.com/NeoForged/NeoForm/blob/main/Mojang.md.
+
+<sub>NOT AN OFFICIAL MINECRAFT PRODUCT. NOT APPROVED BY OR ASSOCIATED WITH MOJANG OR MICROSOFT.</sub>
+
+<p align="center"><a href="https://hookdev.io"><sub>made by Hook Development</sub></a></p>

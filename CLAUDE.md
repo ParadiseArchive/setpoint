@@ -33,7 +33,8 @@ Easy by default, depth for those who want it. A normal Minecraft player must be 
 - Physics and control maths in plain classes with JUnit tests (no Minecraft needed).
 - NeoForge GameTests for in-world behaviour (`./gradlew runGameTestServer`).
 - The owner plays a test world per milestone with a checklist; multiplayer check with `runServer`.
-- GitHub Actions builds and tests every push.
+- GitHub Actions builds and tests every push (gradlew must stay executable in git: `git update-index --chmod=+x gradlew`).
+- README in the style of hookdev.io (owner, 24 Oct 2026): pictures in .github/readme from `node tools/readme-art.mjs ../hook-development` (needs the site repo next to this one, after render-showcase). When a big machine is added, put it on its shelf in readme-art.mjs, re-run it and mention it in the README. No "how it is made" section in the README (owner).
 
 ## Milestones
 - [x] M1 · First machine: pipes, tank, centrifugal pump, cavitation when starved (playtested 20 Oct 2026)
