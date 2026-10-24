@@ -1,5 +1,7 @@
 # Setpoint
 
+![Setpoint: process engineering you can play](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/banner.png)
+
 **Build a real process plant in Minecraft, then draw it as a P&ID.**
 
 Setpoint is a process engineering mod. Pumps, tanks, valves and controllers behave like the real thing, and every machine has its place on a P&ID (piping and instrumentation diagram), the drawing real plants are run from. Draw your plant with a P&ID sheet, hang it on the wall of your control room, and watch it come alive.
@@ -14,6 +16,10 @@ It is easy by default: machines link up and configure themselves, and plain-lang
 - **Live in the control room.** Put a P&ID in the DCS console: equipment that runs lights up, alarms flash, tanks fill to their real level. Click a symbol for its trend.
 - **On the wall.** Put P&ID boards side by side for a big mimic board that updates live, and run the plant from it: open a controller's faceplate, start and stop pumps, open and shut hand valves.
 
+![A P&ID of a small steam plant](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/pid.png)
+
+![The same plant live on a P&ID board](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/board.png)
+
 ## Liquids
 
 - **Pipes, tanks and centrifugal pumps.** Starve a pump and it cavitates. Longer pipes mean more friction and less flow. Every liquid has its own density and viscosity: lava is heavy and slow.
@@ -22,11 +28,15 @@ It is easy by default: machines link up and configure themselves, and plain-lang
 - **Drums and IBCs.** Containers you carry around, liquid and all, in any colour you dye them.
 - **Floating roof tank.** A tank of eight by eight by six blocks for 8000 buckets, placed with one block. Its roof floats on the liquid, rising and sinking with the level, and you can walk on it.
 
+![Water intake, pump, valves, tanks, drum, IBC and floating roof tank](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/shelf-liquids.png)
+
 ## Control
 
 - **Transmitters.** Level, flow and pressure.
 - **DCS controllers.** Place one against a tank and it finds its own valve and holds the level at 50 %. Open its faceplate to change the setpoint, tune the PID, or switch between AUTO, MAN and CAS.
 - **DCS console.** Overview, five-minute trends and an ISA-style alarm list for everything within 32 blocks.
+
+![Transmitters, controller, field communicator, DCS console, P&ID board, alarm beacon, emergency stop and a control room](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/shelf-control.png)
 
 ## The control room
 
@@ -36,12 +46,18 @@ It is easy by default: machines link up and configure themselves, and plain-lang
 - **Radios.** Pick one up and the field operator calls in what needs a look, worst first.
 - **Furniture.** Control desks, operator screens, a 24-hour chair you can sit in, a raised floor, ceiling lights, a wall clock with the time of day, filing cabinets, a printer, a coffee machine, an exit sign, a blast door and wired glass.
 
+![The DCS console overview](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/console.png)
+
+![A controller faceplate](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/faceplate.png)
+
 ## Power
 
 - **Stirling engine and biogas generator** for the start.
 - **Coal-fired boiler and steam turbine.** Steam builds real pressure: the burner trips at 9 bar, a safety valve lifts at its set pressure, and a boiler without protection bursts.
 - **Diesel generator** at the top of the power ladder, on diesel from your own refinery.
 - **Fuel cell.** Hydrogen and oxygen back into power: with an electrolyser and a gas sphere it makes a battery.
+
+![Stirling engine, biogas generator, boiler, safety valve, steam turbine, diesel generator and fuel cell](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/shelf-power.png)
 
 ## Gases
 
@@ -57,6 +73,8 @@ It is easy by default: machines link up and configure themselves, and plain-lang
 - A **distillation column**, eleven blocks high, splits crude oil like a real crude unit, with steam in its reboiler and cooling water in its condenser: LPG at the top, then naphtha, kerosene and diesel, and residue at the bottom.
 - Crude oil and naphtha give off vapour in an ordinary tank: blanket them with nitrogen, or keep them in a floating roof tank.
 
+![Electrolyser, nitrogen generator, compressor, gas cylinders, ammonia reactor, fertilizer mixer, gas sphere, pumpjack, distillation column and flare stack](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/shelf-gases.png)
+
 ## The flare stack
 
 The tallest thing in the mod: a flare forty blocks high in a red and white derrick, placed with one block. It burns what the plant cannot keep: safety valves piped to its header blow off into it, and it takes the excess off every vessel on the header above its set pressure. A pilot flame keeps it lit, the flame grows with the gas up to sixteen blocks and leans with the wind, and LPG smokes black unless you blow steam into it. Climb the caged ladder to the top platform, right under the flame.
@@ -67,6 +85,8 @@ The tallest thing in the mod: a flare forty blocks high in a red and white derri
 - An electric **pallet truck** that follows you.
 - A **forklift** you drive, with rear-wheel steering and forks up to six blocks high.
 - **Pallet racking** to store loaded pallets up high.
+
+![Pallet, pallet truck, forklift and pallet racking](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/shelf-logistics.png)
 
 ## Factory blocks
 
