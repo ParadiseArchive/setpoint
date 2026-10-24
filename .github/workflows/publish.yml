@@ -5,7 +5,7 @@ name: Publish to CurseForge
 # - Or start it by hand on the Actions tab: "check" only tests the token and finds the game versions,
 #   "upload" builds, tests and uploads the current mod_version.
 # The changelog comes from release/changelog/<mod_version>.md; alpha or beta in the version sets the release type.
-# Needs the repository secret CURSEFORGE_TOKEN (an upload token from https://authors.curseforge.com/#/settings/api-tokens).
+# Needs the repository secret CURSEFORGE (an upload token from https://authors.curseforge.com/#/settings/api-tokens).
 
 on:
   push:
@@ -45,9 +45,9 @@ jobs:
 
       - name: Find the game versions on CurseForge
         env:
-          CF_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+          CF_TOKEN: ${{ secrets.CURSEFORGE }}
         run: |
-          [ -n "$CF_TOKEN" ] || { echo "::error::The secret CURSEFORGE_TOKEN is missing"; exit 1; }
+          [ -n "$CF_TOKEN" ] || { echo "::error::The secret CURSEFORGE is missing"; exit 1; }
           curl -sS --fail-with-body -H "X-Api-Token: $CF_TOKEN" "$CF_API/game/version-types" > types.json
           curl -sS --fail-with-body -H "X-Api-Token: $CF_TOKEN" "$CF_API/game/versions" > versions.json
           # Minecraft itself, the loader and the Java version, each by its name in its own version type
@@ -81,7 +81,7 @@ jobs:
       - name: Upload to CurseForge
         if: github.event_name == 'push' || inputs.mode == 'upload'
         env:
-          CF_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+          CF_TOKEN: ${{ secrets.CURSEFORGE }}
         run: |
           changelog="release/changelog/$VERSION.md"
           jar="build/libs/setpoint-$VERSION.jar"
