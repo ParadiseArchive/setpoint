@@ -92,7 +92,7 @@ grating, handrails, stairs, caged ladders, steel beams and hazard stripes. And H
 ## Get it
 
 Setpoint is in **alpha** (0.1.0-alpha): things still change between versions, so back up your world before updating.
-A download on CurseForge is coming; until then you can build it yourself (see below).
+Download it on **[CurseForge](https://www.curseforge.com/minecraft/mc-mods/setpoint)**, or build it yourself (see below).
 
 - Minecraft 26.3 with NeoForge, Java 25
 - In-game help: the **Setpoint Handbook**, tooltips (hold Shift for more) and advancements
