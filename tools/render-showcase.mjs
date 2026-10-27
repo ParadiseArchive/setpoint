@@ -511,6 +511,11 @@ const distillationColumn = () => {
 };
 render('distillation_column', distillationColumn(), 2);
 render('diesel_generator', [{ model: 'diesel_generator_on', y: S }]);
+// 0.2: gas valves, the burner, the console desk
+render('gas_valve', [{ model: 'gas_valve_open', y: 90 }], 6);
+render('gas_control_valve', [{ model: 'gas_control_valve_3', y: 90 }]);
+render('burner', [{ model: 'burner_on', y: S }]);
+render('console_desk', [{ model: 'console_desk', y: S }], 6);
 
 
 // factory blocks, one by one, and put together as a small platform: grating in the top of the blocks on I-beams,
