@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "north": "setpoint:block/burner_front_on",
+    "east": "setpoint:block/burner_side",
+    "west": "setpoint:block/burner_side",
+    "south": "setpoint:block/burner_side",
+    "up": "setpoint:block/burner_top",
+    "down": "setpoint:block/burner_top",
+    "particle": "setpoint:block/burner_side"
+  }
+}

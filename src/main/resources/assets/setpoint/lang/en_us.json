@@ -310,5 +310,8 @@
   "tooltip.setpoint.wired_glass": "Glass with a steel mesh in it: much tougher.",
   "block.setpoint.wired_glass_pane": "Wired Glass Pane",
   "tooltip.setpoint.wired_glass_pane": "Control-room windows onto the plant.",
-  "block.setpoint.control_room_model": "Control Room"
+  "block.setpoint.control_room_model": "Control Room",
+  "block.setpoint.burner": "Oil and Gas Burner",
+  "tooltip.setpoint.burner": "Fires a boiler on oil or gas.",
+  "tooltip.setpoint.burner.more": "Place it under a boiler. When the boiler\nhas no coal burning, it burns liquid fuel\nfrom a pipe (naphtha, kerosene, diesel,\nresidue, crude) or LPG or hydrogen from a\ngas line. Pipes join at the back and sides."
 }

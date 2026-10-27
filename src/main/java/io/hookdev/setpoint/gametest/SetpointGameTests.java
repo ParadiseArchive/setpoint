@@ -167,6 +167,8 @@ public final class SetpointGameTests {
         test("compressor_pushes_gas_uphill", SetpointGameTests::compressorPushesGasUphill, 200);
         test("a_gas_valve_splits_the_line", SetpointGameTests::aGasValveSplitsTheLine, 40);
         test("pcv_holds_a_gas_line", SetpointGameTests::pcvHoldsAGasLine, 1400);
+        test("a_burner_fires_a_boiler_on_diesel", SetpointGameTests::aBurnerFiresABoilerOnDiesel, 300);
+        test("a_burner_fires_a_boiler_on_lpg", SetpointGameTests::aBurnerFiresABoilerOnLpg, 300);
         test("forklift_racks_a_pallet", SetpointGameTests::forkliftRacksAPallet, 40);
         test("fuel_cell_makes_power_and_water", SetpointGameTests::fuelCellMakesPowerAndWater, 100);
         test("ammonia_reactor_wants_pressure", SetpointGameTests::ammoniaReactorWantsPressure, 100);
@@ -464,6 +466,33 @@ public final class SetpointGameTests {
         if (water > 0) boiler.fluid().set(0, FluidResource.of(Fluids.WATER), water);
         if (coal > 0) boiler.insertFromHand(new ItemStack(Items.COAL, coal));
         return boiler;
+    }
+
+    /** A burner under a boiler with no coal fires it on diesel from its tank; the boiler boils and the diesel goes down. */
+    private static void aBurnerFiresABoilerOnDiesel(GameTestHelper helper) {
+        helper.setBlock(2, 1, 1, SetpointContent.BURNER.get());
+        var burner = helper.getBlockEntity(new BlockPos(2, 1, 1), io.hookdev.setpoint.block.entity.BurnerBlockEntity.class);
+        burner.fluid().set(0, io.hookdev.setpoint.gas.Liquids.DIESEL.resource(), 2_000);
+        BoilerBlockEntity boiler = boiler(helper, new BlockPos(2, 2, 1), 6_000, 0);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(boiler.firing(), "the boiler should fire on the burner, burner says " + burner.status());
+            helper.assertTrue(boiler.steam() > 0, "the boiler should make steam");
+            helper.assertTrue(burner.amount() < 2_000, "the burner should use diesel");
+        });
+    }
+
+    /** The same on LPG from a gas cylinder piped to the burner's side. */
+    private static void aBurnerFiresABoilerOnLpg(GameTestHelper helper) {
+        helper.setBlock(2, 1, 1, SetpointContent.BURNER.get());
+        helper.setBlock(3, 1, 1, SetpointContent.GAS_PIPE.get());
+        helper.setBlock(4, 1, 1, SetpointContent.GAS_CYLINDER.get());
+        var cylinder = helper.getBlockEntity(new BlockPos(4, 1, 1), io.hookdev.setpoint.block.entity.GasCylinderBlockEntity.class);
+        cylinder.tank().set(io.hookdev.setpoint.gas.Gases.LPG.resource(), 50_000);
+        BoilerBlockEntity boiler = boiler(helper, new BlockPos(2, 2, 1), 6_000, 0);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(boiler.firing(), "the boiler should fire on LPG");
+            helper.assertTrue(cylinder.tank().amount() < 50_000, "the LPG should come out of the cylinder");
+        });
     }
 
     private static void boilerAndTurbineMakePower(GameTestHelper helper) {

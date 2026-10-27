@@ -477,6 +477,26 @@
         },
         {
           "type": "p",
+          "text": "The **oil and gas burner** goes under a boiler and fires it when it has no coal burning. Pipe it a liquid fuel (naphtha, kerosene, diesel, residue, or crude oil if you must) or bring LPG or hydrogen on a gas line, at the back or the sides. A pressure controller on the boiler turns it up and down like the coal fire. Residue and crude smoke."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:burner",
+          "grid": [
+            "minecraft:iron_ingot",
+            "setpoint:gas_pipe",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "minecraft:blast_furnace",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "setpoint:pipe",
+            "minecraft:iron_ingot"
+          ],
+          "count": 1
+        },
+        {
+          "type": "p",
           "text": "Using the gases. A **fuel cell** turns hydrogen (left) and oxygen (right) back into power, 24 FE/t, and water: with an electrolyser and a gas sphere you can store power. Pipe **oxygen** into the back of a **boiler** and its coal lasts half as long again."
         },
         {

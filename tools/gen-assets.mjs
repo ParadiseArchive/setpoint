@@ -2271,6 +2271,29 @@ texture('diesel_generator_side', (p) => { // the engine block with its cylinders
 });
 texture('diesel_generator_top', (p) => { plate(p, '#c9962c'); p.rect(10, 2, 4, 4, '#2a2c30'); p.rect(11, 3, 2, 2, '#141414'); }); // the exhaust stack
 texture('diesel_generator_back', (p) => { plate(p, '#c9962c'); p.rect(4, 4, 8, 8, BANDS.diesel); p.rect(5, 5, 6, 6, C.steel1); p.rect(6, 6, 4, 4, C.outline); });
+// the oil and gas burner (0.2): a refractory-lined box that sits under a boiler, a sight glass that glows when it fires
+texture('burner_front', (p) => {
+  plate(p, C.steel1); p.rect(3, 3, 10, 9, '#2a2c30'); p.rect(4, 4, 8, 7, '#3a2a24'); p.rect(6, 6, 4, 3, '#5a2f22');
+  p.rect(3, 13, 3, 2, C.ledOff); p.rect(10, 13, 3, 2, '#2a2c30');
+});
+texture('burner_front_on', (p) => {
+  plate(p, C.steel1); p.rect(3, 3, 10, 9, '#2a2c30'); p.rect(4, 4, 8, 7, '#8a3a12'); p.rect(5, 5, 6, 5, '#e0701c'); p.rect(6, 6, 4, 3, '#ffd24a');
+  p.rect(3, 13, 3, 2, C.cyan); p.rect(10, 13, 3, 2, '#2a2c30');
+});
+texture('burner_side', (p) => { // fuel and gas connections with their colour bands
+  plate(p, C.steel1); p.rect(2, 5, 5, 5, C.steel0); p.rect(3, 6, 3, 3, BANDS.diesel); p.rect(9, 5, 5, 5, C.steel0); p.rect(10, 6, 3, 3, '#e0b021');
+  rivets(p, [[1, 1], [13, 1], [1, 13], [13, 13]]);
+});
+texture('burner_top', (p) => { plate(p, C.steel0); p.rect(3, 3, 10, 10, '#2a2c30'); p.rect(5, 5, 6, 6, '#3a2a24'); });
+for (const on of [false, true]) {
+  M('burner' + (on ? '_on' : ''), { parent: 'minecraft:block/cube', textures: {
+    north: tex('burner_front' + (on ? '_on' : '')), east: tex('burner_side'), west: tex('burner_side'),
+    south: tex('burner_side'), up: tex('burner_top'), down: tex('burner_top'), particle: tex('burner_side') } });
+}
+BS('burner', { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => [false, true].map((run) =>
+  [`facing=${f},running=${run}`, { model: 'setpoint:block/burner' + (run ? '_on' : ''), ...(y ? { y } : {}) }]))) });
+item('burner', 'setpoint:block/burner');
+recipe('burner', ['IGI', 'IFI', 'IPI'], { I: 'minecraft:iron_ingot', G: 'setpoint:gas_pipe', F: 'minecraft:blast_furnace', P: 'setpoint:pipe' }, 'setpoint:burner');
 const COLUMN_SHIFT = { shell: [0, 0, 0], head: [0, 0, 0], ring: [0, 0, -8], reboiler: [0, 0, 0], condenser: [0, 0, 0], nozzle: [0, 8, 0] };
 {
   const all = (t, uv = [0, 0, 16, 16]) => Object.fromEntries(['north', 'south', 'east', 'west', 'up', 'down'].map((f) => [f, { uv, texture: '#' + t }]));
@@ -2922,7 +2945,7 @@ const lootOre = (name, drop) => json(join(DATA, 'loot_table/blocks', name + '.js
 });
 const MACHINES = ['pipe', 'tank', 'centrifugal_pump', 'creative_generator', 'level_transmitter', 'control_valve', 'controller',
   'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine', 'dcs_console', 'hand_valve', 'water_intake', 'flow_transmitter',
-  'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve', 'pid_board', 'pallet', 'gas_pipe', 'electrolyser', 'nitrogen_generator', 'compressor', 'fuel_cell', 'ammonia_reactor', 'fertilizer_mixer', 'pumpjack', 'distillation_column', 'diesel_generator', 'gas_valve', 'gas_control_valve'];
+  'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve', 'pid_board', 'pallet', 'gas_pipe', 'electrolyser', 'nitrogen_generator', 'compressor', 'fuel_cell', 'ammonia_reactor', 'fertilizer_mixer', 'pumpjack', 'distillation_column', 'diesel_generator', 'gas_valve', 'gas_control_valve', 'burner'];
 for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) lootSelf(name);
 // factory blocks: each drops itself; a handrail drops one for every side it rails
 const FACTORY = ['rack_upright', 'rack_beam', 'grating', 'grating_stairs', 'caged_ladder', 'steel_beam', 'checker_plate', 'hazard_stripes', 'corrugated_steel', 'industrial_lamp'];
@@ -2948,6 +2971,7 @@ lootOre('hookonium_ore', 'setpoint:raw_hookonium');
 lootOre('deepslate_hookonium_ore', 'setpoint:raw_hookonium');
 const HOOKONIUM_BLOCKS = ['hookonium_ore', 'deepslate_hookonium_ore', 'hookonium_block', 'raw_hookonium_block'].map((n) => 'setpoint:' + n);
 const tag = (path, values) => json(join(ROOT, 'data', path + '.json'), { values });
+tag('c/tags/fluid/steam', ['setpoint:steam']); // other mods find our steam by the common tag
 tag('minecraft/tags/block/mineable/pickaxe', [...MACHINES.map((n) => 'setpoint:' + n), 'setpoint:drum', 'setpoint:ibc', 'setpoint:floating_roof_tank', 'setpoint:roof_tank_part', 'setpoint:gas_cylinder', 'setpoint:gas_sphere', 'setpoint:gas_sphere_part', 'setpoint:pumpjack_part', 'setpoint:column_part', 'setpoint:flare_stack', 'setpoint:flare_stack_part', ...FACTORY.map((n) => 'setpoint:' + n), 'setpoint:handrail', ...CONTROL_ROOM.filter((n) => n !== 'office_chair').map((n) => 'setpoint:' + n), 'setpoint:blast_door', ...HOOKONIUM_BLOCKS]);
 tag('minecraft/tags/block/doors', ['setpoint:blast_door']);
 tag('minecraft/tags/item/doors', ['setpoint:blast_door']);

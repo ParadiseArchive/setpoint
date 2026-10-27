@@ -97,6 +97,8 @@ export const HANDBOOK = {
         ['p', 'A **gas valve** shuts a gas line by hand, like the hand valve does for liquid: shut, the line is split in two. A **gas control valve** (PCV) lets gas through as far as it is open. Put a **pressure transmitter** against a gas pipe on the low side and a controller against the transmitter: it finds the gas control valve by itself and holds the pressure, letting gas down from a cylinder or sphere at high pressure into a line at the pressure you want.'],
         ['craft', 'setpoint:gas_valve'],
         ['craft', 'setpoint:gas_control_valve'],
+        ['p', 'The **oil and gas burner** goes under a boiler and fires it when it has no coal burning. Pipe it a liquid fuel (naphtha, kerosene, diesel, residue, or crude oil if you must) or bring LPG or hydrogen on a gas line, at the back or the sides. A pressure controller on the boiler turns it up and down like the coal fire. Residue and crude smoke.'],
+        ['craft', 'setpoint:burner'],
         ['p', 'Using the gases. A **fuel cell** turns hydrogen (left) and oxygen (right) back into power, 24 FE/t, and water: with an electrolyser and a gas sphere you can store power. Pipe **oxygen** into the back of a **boiler** and its coal lasts half as long again.'],
         ['craft', 'setpoint:fuel_cell'],
         ['p', 'The **ammonia reactor** makes ammonia, the fifth gas, from nitrogen (left) and hydrogen (right), out on top. It wants pressure: full speed with its feed at 100 bar, so put a compressor on its feed lines. In a **fertilizer mixer**, ammonia (left) and bone meal make **NPK fertilizer**: use it on a crop and every crop in the three by three around it grows up at once.'],

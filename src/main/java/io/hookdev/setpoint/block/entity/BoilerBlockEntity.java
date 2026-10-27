@@ -245,6 +245,28 @@ public class BoilerBlockEntity extends BlockEntity implements MenuProvider, Vess
         @Override public int extract(int amount) { return takeSteam(amount); }
     };
     private final io.hookdev.setpoint.gas.GasFlow steamFlow = new io.hookdev.setpoint.gas.GasFlow();
+    /** Steam for other mods' machines: a little kept ready at the top, where their pipes take it (fluid tag c:steam). */
+    public static final int STEAM_EXPORT = 100;
+    private boolean exporting;
+    private final net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler steamExport = new net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler(1, STEAM_EXPORT) {
+        @Override
+        public boolean isValid(int index, FluidResource resource) {
+            return resource.isEmpty() || resource.equals(io.hookdev.setpoint.gas.Gases.STEAM.resource());
+        }
+
+        @Override
+        public int insert(int index, FluidResource resource, int amount, net.neoforged.neoforge.transfer.transaction.TransactionContext transaction) {
+            return 0; // steam only comes out
+        }
+
+        @Override
+        protected void onContentsChanged(int index, net.neoforged.neoforge.fluids.FluidStack previousContents) {
+            setChanged();
+        }
+    };
+
+    /** What other mods see on top of the boiler: its steam, to take. */
+    public net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler steamExport() { return steamExport; }
 
     @Override
     public io.hookdev.setpoint.gas.@Nullable GasVessel port(Direction side) {
@@ -270,6 +292,16 @@ public class BoilerBlockEntity extends BlockEntity implements MenuProvider, Vess
 
     private void tick(ServerLevel level, BlockPos pos, BlockState state) {
         steamFlow.tick(level, pos, steamOutlet, Direction.UP); // steam into a gas pipe on top, if there is one
+        if (level.getGameTime() % 20 == 0) { // another mod's pipe or machine on top: keep some steam ready for it
+            BlockPos above = pos.above();
+            exporting = !io.hookdev.setpoint.gas.GasRun.isGasPiece(level.getBlockState(above)) && !(level.getBlockEntity(above) instanceof io.hookdev.setpoint.gas.GasPortBlock.Ports)
+                    && level.getCapability(net.neoforged.neoforge.capabilities.Capabilities.Fluid.BLOCK, above, Direction.DOWN) != null;
+        }
+        int ready = steamExport.getAmountAsInt(0), topUp = exporting ? Math.min(STEAM_EXPORT - ready, steam) : -ready;
+        if (topUp != 0) {
+            steam -= topUp;
+            steamExport.set(0, ready + topUp > 0 ? io.hookdev.setpoint.gas.Gases.STEAM.resource() : FluidResource.EMPTY, ready + topUp);
+        }
         int waterNow = amount();
         boolean protect = protection();
 
@@ -298,9 +330,11 @@ public class BoilerBlockEntity extends BlockEntity implements MenuProvider, Vess
             }
         }
 
-        firing = burnLeft > 0 && wantFire;
+        // no coal burning: an oil or gas burner underneath fires the boiler instead
+        boolean burner = burnLeft <= 0 && wantFire && level.getBlockEntity(pos.below()) instanceof BurnerBlockEntity oil && oil.burn(level, fire);
+        firing = (burnLeft > 0 || burner) && wantFire;
         enriched = false;
-        if (firing) { // with oxygen from the line at the back the flame is hotter: the coal lasts half as long again
+        if (firing && !burner) { // with oxygen from the line at the back the flame is hotter: the coal lasts half as long again
             int need = (int) Math.ceil(OXYGEN_PER_TICK * fire);
             var o2 = oxygen.fullest(level, pos, state.getValue(BoilerBlock.FACING).getOpposite(), io.hookdev.setpoint.gas.Gases.OXYGEN.resource());
             if (o2 != null && o2.amount() >= need) {
@@ -413,6 +447,7 @@ public class BoilerBlockEntity extends BlockEntity implements MenuProvider, Vess
         fuel.serialize(output);
         output.putDouble("temperature", temperature);
         output.putInt("steam", steam);
+        output.putInt("steam_export", steamExport.getAmountAsInt(0));
         output.putInt("burn_ticks", burnLeft);
         output.putInt("burn_ticks_total", burnTotal);
         output.putBoolean("tripped", tripped);
@@ -427,6 +462,8 @@ public class BoilerBlockEntity extends BlockEntity implements MenuProvider, Vess
         fuel.deserialize(input);
         temperature = input.getDoubleOr("temperature", BoilerModel.AMBIENT);
         steam = input.getIntOr("steam", 0);
+        int export = input.getIntOr("steam_export", 0);
+        steamExport.set(0, export > 0 ? io.hookdev.setpoint.gas.Gases.STEAM.resource() : FluidResource.EMPTY, export);
         burnLeft = input.getIntOr("burn_ticks", 0);
         burnTotal = input.getIntOr("burn_ticks_total", burnLeft);
         tripped = input.getBooleanOr("tripped", false);

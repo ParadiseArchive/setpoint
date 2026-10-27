@@ -100,7 +100,8 @@ public class Setpoint {
         event.registerBlockEntity(Capabilities.Item.BLOCK, SetpointContent.STIRLING_ENGINE_ENTITY.get(), (generator, side) -> generator.input());
         event.registerBlockEntity(Capabilities.Item.BLOCK, SetpointContent.BIOGAS_GENERATOR_ENTITY.get(), (generator, side) -> generator.input());
         // Boilers: pipes and buckets fill the water drum, hoppers feed the firebox. Turbines give FE to cables.
-        event.registerBlockEntity(Capabilities.Fluid.BLOCK, SetpointContent.BOILER_ENTITY.get(), (boiler, side) -> boiler.fluid());
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, SetpointContent.BOILER_ENTITY.get(), (boiler, side) -> side == net.minecraft.core.Direction.UP ? boiler.steamExport() : boiler.fluid());
+        event.registerBlockEntity(Capabilities.Fluid.BLOCK, SetpointContent.BURNER_ENTITY.get(), (burner, side) -> burner.fluid());
         // The water intake gives river water to other mods' pipes too.
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, SetpointContent.WATER_INTAKE_ENTITY.get(), (intake, side) -> intake.fluid());
         event.registerBlockEntity(Capabilities.Item.BLOCK, SetpointContent.BOILER_ENTITY.get(), (boiler, side) -> boiler.fuel());
