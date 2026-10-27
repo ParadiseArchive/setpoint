@@ -441,6 +441,42 @@
         },
         {
           "type": "p",
+          "text": "A **gas valve** shuts a gas line by hand, like the hand valve does for liquid: shut, the line is split in two. A **gas control valve** (PCV) lets gas through as far as it is open. Put a **pressure transmitter** against a gas pipe on the low side and a controller against the transmitter: it finds the gas control valve by itself and holds the pressure, letting gas down from a cylinder or sphere at high pressure into a line at the pressure you want."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:gas_valve",
+          "grid": [
+            "setpoint:hand_valve",
+            "minecraft:yellow_dye",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "count": 1
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:gas_control_valve",
+          "grid": [
+            "setpoint:control_valve",
+            "minecraft:yellow_dye",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "count": 1
+        },
+        {
+          "type": "p",
           "text": "Using the gases. A **fuel cell** turns hydrogen (left) and oxygen (right) back into power, 24 FE/t, and water: with an electrolyser and a gas sphere you can store power. Pipe **oxygen** into the back of a **boiler** and its coal lasts half as long again."
         },
         {

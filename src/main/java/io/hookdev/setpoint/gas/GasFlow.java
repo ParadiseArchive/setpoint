@@ -38,18 +38,24 @@ public final class GasFlow {
         for (GasRun.End end : ends) {
             GasVessel to = end.vessel(level);
             if (to == null || to == from) continue;
-            lastFlow += push(from, to, end.length());
+            lastFlow += push(from, to, end.length(), end.open(level));
         }
     }
 
     /** Lets gas go from one vessel to the other through this much pipe; returns how much went. */
     public static int push(GasVessel from, @Nullable GasVessel to, int length) {
+        return push(from, to, length, 1);
+    }
+
+    /** The same through valves that are only this far open (0 to 1). */
+    public static int push(GasVessel from, @Nullable GasVessel to, int length, double open) {
+        if (open <= 0) return 0;
         if (to == null || from.amount() == 0) return 0;
         double drop = from.pressure() - to.pressure();
         if (drop <= 0 || !to.canTake(from.gas())) return 0;
         // where both stand at the same pressure
         long even = ((long) from.amount() * to.volume() - (long) to.amount() * from.volume()) / (from.volume() + to.volume());
-        double rate = CONDUCTANCE * drop / (1 + length / HALF_LENGTH);
+        double rate = CONDUCTANCE * open * drop / (1 + length / HALF_LENGTH);
         int wanted = (int) Math.min(even, Math.ceil(rate));
         if (wanted <= 0) return 0;
         var gas = from.gas();

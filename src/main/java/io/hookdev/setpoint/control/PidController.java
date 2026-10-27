@@ -36,6 +36,11 @@ public final class PidController {
         return output;
     }
 
+    /** Forget the last error, so the next step takes no proportional kick: for when a measurement comes back. */
+    public void reprime() {
+        primed = false;
+    }
+
     /** Operator sets the output (MAN mode). */
     public void setOutput(double percent) {
         output = clamp(percent);

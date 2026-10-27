@@ -19,6 +19,7 @@ public class GasPipeBlock extends FluidPipeBlock {
     /** Does a gas pipe join this neighbour, which lies {@code direction} from it? */
     static boolean joins(BlockState neighbour, Direction direction) {
         if (neighbour.getBlock() instanceof GasPipeBlock) return !neighbour.getValue(CUT.get(direction.getOpposite()));
+        if (neighbour.getBlock() instanceof io.hookdev.setpoint.gas.GasLine line) return line.joinsGas(neighbour, direction.getOpposite());
         return neighbour.getBlock() instanceof GasPortBlock port && port.gasPort(neighbour, direction.getOpposite());
     }
 }

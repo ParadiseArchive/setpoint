@@ -133,8 +133,10 @@ public class ControllerBlockEntity extends InstrumentBlockEntity implements Menu
     }
 
     private void tick(Level level, BlockPos pos, BlockState state) {
+        boolean wasBad = Double.isNaN(pv);
         pv = measure(level);
         if (autoLink && level.getGameTime() % 20 == 0) discover(level);
+        if (wasBad && !Double.isNaN(pv)) pid.reprime(); // a PV that comes back (or a new link) is no step in the error: no bump
         boolean badPv = Double.isNaN(pv);
         if (badPv && mode != Mode.MAN) mode = Mode.MAN; // shed to manual on a bad PV, like a real DCS
 
@@ -236,6 +238,18 @@ public class ControllerBlockEntity extends InstrumentBlockEntity implements Menu
         PressureTransmitterBlockEntity pt = adjacentPressure(level);
         if (pt != null) { // a pressure loop: the burner of the boiler the transmitter sits on; more fire, more pressure
             pvTag = pt.tag();
+            BlockPos line = pt.gasLine();
+            if (line != null) { // on a gas line: the pressure control valve that feeds it; opening it raises the pressure
+                BlockPos at = io.hookdev.setpoint.gas.GasRun.controlValveNear(level, line);
+                if (at == null || !(level.getBlockEntity(at) instanceof ControlValveBlockEntity valve)) return;
+                boolean newLink = !valve.tag().equals(mvTag);
+                mvTag = valve.tag();
+                if (autoAction) action = Action.REVERSE;
+                pv = measure(level);
+                if (newLink && mode == Mode.MAN && !Double.isNaN(pv)) mode = Mode.AUTO;
+                setChanged();
+                return;
+            }
             if (!(pt.vessel() instanceof BoilerBlockEntity boiler)) return;
             boolean newLink = !boiler.tag().equals(mvTag);
             mvTag = boiler.tag();

@@ -71,7 +71,7 @@ public class FluidPipeBlock extends Block {
         if (state.getBlock() instanceof FluidPipeBlock && state.getValue(CUT.get(direction))) return false;
         BlockState neighbour = level.getBlockState(pos.relative(direction));
         if (state.getBlock() instanceof GasPipeBlock) return GasPipeBlock.joins(neighbour, direction);
-        if (neighbour.getBlock() instanceof GasPipeBlock) return false; // gas and liquid lines never join
+        if (neighbour.getBlock() instanceof GasPipeBlock || neighbour.getBlock() instanceof io.hookdev.setpoint.gas.GasLine) return false; // gas and liquid lines never join
         if (neighbour.getBlock() instanceof FluidPipeBlock) {
             return !neighbour.getValue(CUT.get(direction.getOpposite()));
         }

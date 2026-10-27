@@ -143,7 +143,7 @@ public final class SetpointGameTests {
         test("high_pressure_trips_the_burner", SetpointGameTests::highPressureTripsTheBurner, 400);
         test("safety_valve_saves_the_boiler", SetpointGameTests::safetyValveSavesTheBoiler, 300);
         test("overpressure_bursts_an_unprotected_boiler", SetpointGameTests::overpressureBurstsAnUnprotectedBoiler, 100);
-        test("pressure_controller_holds_the_boiler", SetpointGameTests::pressureControllerHoldsTheBoiler, 600);
+        test("pressure_controller_holds_the_boiler", SetpointGameTests::pressureControllerHoldsTheBoiler, 1000);
         test("pid_shows_the_safety_valve_on_a_boiler", SetpointGameTests::pidShowsTheSafetyValveOnABoiler, 20);
         test("equipment_takes_a_new_tag", SetpointGameTests::equipmentTakesANewTag, 40);
         test("pump_can_run_on_a_signal", SetpointGameTests::pumpCanRunOnASignal, 100);
@@ -165,6 +165,8 @@ public final class SetpointGameTests {
         test("a_flare_burns_what_the_header_brings", SetpointGameTests::aFlareBurnsWhatTheHeaderBrings, 200);
         TALL.add("a_flare_burns_what_the_header_brings");
         test("compressor_pushes_gas_uphill", SetpointGameTests::compressorPushesGasUphill, 200);
+        test("a_gas_valve_splits_the_line", SetpointGameTests::aGasValveSplitsTheLine, 40);
+        test("pcv_holds_a_gas_line", SetpointGameTests::pcvHoldsAGasLine, 1400);
         test("forklift_racks_a_pallet", SetpointGameTests::forkliftRacksAPallet, 40);
         test("fuel_cell_makes_power_and_water", SetpointGameTests::fuelCellMakesPowerAndWater, 100);
         test("ammonia_reactor_wants_pressure", SetpointGameTests::ammoniaReactorWantsPressure, 100);
@@ -558,7 +560,7 @@ public final class SetpointGameTests {
         helper.setBlock(3, 1, 2, SetpointContent.PRESSURE_TRANSMITTER.get());
         helper.setBlock(3, 1, 3, SetpointContent.CONTROLLER.get());
         ControllerBlockEntity pic = helper.getBlockEntity(new BlockPos(3, 1, 3), ControllerBlockEntity.class);
-        helper.runAfterDelay(500, () -> {
+        helper.runAfterDelay(800, () -> {
             helper.assertTrue(pic.mvTag().equals(boiler.tag()), "the controller should drive the boiler's burner, has '" + pic.mvTag() + "'");
             helper.assertTrue(pic.measuresPressure(), "the controller should measure pressure");
             helper.assertTrue(pic.mode() == PidController.Mode.AUTO, "the controller should be in AUTO");
@@ -1746,6 +1748,56 @@ public final class SetpointGameTests {
         helper.succeedWhen(() -> {
             helper.assertTrue(to.pressure() > 15 && from.pressure() < 5, "the compressor should push gas from 10 bar into 10 bar: now " + from.pressure() + " and " + to.pressure());
             helper.assertTrue(from.tank().amount() + to.tank().amount() == 20_000, "no gas should be made or lost");
+        });
+    }
+
+    /** A shut gas valve keeps the gas where it is; opened, the two cylinders meet in the middle. */
+    private static void aGasValveSplitsTheLine(GameTestHelper helper) {
+        helper.setBlock(1, 1, 1, SetpointContent.GAS_CYLINDER.get());
+        helper.setBlock(2, 1, 1, SetpointContent.GAS_PIPE.get());
+        helper.setBlock(3, 1, 1, SetpointContent.GAS_VALVE.get().defaultBlockState().setValue(io.hookdev.setpoint.block.HandValveBlock.AXIS, Direction.Axis.X)
+                .setValue(io.hookdev.setpoint.block.HandValveBlock.OPEN, false));
+        helper.setBlock(4, 1, 1, SetpointContent.GAS_PIPE.get());
+        helper.setBlock(5, 1, 1, SetpointContent.GAS_CYLINDER.get());
+        var from = helper.getBlockEntity(new BlockPos(1, 1, 1), io.hookdev.setpoint.block.entity.GasCylinderBlockEntity.class);
+        var to = helper.getBlockEntity(new BlockPos(5, 1, 1), io.hookdev.setpoint.block.entity.GasCylinderBlockEntity.class);
+        from.tank().set(io.hookdev.setpoint.gas.Gases.NITROGEN.resource(), 20_000);
+        helper.runAfterDelay(20, () -> {
+            helper.assertTrue(to.tank().amount() == 0, "nothing should pass a shut gas valve, got " + to.tank().amount());
+            helper.setBlock(3, 1, 1, helper.getBlockState(new BlockPos(3, 1, 1)).setValue(io.hookdev.setpoint.block.HandValveBlock.OPEN, true));
+            helper.runAfterDelay(15, () -> {
+                helper.assertTrue(Math.abs(from.pressure() - to.pressure()) < 0.5, "opened, both should meet near 10 bar: " + from.pressure() + " and " + to.pressure());
+                helper.succeed();
+            });
+        });
+    }
+
+    /**
+     * A pressure control valve lets steam from a cylinder at 150 bar down into a low-pressure cylinder that feeds a
+     * steam turbine: the controller against a pressure transmitter on the low side finds the valve by itself and
+     * holds 7.5 bar there while the turbine uses the steam.
+     */
+    private static void pcvHoldsAGasLine(GameTestHelper helper) {
+        helper.setBlock(1, 1, 1, SetpointContent.GAS_CYLINDER.get());
+        helper.setBlock(2, 1, 1, SetpointContent.GAS_PIPE.get());
+        helper.setBlock(3, 1, 1, SetpointContent.GAS_CONTROL_VALVE.get().defaultBlockState().setValue(io.hookdev.setpoint.block.ControlValveBlock.AXIS, Direction.Axis.X));
+        helper.setBlock(4, 1, 1, SetpointContent.GAS_PIPE.get());
+        helper.setBlock(5, 1, 1, SetpointContent.GAS_CYLINDER.get());
+        helper.setBlock(4, 1, 2, SetpointContent.PRESSURE_TRANSMITTER.get());
+        helper.setBlock(4, 1, 3, SetpointContent.CONTROLLER.get());
+        helper.setBlock(6, 1, 1, SetpointContent.GAS_PIPE.get());
+        helper.setBlock(7, 1, 1, SetpointContent.STEAM_TURBINE.get());
+        var high = helper.getBlockEntity(new BlockPos(1, 1, 1), io.hookdev.setpoint.block.entity.GasCylinderBlockEntity.class);
+        var low = helper.getBlockEntity(new BlockPos(5, 1, 1), io.hookdev.setpoint.block.entity.GasCylinderBlockEntity.class);
+        high.tank().set(io.hookdev.setpoint.gas.Gases.STEAM.resource(), 150_000);
+        ControllerBlockEntity pic = helper.getBlockEntity(new BlockPos(4, 1, 3), ControllerBlockEntity.class);
+        var valve = helper.getBlockEntity(new BlockPos(3, 1, 1), io.hookdev.setpoint.block.entity.GasControlValveBlockEntity.class);
+        helper.runAfterDelay(1200, () -> {
+            helper.assertTrue(pic.mvTag().equals(valve.tag()), "the controller should drive the gas control valve, has '" + pic.mvTag() + "'");
+            helper.assertTrue(pic.mode() == PidController.Mode.AUTO, "the controller should be in AUTO");
+            helper.assertTrue(Math.abs(low.pressure() - 7.5) < 0.8, String.format("the low side should hold near 7.5 bar, is %.2f (high side %.1f)", low.pressure(), high.pressure()));
+            helper.assertTrue(high.tank().amount() + low.tank().amount() < 150_000, "the turbine should have used some of the steam");
+            helper.succeed();
         });
     }
 

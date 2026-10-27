@@ -30,6 +30,8 @@
     "setpoint:fertilizer_mixer",
     "setpoint:pumpjack",
     "setpoint:distillation_column",
-    "setpoint:diesel_generator"
+    "setpoint:diesel_generator",
+    "setpoint:gas_valve",
+    "setpoint:gas_control_valve"
   ]
 }

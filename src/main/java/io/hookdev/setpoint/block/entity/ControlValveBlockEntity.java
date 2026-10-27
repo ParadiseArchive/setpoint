@@ -9,6 +9,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -33,7 +34,11 @@ public class ControlValveBlockEntity extends InstrumentBlockEntity {
     private boolean signalOk;
 
     public ControlValveBlockEntity(BlockPos pos, BlockState state) {
-        super(SetpointContent.CONTROL_VALVE_ENTITY.get(), pos, state, "LV");
+        this(SetpointContent.CONTROL_VALVE_ENTITY.get(), pos, state, "LV");
+    }
+
+    protected ControlValveBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, String prefix) {
+        super(type, pos, state, prefix);
     }
 
     /** Opening, 0 (shut) to 1 (fully open). */

@@ -143,7 +143,8 @@ texture('creative_generator', (p) => {
 });
 
 // ---------- models ----------
-const M = (name, value) => json(join(ASSETS, 'models/block', name + '.json'), value);
+const MODELS = {};
+const M = (name, value) => { MODELS[name] = value; return json(join(ASSETS, 'models/block', name + '.json'), value); };
 const tex = (n) => 'setpoint:block/' + n;
 const box = (from, to, faces) => ({ from, to, faces });
 const face = (uv) => ({ uv, texture: '#pipe' });
@@ -825,6 +826,41 @@ for (const open of [false, true]) {
   item('hand_valve', 'setpoint:block/hand_valve_open');
 }
 recipe('hand_valve', [' L ', 'CIC'], { L: 'minecraft:lever', C: 'minecraft:copper_ingot', I: 'minecraft:iron_ingot' }, 'setpoint:hand_valve');
+
+// gas valves (0.2): the hand valve and the control valve on a gas pipe, the hand valve with a yellow wheel
+texture('gas_valve_wheel', (p) => {
+  const rim = '#e0b021', dark = '#9c7a12', hub = C.steel3;
+  for (let i = 1; i < 15; i++) { p.set(i, 1, rim); p.set(i, 14, dark); p.set(1, i, rim); p.set(14, i, dark); }
+  p.rect(2, 2, 12, 1, '#f2cc4a');
+  for (let i = 2; i < 14; i++) { p.set(i, i, rim); p.set(15 - i, i, rim); }
+  p.rect(6, 6, 4, 4, hub); p.rect(7, 7, 2, 2, C.steel0);
+});
+for (const open of [false, true]) {
+  const base = JSON.parse(JSON.stringify(MODELS['hand_valve' + (open ? '_open' : '_shut')]));
+  base.textures = { ...base.textures, pipe: tex('gas_pipe'), wheel: tex('gas_valve_wheel') };
+  M('gas_valve' + (open ? '_open' : '_shut'), base);
+}
+{
+  const axisRot = { z: {}, x: { y: 90 }, y: { x: 90 } };
+  const variants = {};
+  for (const [axis, rot] of Object.entries(axisRot)) for (const open of [false, true]) for (const powered of [false, true]) {
+    variants[`axis=${axis},open=${open},powered=${powered}`] = { model: 'setpoint:block/gas_valve' + (open && !powered ? '_open' : '_shut'), ...rot };
+  }
+  BS('gas_valve', { variants });
+  item('gas_valve', 'setpoint:block/gas_valve_open');
+}
+for (let open = 0; open <= 4; open++) {
+  const base = JSON.parse(JSON.stringify(MODELS['control_valve_' + open]));
+  base.textures = { ...base.textures, pipe: tex('gas_pipe') };
+  M('gas_control_valve_' + open, base);
+}
+BS('gas_control_valve', {
+  variants: Object.fromEntries(Object.entries(axisRotation).flatMap(([axis, rot]) =>
+    [0, 1, 2, 3, 4].map((open) => [`axis=${axis},open=${open}`, { model: 'setpoint:block/gas_control_valve_' + open, ...rot }]))),
+});
+item('gas_control_valve', 'setpoint:block/gas_control_valve_2');
+shapeless('gas_valve', ['setpoint:hand_valve', 'minecraft:yellow_dye'], 'setpoint:gas_valve', 1);
+shapeless('gas_control_valve', ['setpoint:control_valve', 'minecraft:yellow_dye'], 'setpoint:gas_control_valve', 1);
 
 // water intake: a steel strainer box, bars on every side
 texture('water_intake_side', (p) => {
@@ -2886,7 +2922,7 @@ const lootOre = (name, drop) => json(join(DATA, 'loot_table/blocks', name + '.js
 });
 const MACHINES = ['pipe', 'tank', 'centrifugal_pump', 'creative_generator', 'level_transmitter', 'control_valve', 'controller',
   'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine', 'dcs_console', 'hand_valve', 'water_intake', 'flow_transmitter',
-  'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve', 'pid_board', 'pallet', 'gas_pipe', 'electrolyser', 'nitrogen_generator', 'compressor', 'fuel_cell', 'ammonia_reactor', 'fertilizer_mixer', 'pumpjack', 'distillation_column', 'diesel_generator'];
+  'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve', 'pid_board', 'pallet', 'gas_pipe', 'electrolyser', 'nitrogen_generator', 'compressor', 'fuel_cell', 'ammonia_reactor', 'fertilizer_mixer', 'pumpjack', 'distillation_column', 'diesel_generator', 'gas_valve', 'gas_control_valve'];
 for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) lootSelf(name);
 // factory blocks: each drops itself; a handrail drops one for every side it rails
 const FACTORY = ['rack_upright', 'rack_beam', 'grating', 'grating_stairs', 'caged_ladder', 'steel_beam', 'checker_plate', 'hazard_stripes', 'corrugated_steel', 'industrial_lamp'];

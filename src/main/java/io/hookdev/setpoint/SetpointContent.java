@@ -331,6 +331,10 @@ public final class SetpointContent {
 
     public static final DeferredBlock<HandValveBlock> HAND_VALVE = BLOCKS.registerBlock("hand_valve", HandValveBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.GasValveBlock> GAS_VALVE = BLOCKS.registerBlock("gas_valve", io.hookdev.setpoint.block.GasValveBlock::new,
+            p -> p.mapColor(MapColor.COLOR_YELLOW).strength(3.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.GasControlValveBlock> GAS_CONTROL_VALVE = BLOCKS.registerBlock("gas_control_valve", io.hookdev.setpoint.block.GasControlValveBlock::new,
+            p -> p.mapColor(MapColor.COLOR_YELLOW).strength(3.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
     public static final DeferredBlock<WaterIntakeBlock> WATER_INTAKE = BLOCKS.registerBlock("water_intake", WaterIntakeBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
     public static final DeferredBlock<ConsoleBlock> CONSOLE = BLOCKS.registerBlock("dcs_console", ConsoleBlock::new,
@@ -416,6 +420,8 @@ public final class SetpointContent {
     public static final DeferredItem<BlockItem> CONTROL_VALVE_ITEM = ITEMS.registerSimpleBlockItem(CONTROL_VALVE);
     public static final DeferredItem<BlockItem> CONTROLLER_ITEM = ITEMS.registerSimpleBlockItem(CONTROLLER);
     public static final DeferredItem<BlockItem> HAND_VALVE_ITEM = ITEMS.registerSimpleBlockItem(HAND_VALVE);
+    public static final DeferredItem<BlockItem> GAS_VALVE_ITEM = ITEMS.registerSimpleBlockItem(GAS_VALVE);
+    public static final DeferredItem<BlockItem> GAS_CONTROL_VALVE_ITEM = ITEMS.registerSimpleBlockItem(GAS_CONTROL_VALVE);
     public static final DeferredItem<BlockItem> WATER_INTAKE_ITEM = ITEMS.registerSimpleBlockItem(WATER_INTAKE);
     public static final DeferredItem<PipeWrenchItem> PIPE_WRENCH = ITEMS.registerItem("pipe_wrench", PipeWrenchItem::new, p -> p.stacksTo(1));
     public static final DeferredItem<BlockItem> CONSOLE_ITEM = ITEMS.registerSimpleBlockItem(CONSOLE);
@@ -480,6 +486,8 @@ public final class SetpointContent {
             () -> new BlockEntityType<>(SafetyValveBlockEntity::new, SAFETY_VALVE.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ControlValveBlockEntity>> CONTROL_VALVE_ENTITY = BLOCK_ENTITIES.register("control_valve",
             () -> new BlockEntityType<>(ControlValveBlockEntity::new, CONTROL_VALVE.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.GasControlValveBlockEntity>> GAS_CONTROL_VALVE_ENTITY = BLOCK_ENTITIES.register("gas_control_valve",
+            () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.GasControlValveBlockEntity::new, GAS_CONTROL_VALVE.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ControllerBlockEntity>> CONTROLLER_ENTITY = BLOCK_ENTITIES.register("controller",
             () -> new BlockEntityType<>(ControllerBlockEntity::new, CONTROLLER.get()));
 
@@ -560,6 +568,8 @@ public final class SetpointContent {
                 output.accept(PIPE_WRENCH.get());
                 output.accept(PIPE_ITEM.get());
                 output.accept(GAS_PIPE_ITEM.get());
+                output.accept(GAS_VALVE_ITEM.get());
+                output.accept(GAS_CONTROL_VALVE_ITEM.get());
                 output.accept(ELECTROLYSER_ITEM.get());
                 output.accept(NITROGEN_GENERATOR_ITEM.get());
                 output.accept(COMPRESSOR_ITEM.get());

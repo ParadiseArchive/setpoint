@@ -44,6 +44,7 @@ public final class Piping {
     }
 
     private static boolean passesValve(BlockState state, Direction direction, @Nullable Boolean downstream) {
+        if (state.getBlock() instanceof io.hookdev.setpoint.gas.GasLine) return false; // a gas valve is no part of a liquid line
         if (state.getBlock() instanceof CheckValveBlock) {
             Direction arrow = state.getValue(CheckValveBlock.FACING);
             if (arrow.getAxis() != direction.getAxis()) return false;
