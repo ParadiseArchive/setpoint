@@ -6,6 +6,7 @@ Process engineering mod for Minecraft by Hook Development. Showcased on https://
 - Talk to the owner in **Dutch**. All mod text (item names, tooltips, README, changelogs) is **English**.
 - The owner knows from practice how real pumps, valves, controllers and DCS screens behave: use them as the realism check. They do not write Java; do the technical work, explain in plain language, one clear step at a time.
 - **Privacy:** this repository is public. Never add the owner's name or personal details anywhere (code, docs, metadata, Modrinth/CurseForge pages, commit messages). The author is "Hook Development".
+- **Secrets (owner, 27 Oct 2026: under no circumstances):** this repository is public. Never commit a token, key, password or .env file. .gitignore blocks .env, keys and secrets/; a local pre-commit hook (.git/hooks/pre-commit, not in git: install it again on a new computer) refuses secret-looking files and lines; .github/workflows/secret-scan.yml runs gitleaks over the whole history on every push. The CurseForge token lives only in the repository secret CURSEFORGE. If a secret ever gets out, revoke it at once: removing the commit is not enough.
 - Ideas go in the backlog below instead of being built all at once.
 
 ## Core concept (owner, 21 Oct 2026): P&IDs
