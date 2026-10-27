@@ -46,6 +46,7 @@ public class Setpoint {
         modEventBus.addListener(Setpoint::registerPayloads);
         NeoForge.EVENT_BUS.addListener(Setpoint::giveHandbook);
         NeoForge.EVENT_BUS.addListener(Setpoint::nameEquipment);
+        NeoForge.EVENT_BUS.addListener(io.hookdev.setpoint.showcase.ShowcaseCommand::register);
         LOGGER.info("Setpoint loaded. Holding steady.");
     }
 

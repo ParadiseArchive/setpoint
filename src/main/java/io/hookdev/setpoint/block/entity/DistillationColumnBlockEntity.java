@@ -130,7 +130,16 @@ public class DistillationColumnBlockEntity extends BlockEntity implements Vessel
         column.tick((ServerLevel) level, state);
     }
 
+    /** The side draws (and the residue) run down a pipe by themselves to a vessel that stands lower, like a tank does. */
+    private static final int[][] DRAWS = {{1, 0, 0}, {0, 1, 3}, {0, 1, 5}, {0, 1, 7}};
+    private final io.hookdev.setpoint.hydraulics.GravityFlow[] rundown = {new io.hookdev.setpoint.hydraulics.GravityFlow(),
+            new io.hookdev.setpoint.hydraulics.GravityFlow(), new io.hookdev.setpoint.hydraulics.GravityFlow(), new io.hookdev.setpoint.hydraulics.GravityFlow()};
+
     private void tick(ServerLevel level, BlockState state) {
+        for (int i = 0; i < DRAWS.length; i++) {
+            BlockPos nozzle = portPos(DRAWS[i][0], DRAWS[i][1], DRAWS[i][2]);
+            if (level.getBlockEntity(nozzle) instanceof io.hookdev.setpoint.hydraulics.Vessel draw) rundown[i].tick(level, draw, java.util.List.of(nozzle));
+        }
         Direction front = state.getValue(DistillationColumnBlock.FACING);
         rate = 0;
         int crude = feed.getAmountAsInt(0);

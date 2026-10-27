@@ -32,6 +32,14 @@
         },
         {
           "type": "h",
+          "text": "See a whole plant"
+        },
+        {
+          "type": "p",
+          "text": "In creative, or with cheats on, type **/setpoint showcase** for a working example plant: water, a boiler, the refinery, an LPG sphere, the flare and a control room with its P&ID. It clears a big space east and south of you, so use a superflat world."
+        },
+        {
+          "type": "h",
           "text": "Using this book"
         },
         {
@@ -798,6 +806,10 @@
         {
           "type": "p",
           "text": "The **distillation column** splits crude oil the way a refinery does: 5% LPG (a gas), 20% naphtha, 15% kerosene, 30% diesel and 30% residue. It is three wide, four deep and eleven high; place it with one block, the **feed** (crude oil in) in the middle of the front row. Every nozzle faces the front: **steam in** (from a boiler, through a gas pipe) on the left of the front row and **residue out** on the right; **diesel**, **kerosene** and **naphtha** out up the front of the column; **cooling water in** (left) and **LPG out** (right) at the top. Right-click a nozzle to see what it is. It takes up to 20 mB of crude oil a tick, and half as much steam and cooling water."
+        },
+        {
+          "type": "p",
+          "text": "Residue, diesel, kerosene and naphtha also **run out by themselves** into a pipe that goes down to a lower tank, like any liquid running downhill. You only need a pump to lift them higher."
         },
         {
           "type": "craft",

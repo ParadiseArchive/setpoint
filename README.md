@@ -97,6 +97,7 @@ Download it on **[CurseForge](https://www.curseforge.com/minecraft/mc-mods/setpo
 
 - Minecraft 26.3 with NeoForge, Java 25
 - In-game help: the **Setpoint Handbook**, tooltips (hold Shift for more) and advancements
+- `/setpoint showcase` builds a working example plant next to you (creative or cheats; best in a superflat world)
 - Works with JEI (a tab for every machine), Jade, other mods' tanks, and other mods' steam (c:steam)
 
 The full documentation, with every machine, recipe and screen, is on

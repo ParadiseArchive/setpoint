@@ -3021,7 +3021,7 @@ function nbt() {
   };
 }
 // the test benches: empty rooms, the normal one, a big one for the floating roof tank and a tall one for the flare
-for (const [name, W, H, D] of [['bench', 7, 11, 3], ['big_bench', 10, 12, 10], ['tall_bench', 9, 44, 13]]) {
+for (const [name, W, H, D] of [['bench', 7, 11, 3], ['big_bench', 10, 12, 10], ['tall_bench', 9, 44, 13], ['showcase_bench', 36, 50, 36]]) {
 const n = nbt();
 n.named(10, '');                                       // root compound
 n.named(3, 'DataVersion'); n.i32(5023);                // Minecraft 26.3

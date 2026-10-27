@@ -94,6 +94,8 @@ public final class SetpointGameTests {
      * listen to every console that far, so other tests must not be near them.
      */
     private static final java.util.Set<String> ALONE = new java.util.HashSet<>();
+    /** Tests on the showcase bench (36 x 50 x 36): the whole example plant. */
+    private static final java.util.Set<String> SHOWCASE = new java.util.HashSet<>();
 
     static {
         test("pump_moves_water", SetpointGameTests::pumpMovesWater, 200);
@@ -170,6 +172,9 @@ public final class SetpointGameTests {
         test("a_gas_valve_splits_the_line", SetpointGameTests::aGasValveSplitsTheLine, 40);
         test("pcv_holds_a_gas_line", SetpointGameTests::pcvHoldsAGasLine, 1400);
         test("a_burner_fires_a_boiler_on_diesel", SetpointGameTests::aBurnerFiresABoilerOnDiesel, 300);
+        test("the_showcase_plant_runs", SetpointGameTests::theShowcasePlantRuns, 18400);
+        ALONE.add("the_showcase_plant_runs");
+        SHOWCASE.add("the_showcase_plant_runs");
         test("a_printer_prints_the_alarm_log", SetpointGameTests::aPrinterPrintsTheAlarmLog, 100);
         test("a_burner_fires_a_boiler_on_lpg", SetpointGameTests::aBurnerFiresABoilerOnLpg, 300);
         test("forklift_racks_a_pallet", SetpointGameTests::forkliftRacksAPallet, 40);
@@ -212,7 +217,7 @@ public final class SetpointGameTests {
             String name = function.getId().getPath();
             Holder<TestEnvironmentDefinition<?>> batch = ALONE.contains(name) ? event.registerEnvironment(Setpoint.id("alone/" + name)) : environment;
             event.registerTest(function.getId(), new FunctionGameTestInstance(ResourceKey.create(Registries.TEST_FUNCTION, function.getId()),
-                    new TestData<>(batch, Setpoint.id(BIG.contains(name) ? "big_bench" : TALL.contains(name) ? "tall_bench" : "bench"), MAX_TICKS.get(function.getId().getPath()), 0, true)));
+                    new TestData<>(batch, Setpoint.id(SHOWCASE.contains(name) ? "showcase_bench" : BIG.contains(name) ? "big_bench" : TALL.contains(name) ? "tall_bench" : "bench"), MAX_TICKS.get(function.getId().getPath()), 0, true)));
         }
     }
 
@@ -487,6 +492,36 @@ public final class SetpointGameTests {
             String all = pages.stream().map(p -> p.raw().getString()).reduce("", String::concat);
             helper.assertTrue(all.contains("ALARM LOG"), "the cover should say what it is: " + all);
             if (!console.alarms().list().isEmpty()) helper.assertTrue(all.contains(console.alarms().list().get(0).tag()), "the first alarm should be in the book: " + all);
+            helper.succeed();
+        });
+    }
+
+    /**
+     * /setpoint showcase: the example plant is built, and after fifteen minutes every pump still runs, the boiler fires,
+     * the column runs, the flare burns, the loops are in AUTO, nothing is in alarm and the control room has its P&ID.
+     */
+    private static void theShowcasePlantRuns(GameTestHelper helper) {
+        BlockPos origin = helper.absolutePos(new BlockPos(1, 3, 1));
+        var level = helper.getLevel();
+        io.hookdev.setpoint.showcase.Showcase.build(level, origin);
+        io.hookdev.setpoint.showcase.Showcase.ignite(level, origin);
+        helper.runAfterDelay(18000, () -> {
+            var console = (ConsoleBlockEntity) level.getBlockEntity(origin.offset(10, 0, 28));
+            StringBuilder report = new StringBuilder();
+            for (var r : console.readings()) report.append(r.tag()).append('@').append(r.pos().subtract(origin).toShortString()).append(' ').append(r.kind()).append(' ').append(r.status()).append(' ').append(r.value()).append(" | ");
+            System.out.println("SHOWCASE " + report);
+            helper.assertTrue(console.drawing() != null, "the console should hold the plant's P&ID");
+            java.util.List<String> problems = new java.util.ArrayList<>();
+            for (var r : console.readings()) {
+                if (r.kind().equals("PUMP") && !r.status().equals("RUNNING") && !r.status().equals("NO FLOW")) problems.add(r.tag() + " " + r.status()); // no flow: a pump against a full vessel, not a fault
+                if (r.severity() == io.hookdev.setpoint.console.Reading.ALARM && r.pos().distManhattan(origin) < 80) problems.add(r.tag() + " ALARM " + r.alarms());
+                if (r.kind().equals("COLUMN") && !r.status().equals("RUNNING")) problems.add(r.tag() + " " + r.status());
+                if (r.kind().equals("FLARE") && r.status().contains("OUT")) problems.add(r.tag() + " " + r.status());
+                if (r.kind().startsWith("LIC") || r.kind().startsWith("PIC") || r.kind().equals("CONTROLLER")) if (!r.status().equals("AUTO")) problems.add(r.tag() + " " + r.status());
+            }
+            var boiler = (BoilerBlockEntity) level.getBlockEntity(origin.offset(7, 1, 2));
+            if (!boiler.firing()) problems.add("boiler not firing");
+            helper.assertTrue(problems.isEmpty(), "after fifteen minutes the showcase plant should still run: " + problems + "  —  " + report);
             helper.succeed();
         });
     }
