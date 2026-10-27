@@ -263,7 +263,7 @@
   "advancements.setpoint.under_pressure.description": "Let a pressure controller hold a boiler's pressure.",
   "block.setpoint.overview_screen": "Overview Screen",
   "tooltip.setpoint.overview_screen": "A video wall that shows what the nearest console sees.",
-  "tooltip.setpoint.overview_screen.more": "Screens side by side and below each other\nmake one wall, up to 8 x 6. It reads the\nnearest DCS console within 32 blocks.\nRight-click to switch page: overview,\nalarms, trends.",
+  "tooltip.setpoint.overview_screen.more": "Screens side by side and below each other\nmake one wall, up to 8 x 6. It reads the\nnearest DCS console within 32 blocks.\nRight-click to switch page: overview,\nalarms, trends, P&ID.",
   "block.setpoint.alarm_beacon": "Alarm Beacon",
   "tooltip.setpoint.alarm_beacon": "Turns and sounds while an alarm waits for an ACK.",
   "tooltip.setpoint.alarm_beacon.more": "It listens to every console within 32 blocks.\nAcknowledge on the console to stop it;\nright-click it to silence the horn.",
@@ -299,7 +299,7 @@
   "tooltip.setpoint.filing_cabinet": "Four drawers: holds as much as a barrel.",
   "container.setpoint.filing_cabinet": "Filing Cabinet",
   "block.setpoint.printer": "Printer",
-  "tooltip.setpoint.printer": "For the shift log.",
+  "tooltip.setpoint.printer": "Prints the alarm log of the nearest console.",
   "block.setpoint.coffee_machine": "Coffee Machine",
   "tooltip.setpoint.coffee_machine": "Right-click for a cup: a minute of speed and haste.",
   "block.setpoint.exit_sign": "Emergency Exit Sign",
@@ -313,5 +313,9 @@
   "block.setpoint.control_room_model": "Control Room",
   "block.setpoint.burner": "Oil and Gas Burner",
   "tooltip.setpoint.burner": "Fires a boiler on oil or gas.",
-  "tooltip.setpoint.burner.more": "Place it under a boiler. When the boiler\nhas no coal burning, it burns liquid fuel\nfrom a pipe (naphtha, kerosene, diesel,\nresidue, crude) or LPG or hydrogen from a\ngas line. Pipes join at the back and sides."
+  "tooltip.setpoint.burner.more": "Place it under a boiler. When the boiler\nhas no coal burning, it burns liquid fuel\nfrom a pipe (naphtha, kerosene, diesel,\nresidue, crude) or LPG or hydrogen from a\ngas line. Pipes join at the back and sides.",
+  "block.setpoint.console_desk": "Console Desk",
+  "tooltip.setpoint.console_desk": "A DCS console built into a control desk.",
+  "tooltip.setpoint.console_desk.more": "Works exactly like the DCS console:\nit sees the plant within 32 blocks,\nruns the alarm list and the trends\nand takes a P&ID.",
+  "tooltip.setpoint.printer.more": "Right-click it with paper: out comes a book\nwith every alarm on the list of the nearest\nDCS console, its time, tag and state.\nFor the shift handover."
 }

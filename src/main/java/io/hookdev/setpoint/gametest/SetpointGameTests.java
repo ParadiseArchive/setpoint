@@ -170,6 +170,8 @@ public final class SetpointGameTests {
         test("a_gas_valve_splits_the_line", SetpointGameTests::aGasValveSplitsTheLine, 40);
         test("pcv_holds_a_gas_line", SetpointGameTests::pcvHoldsAGasLine, 1400);
         test("a_burner_fires_a_boiler_on_diesel", SetpointGameTests::aBurnerFiresABoilerOnDiesel, 300);
+        test("a_printer_prints_the_alarm_log", SetpointGameTests::aPrinterPrintsTheAlarmLog, 100);
+        ALONE.add("a_printer_prints_the_alarm_log");
         test("a_burner_fires_a_boiler_on_lpg", SetpointGameTests::aBurnerFiresABoilerOnLpg, 300);
         test("forklift_racks_a_pallet", SetpointGameTests::forkliftRacksAPallet, 40);
         test("fuel_cell_makes_power_and_water", SetpointGameTests::fuelCellMakesPowerAndWater, 100);
@@ -468,6 +470,26 @@ public final class SetpointGameTests {
         if (water > 0) boiler.fluid().set(0, FluidResource.of(Fluids.WATER), water);
         if (coal > 0) boiler.insertFromHand(new ItemStack(Items.COAL, coal));
         return boiler;
+    }
+
+    /**
+     * A console desk (the console built into a desk) next to a pump that trips: it lists the alarm, and paper in the
+     * printer comes out as a book with the alarm in it.
+     */
+    private static void aPrinterPrintsTheAlarmLog(GameTestHelper helper) {
+        helper.setBlock(1, 1, 1, SetpointContent.CONSOLE_DESK.get());
+        helper.setBlock(3, 1, 1, SetpointContent.PUMP.get());
+        helper.setBlock(5, 1, 1, SetpointContent.PRINTER.get());
+        helper.runAfterDelay(60, () -> {
+            var console = helper.getBlockEntity(new BlockPos(1, 1, 1), io.hookdev.setpoint.block.entity.ConsoleBlockEntity.class);
+            var level = helper.getLevel();
+            var pages = io.hookdev.setpoint.block.PrinterBlock.pages(level, console);
+            helper.assertTrue(!pages.isEmpty(), "the log should have a cover page");
+            String all = pages.stream().map(p -> p.raw().getString()).reduce("", String::concat);
+            helper.assertTrue(all.contains("ALARM LOG"), "the cover should say what it is: " + all);
+            if (!console.alarms().list().isEmpty()) helper.assertTrue(all.contains(console.alarms().list().get(0).tag()), "the first alarm should be in the book: " + all);
+            helper.succeed();
+        });
     }
 
     /** A burner under a boiler with no coal fires it on diesel from its tank; the boiler boils and the diesel goes down. */

@@ -20,10 +20,11 @@ import io.hookdev.setpoint.control.TrendBuffer;
  * @param unacked  alarms waiting for an ACK
  * @param trends   a few tags with their recent history (trend page)
  */
-public record OverviewData(boolean linked, String clock, List<Tile> tiles, List<AlarmLine> alarms, int unacked, List<Trend> trends) {
+public record OverviewData(boolean linked, String clock, List<Tile> tiles, List<AlarmLine> alarms, int unacked, List<Trend> trends,
+                           java.util.Optional<io.hookdev.setpoint.pid.PidDrawing> pid, List<io.hookdev.setpoint.pid.PidLive> live) {
     /** Trends shown at once, and samples sent per series (one every {@link #STEP} seconds of the console's five minutes). */
     public static final int MAX_TRENDS = 4, STEP = 3;
-    public static final OverviewData EMPTY = new OverviewData(false, "--:--", List.of(), List.of(), 0, List.of());
+    public static final OverviewData EMPTY = new OverviewData(false, "--:--", List.of(), List.of(), 0, List.of(), java.util.Optional.empty(), List.of());
 
     public record Tile(String tag, String kind, String status, int severity, String value) {
         public static final Codec<Tile> CODEC = RecordCodecBuilder.create(i -> i.group(
@@ -49,7 +50,9 @@ public record OverviewData(boolean linked, String clock, List<Tile> tiles, List<
     public static final Codec<OverviewData> CODEC = RecordCodecBuilder.create(i -> i.group(
             Codec.BOOL.fieldOf("linked").forGetter(OverviewData::linked), Codec.STRING.fieldOf("clock").forGetter(OverviewData::clock),
             Tile.CODEC.listOf().fieldOf("tiles").forGetter(OverviewData::tiles), AlarmLine.CODEC.listOf().fieldOf("alarms").forGetter(OverviewData::alarms),
-            Codec.INT.fieldOf("unacked").forGetter(OverviewData::unacked), Trend.CODEC.listOf().fieldOf("trends").forGetter(OverviewData::trends)).apply(i, OverviewData::new));
+            Codec.INT.fieldOf("unacked").forGetter(OverviewData::unacked), Trend.CODEC.listOf().fieldOf("trends").forGetter(OverviewData::trends),
+            io.hookdev.setpoint.pid.PidDrawing.CODEC.optionalFieldOf("pid").forGetter(OverviewData::pid),
+            io.hookdev.setpoint.pid.PidLive.CODEC.listOf().optionalFieldOf("live", List.of()).forGetter(OverviewData::live)).apply(i, OverviewData::new));
 
     /** Reads what a console knows right now. */
     public static OverviewData of(ConsoleBlockEntity console, long gameTime) {
@@ -71,6 +74,13 @@ public record OverviewData(boolean linked, String clock, List<Tile> tiles, List<
             }
             trends.add(new Trend(r.tag(), r.series(), series));
         }
-        return new OverviewData(true, console.clock(gameTime), tiles, alarms, console.alarms().unacknowledged(), trends);
+        // the P&ID in the console, with the live state of everything on it (P&ID page)
+        io.hookdev.setpoint.pid.PidDrawing drawing = console.drawing();
+        List<io.hookdev.setpoint.pid.PidLive> live = new ArrayList<>();
+        if (drawing != null) {
+            for (Reading r : console.readings()) live.add(io.hookdev.setpoint.pid.PidLive.of(r));
+            if (console.getLevel() != null) live.addAll(io.hookdev.setpoint.pid.PidLive.valves(console.getLevel(), drawing));
+        }
+        return new OverviewData(true, console.clock(gameTime), tiles, alarms, console.alarms().unacknowledged(), trends, java.util.Optional.ofNullable(drawing), live);
     }
 }

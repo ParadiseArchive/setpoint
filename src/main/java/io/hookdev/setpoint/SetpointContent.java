@@ -247,8 +247,8 @@ public final class SetpointContent {
             p -> p.mapColor(MapColor.SNOW).strength(0.8f, 1.0f).sound(SoundType.METAL).noOcclusion().noCollision());
     public static final DeferredBlock<io.hookdev.setpoint.block.FilingCabinetBlock> FILING_CABINET = BLOCKS.registerBlock("filing_cabinet", io.hookdev.setpoint.block.FilingCabinetBlock::new,
             p -> p.mapColor(MapColor.COLOR_GRAY).strength(2.5f, 6.0f).sound(SoundType.METAL));
-    public static final DeferredBlock<io.hookdev.setpoint.block.FurnitureBlock> PRINTER = BLOCKS.registerBlock("printer",
-            p -> new io.hookdev.setpoint.block.FurnitureBlock(p, Block.box(1, 0, 3, 15, 8, 13)), p -> p.mapColor(MapColor.SNOW).strength(1.0f, 3.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.PrinterBlock> PRINTER = BLOCKS.registerBlock("printer",
+            p -> new io.hookdev.setpoint.block.PrinterBlock(p, Block.box(1, 0, 3, 15, 8, 13)), p -> p.mapColor(MapColor.SNOW).strength(1.0f, 3.0f).sound(SoundType.METAL).noOcclusion());
     public static final DeferredBlock<io.hookdev.setpoint.block.CoffeeMachineBlock> COFFEE_MACHINE = BLOCKS.registerBlock("coffee_machine",
             p -> new io.hookdev.setpoint.block.CoffeeMachineBlock(p, Block.box(3, 0, 3, 13, 14, 14)), p -> p.mapColor(MapColor.COLOR_BLACK).strength(1.0f, 3.0f).sound(SoundType.METAL).noOcclusion());
     public static final DeferredBlock<io.hookdev.setpoint.block.ExitSignBlock> EXIT_SIGN = BLOCKS.registerBlock("exit_sign", io.hookdev.setpoint.block.ExitSignBlock::new,
@@ -341,6 +341,9 @@ public final class SetpointContent {
             p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
     public static final DeferredBlock<ConsoleBlock> CONSOLE = BLOCKS.registerBlock("dcs_console", ConsoleBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL).lightLevel(state -> 4));
+    /** The same DCS console built into a control desk, with its three screens on top. */
+    public static final DeferredBlock<ConsoleBlock> CONSOLE_DESK = BLOCKS.registerBlock("console_desk", ConsoleBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL).lightLevel(state -> 6).noOcclusion());
 
     // Hookonium: endgame ore, as rare as diamond, mined with a diamond pickaxe
     public static final DeferredBlock<DropExperienceBlock> HOOKONIUM_ORE = BLOCKS.registerBlock("hookonium_ore",
@@ -428,6 +431,7 @@ public final class SetpointContent {
     public static final DeferredItem<BlockItem> WATER_INTAKE_ITEM = ITEMS.registerSimpleBlockItem(WATER_INTAKE);
     public static final DeferredItem<PipeWrenchItem> PIPE_WRENCH = ITEMS.registerItem("pipe_wrench", PipeWrenchItem::new, p -> p.stacksTo(1));
     public static final DeferredItem<BlockItem> CONSOLE_ITEM = ITEMS.registerSimpleBlockItem(CONSOLE);
+    public static final DeferredItem<BlockItem> CONSOLE_DESK_ITEM = ITEMS.registerSimpleBlockItem(CONSOLE_DESK);
     public static final DeferredItem<BlockItem> HOOKONIUM_ORE_ITEM = ITEMS.registerSimpleBlockItem(HOOKONIUM_ORE);
     public static final DeferredItem<BlockItem> DEEPSLATE_HOOKONIUM_ORE_ITEM = ITEMS.registerSimpleBlockItem(DEEPSLATE_HOOKONIUM_ORE);
     public static final DeferredItem<BlockItem> HOOKONIUM_BLOCK_ITEM = ITEMS.registerSimpleBlockItem(HOOKONIUM_BLOCK, p -> p.rarity(Rarity.RARE));
@@ -537,7 +541,7 @@ public final class SetpointContent {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<WaterIntakeBlockEntity>> WATER_INTAKE_ENTITY = BLOCK_ENTITIES.register("water_intake",
             () -> new BlockEntityType<>(WaterIntakeBlockEntity::new, WATER_INTAKE.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ConsoleBlockEntity>> CONSOLE_ENTITY = BLOCK_ENTITIES.register("dcs_console",
-            () -> new BlockEntityType<>(ConsoleBlockEntity::new, CONSOLE.get()));
+            () -> new BlockEntityType<>(ConsoleBlockEntity::new, CONSOLE.get(), CONSOLE_DESK.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.OverviewScreenBlockEntity>> OVERVIEW_SCREEN_ENTITY = BLOCK_ENTITIES.register("overview_screen",
             () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.OverviewScreenBlockEntity::new, OVERVIEW_SCREEN.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.AlarmBeaconBlockEntity>> ALARM_BEACON_ENTITY = BLOCK_ENTITIES.register("alarm_beacon",
@@ -637,6 +641,7 @@ public final class SetpointContent {
                 output.accept(ESD_BUTTON_ITEM.get());
                 output.accept(RADIO_CHARGER_ITEM.get());
                 output.accept(CONTROL_DESK_ITEM.get());
+                output.accept(CONSOLE_DESK_ITEM.get());
                 output.accept(DESK_CORNER_ITEM.get());
                 output.accept(DESK_SCREENS_ITEM.get());
                 output.accept(OFFICE_CHAIR_ITEM.get());

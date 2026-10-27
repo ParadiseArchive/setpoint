@@ -56,6 +56,7 @@
     "setpoint:corrugated_steel",
     "setpoint:industrial_lamp",
     "setpoint:handrail",
+    "setpoint:console_desk",
     "setpoint:overview_screen",
     "setpoint:alarm_beacon",
     "setpoint:esd_button",

@@ -2687,6 +2687,18 @@ texture('monitor_back', (p) => { p.rect(0, 0, 16, 16, '#18191c'); p.rect(0, 0, 1
 BS('desk_screens', { variants: Object.fromEntries(Object.entries(yaw).map(([f, y]) => [`facing=${f}`, { model: 'setpoint:block/desk_screens', ...(y ? { y } : {}) }])) });
 item('desk_screens', 'setpoint:block/desk_screens');
 
+// a console desk (0.2): the desk with the three screens on it, working as a DCS console
+{
+  const desk = MODELS['control_desk_item'], screens = MODELS['desk_screens'];
+  const up = (e) => ({ ...e, from: [e.from[0], e.from[1] + 16, e.from[2]], to: [e.to[0], e.to[1] + 16, e.to[2]],
+    ...(e.rotation ? { rotation: { ...e.rotation, origin: [e.rotation.origin[0], e.rotation.origin[1] + 16, e.rotation.origin[2]] } } : {}) });
+  M('console_desk', { parent: 'minecraft:block/block', ambientocclusion: false, textures: { ...desk.textures, ...screens.textures, particle: desk.textures.particle },
+    elements: [...desk.elements, ...screens.elements.map(up)] });
+  BS('console_desk', { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => [false, true].map((alarm) =>
+    [, { model: 'setpoint:block/console_desk', ...(y ? { y } : {}) }]))) });
+  item('console_desk', 'setpoint:block/console_desk');
+  shapeless('console_desk', ['setpoint:dcs_console', 'setpoint:control_desk'], 'setpoint:console_desk', 1);
+}
 // ---------- 24-hour chair: five-star base, gas lift, cushion, armrests, a high back with a headrest (the back to the north) ----------
 texture('chair_fabric', (p) => { for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) p.set(x, y, (x + y) % 2 === 0 ? '#1d1f24' : '#272a30'); p.rect(0, 0, 16, 1, '#33363d'); });
 texture('chair_frame', (p) => { p.rect(0, 0, 16, 16, '#26282d'); p.rect(0, 0, 16, 1, '#3a3d44'); });
@@ -2952,7 +2964,7 @@ const FACTORY = ['rack_upright', 'rack_beam', 'grating', 'grating_stairs', 'cage
 for (const name of FACTORY) lootSelf(name);
 lootSelf('flare_stack');
 // control room: each drops itself (the filing cabinet also what it holds); the blast door only from its lower half
-const CONTROL_ROOM = ['overview_screen', 'alarm_beacon', 'esd_button', 'radio_charger', 'control_desk', 'desk_corner', 'desk_screens', 'office_chair',
+const CONTROL_ROOM = ['console_desk', 'overview_screen', 'alarm_beacon', 'esd_button', 'radio_charger', 'control_desk', 'desk_corner', 'desk_screens', 'office_chair',
   'raised_floor', 'raised_floor_vent', 'ceiling_panel', 'ceiling_light', 'wall_clock', 'filing_cabinet', 'printer', 'coffee_machine', 'exit_sign', 'wired_glass', 'wired_glass_pane'];
 for (const name of CONTROL_ROOM) lootSelf(name);
 json(join(DATA, 'loot_table/blocks', 'blast_door.json'), { type: 'minecraft:block', random_sequence: 'setpoint:blocks/blast_door',

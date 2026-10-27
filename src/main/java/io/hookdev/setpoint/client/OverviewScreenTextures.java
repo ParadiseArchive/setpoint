@@ -111,9 +111,24 @@ public final class OverviewScreenTextures {
         switch (page) {
             case OverviewScreenBlockEntity.ALARMS -> alarms(c, labels, data, blink, font, x0, y0, x1, y1);
             case OverviewScreenBlockEntity.TRENDS -> trends(c, labels, data, font, x0, y0, x1, y1);
+            case OverviewScreenBlockEntity.PID -> pid(c, labels, data, blink, x0, y0, x1, y1);
             default -> overview(c, labels, data, blink, x0, y0, x1, y1);
         }
         return labels;
+    }
+
+    /** The P&ID in the console, live like on the console and the P&ID board. */
+    private static void pid(Canvas c, List<Label> labels, OverviewData data, boolean blink, int x0, int y0, int x1, int y1) {
+        if (data.pid().isEmpty()) {
+            labels.add(new Label(x0 + 2, y0 + 2, "No P&ID in the console: put one in to see it here", GREY, x1 - x0));
+            return;
+        }
+        io.hookdev.setpoint.pid.PidDrawing drawing = data.pid().get();
+        java.util.Map<String, io.hookdev.setpoint.pid.PidLive> live = new java.util.HashMap<>();
+        for (io.hookdev.setpoint.pid.PidLive l : data.live()) live.put(l.tag(), l);
+        c.fill(x0, y0, x1, y1, PidRenderer.BLUEPRINT);
+        int cell = PidRenderer.fitCell(drawing, x1 - x0, y1 - y0, PidRenderer.MAX_CELL);
+        PidRenderer.draw(c::fill, drawing, PidRenderer.centred(drawing, x0, y0, x1 - x0, y1 - y0, cell), new LiveStyle(live, blink));
     }
 
     /** Every tag as a tile: the tag, and its status in the colour of how it is doing. */

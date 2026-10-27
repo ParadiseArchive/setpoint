@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "setpoint:dcs_console",
+    "setpoint:control_desk"
+  ],
+  "result": {
+    "count": 1,
+    "id": "setpoint:console_desk"
+  }
+}

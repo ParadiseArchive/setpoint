@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "undefined": {
+      "model": "setpoint:block/console_desk",
+      "y": 270
+    }
+  }
+}

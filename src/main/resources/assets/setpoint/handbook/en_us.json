@@ -1604,7 +1604,7 @@
         },
         {
           "type": "p",
-          "text": "A video wall for the control room. Screens side by side and below each other make one wall, up to 8 by 6, that shows what the nearest console (within 32 blocks) sees. Right-click to switch page: **PLANT OVERVIEW** (a tile per tag), **ALARMS** (the alarm list) or **TRENDS** (the controllers first)."
+          "text": "A video wall for the control room. Screens side by side and below each other make one wall, up to 8 by 6, that shows what the nearest console (within 32 blocks) sees. Right-click to switch page: **PLANT OVERVIEW** (a tile per tag), **ALARMS** (the alarm list), **TRENDS** (the controllers first) or **P&ID** (the P&ID in the console, live)."
         },
         {
           "type": "craft",
@@ -1719,6 +1719,26 @@
           "count": 3
         },
         {
+          "type": "p",
+          "text": "A **console desk** is a DCS console built into a desk, with its three screens on top: it works exactly like the console."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:console_desk",
+          "grid": [
+            "setpoint:dcs_console",
+            "setpoint:control_desk",
+            "",
+            "",
+            "",
+            "",
+            "",
+            "",
+            ""
+          ],
+          "count": 1
+        },
+        {
           "type": "craft",
           "result": "setpoint:office_chair",
           "grid": [
@@ -1736,7 +1756,7 @@
         },
         {
           "type": "p",
-          "text": "To finish the room: a **raised floor** (with **vent** tiles), **ceiling panels** and **ceiling lights**, a **wall clock** with the time of day, a **filing cabinet** that holds as much as a barrel, a **printer**, a **coffee machine** (a cup gives a minute of speed and haste), a lit **exit sign** (right-click to turn its arrow), a **blast door** and **wired glass** for windows onto the plant."
+          "text": "To finish the room: a **raised floor** (with **vent** tiles), **ceiling panels** and **ceiling lights**, a **wall clock** with the time of day, a **filing cabinet** that holds as much as a barrel, a **printer** (right-click it with paper and it prints the alarm log of the nearest console as a book, for the shift handover), a **coffee machine** (a cup gives a minute of speed and haste), a lit **exit sign** (right-click to turn its arrow), a **blast door** and **wired glass** for windows onto the plant."
         },
         {
           "type": "craft",
