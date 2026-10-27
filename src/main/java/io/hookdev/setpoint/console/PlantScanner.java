@@ -182,6 +182,12 @@ public final class PlantScanner {
                     generator.status().equals("RUNNING") ? io.hookdev.setpoint.block.entity.DieselGeneratorBlockEntity.POWER + " FE/t" : "0 FE/t",
                     List.of("DIESEL %"), new float[]{(float) level}, List.of());
         }
+        if (be instanceof io.hookdev.setpoint.block.entity.BurnerBlockEntity burner) {
+            boolean ok = burner.status().startsWith("BURNING") || burner.status().equals("IDLE");
+            double level = burner.fillFraction() * 100;
+            return new Reading(be.getBlockPos(), burner.tag(), "BURNER", burner.status(), ok ? Reading.NORMAL : Reading.ATTENTION,
+                    burner.amount() > 0 ? String.format("fuel %.1f B", burner.amount() / 1000.0) : "no liquid fuel", List.of("FUEL %"), new float[]{(float) level}, List.of());
+        }
         if (be instanceof io.hookdev.setpoint.block.entity.DistillationColumnBlockEntity column) {
             boolean ok = column.status().equals("RUNNING");
             double level = column.fillFraction() * 100;
