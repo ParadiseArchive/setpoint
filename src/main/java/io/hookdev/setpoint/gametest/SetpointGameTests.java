@@ -171,7 +171,6 @@ public final class SetpointGameTests {
         test("pcv_holds_a_gas_line", SetpointGameTests::pcvHoldsAGasLine, 1400);
         test("a_burner_fires_a_boiler_on_diesel", SetpointGameTests::aBurnerFiresABoilerOnDiesel, 300);
         test("a_printer_prints_the_alarm_log", SetpointGameTests::aPrinterPrintsTheAlarmLog, 100);
-        ALONE.add("a_printer_prints_the_alarm_log");
         test("a_burner_fires_a_boiler_on_lpg", SetpointGameTests::aBurnerFiresABoilerOnLpg, 300);
         test("forklift_racks_a_pallet", SetpointGameTests::forkliftRacksAPallet, 40);
         test("fuel_cell_makes_power_and_water", SetpointGameTests::fuelCellMakesPowerAndWater, 100);
