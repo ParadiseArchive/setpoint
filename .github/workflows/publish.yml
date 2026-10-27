@@ -1,9 +1,10 @@
-name: Publish to CurseForge
+name: Publish to CurseForge and GitHub
 
-# Uploads a release to the CurseForge project page.
+# Uploads a release to the CurseForge project page, and makes the same release on GitHub (the jar and the changelog).
 # - Push a version tag (v + mod_version from gradle.properties, e.g. v0.2.0): build, test and upload.
 # - Or start it by hand on the Actions tab: "check" only tests the token and finds the game versions,
-#   "upload" builds, tests and uploads the current mod_version.
+#   "upload" builds, tests and uploads the current mod_version, "github" only makes the GitHub release for it
+#   (its tag v<mod_version> must exist).
 # The changelog comes from release/changelog/<mod_version>.md; alpha or beta in the version sets the release type.
 # Needs the repository secret CURSEFORGE (an upload token from https://authors.curseforge.com/#/settings/api-tokens).
 
@@ -13,13 +14,13 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: 'check = only test the token and game versions, upload = build, test and upload'
+        description: 'check = only test the token and game versions, upload = build, test and upload, github = only the GitHub release'
         type: choice
-        options: [check, upload]
+        options: [check, upload, github]
         default: check
 
 permissions:
-  contents: read
+  contents: write # for the GitHub release
 
 env:
   CF_PROJECT: '1763561'
@@ -70,18 +71,18 @@ jobs:
           echo "GAME_VERSIONS=$(jq -c 'map(.id)' found.json)" >> "$GITHUB_ENV"
 
       - name: Setup JDK 25
-        if: github.event_name == 'push' || inputs.mode == 'upload'
+        if: github.event_name == 'push' || inputs.mode == 'upload' || inputs.mode == 'github'
         uses: actions/setup-java@v5
         with:
           java-version: '25'
           distribution: 'temurin'
 
       - name: Setup Gradle
-        if: github.event_name == 'push' || inputs.mode == 'upload'
+        if: github.event_name == 'push' || inputs.mode == 'upload' || inputs.mode == 'github'
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build and test
-        if: github.event_name == 'push' || inputs.mode == 'upload'
+        if: github.event_name == 'push' || inputs.mode == 'upload' || inputs.mode == 'github'
         run: ./gradlew build runGameTestServer
 
       - name: Upload to CurseForge
@@ -104,3 +105,16 @@ jobs:
             echo "::error::CurseForge answered HTTP $code: $(head -c 600 response.txt)"; exit 1
           fi
           echo "::notice::Uploaded Setpoint $VERSION to CurseForge project $CF_PROJECT: $(cat response.txt)"
+
+      - name: GitHub release
+        if: github.event_name == 'push' || inputs.mode == 'upload' || inputs.mode == 'github'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="v$VERSION" jar="build/libs/setpoint-$VERSION.jar"
+          if gh release view "$tag" > /dev/null 2>&1; then
+            gh release upload "$tag" "$jar" --clobber
+          else
+            gh release create "$tag" "$jar" --title "Setpoint $VERSION" --notes-file "release/changelog/$VERSION.md" $([ "$TYPE" = release ] || echo --prerelease)
+          fi
+          echo "::notice::GitHub release $tag: https://github.com/$GITHUB_REPOSITORY/releases/tag/$tag"
