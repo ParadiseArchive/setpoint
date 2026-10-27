@@ -91,9 +91,9 @@ public final class PidBoardTextures {
         PidRenderer.draw(canvas, drawing, layout, style);
         if (hovered >= 0 && hovered < drawing.cells().size()) { // a thin frame around the symbol being looked at
             PidDrawing.Cell c = drawing.cells().get(hovered);
-            int x0 = layout.originX() + c.x() * layout.cell(), y0 = layout.originY() + c.y() * layout.cell(), s = layout.cell();
-            canvas.fill(x0, y0, x0 + s, y0 + 1, HOVER); canvas.fill(x0, y0 + s - 1, x0 + s, y0 + s, HOVER);
-            canvas.fill(x0, y0, x0 + 1, y0 + s, HOVER); canvas.fill(x0 + s - 1, y0, x0 + s, y0 + s, HOVER);
+            int x0 = layout.originX() + c.x() * layout.cell(), y0 = layout.originY() + c.y() * layout.cell(), sw = c.spanW() * layout.cell(), sh = c.spanH() * layout.cell();
+            canvas.fill(x0, y0, x0 + sw, y0 + 1, HOVER); canvas.fill(x0, y0 + sh - 1, x0 + sw, y0 + sh, HOVER);
+            canvas.fill(x0, y0, x0 + 1, y0 + sh, HOVER); canvas.fill(x0 + sw - 1, y0, x0 + sw, y0 + sh, HOVER);
         }
     }
 

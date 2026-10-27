@@ -155,6 +155,8 @@ public final class SetpointGameTests {
         test("controller_holds_a_gravity_fed_tank", SetpointGameTests::controllerHoldsAGravityFedTank, 1600);
         test("a_floating_roof_tank_floats_its_roof", SetpointGameTests::aFloatingRoofTankFloatsItsRoof, 40);
         BIG.add("a_floating_roof_tank_floats_its_roof");
+        test("a_pid_draws_a_floating_roof_tank_big", SetpointGameTests::aPidDrawsAFloatingRoofTankBig, 20);
+        BIG.add("a_pid_draws_a_floating_roof_tank_big");
         test("electrolyser_makes_hydrogen_and_oxygen", SetpointGameTests::electrolyserMakesHydrogenAndOxygen, 200);
         test("nitrogen_generator_fills_a_cylinder", SetpointGameTests::nitrogenGeneratorFillsACylinder, 200);
         test("gas_pipes_keep_to_gas", SetpointGameTests::gasPipesKeepToGas, 20);
@@ -1375,6 +1377,23 @@ public final class SetpointGameTests {
      * A floating roof tank takes its 8 x 8 x 6 blocks (bar three corners), holds 8000 B, its roof rises and falls with
      * the level (and the blocks' shapes with it), and it breaks whole, its liquid going along in the item.
      */
+    /** A P&ID of a floating roof tank draws it over its whole eight by eight footprint, with an ESD button beside it. */
+    private static void aPidDrawsAFloatingRoofTankBig(GameTestHelper helper) {
+        BlockPos base = new BlockPos(4, 1, 1);
+        BlockState state = SetpointContent.FLOATING_ROOF_TANK.get().defaultBlockState().setValue(FloatingRoofTankBlock.FACING, Direction.NORTH);
+        helper.setBlock(base, state);
+        BlockPos abs = helper.absolutePos(base);
+        state.getBlock().setPlacedBy(helper.getLevel(), abs, helper.getLevel().getBlockState(abs), null, new ItemStack(SetpointContent.FLOATING_ROOF_TANK_ITEM.get()));
+        helper.setBlock(9, 1, 0, SetpointContent.ESD_BUTTON.get());
+        var drawing = io.hookdev.setpoint.pid.PidCapture.capture(helper.getLevel(), helper.absolutePos(new BlockPos(0, 1, 0)), helper.absolutePos(new BlockPos(9, 1, 9))).drawing();
+        helper.assertTrue(drawing != null, "the area should make a drawing");
+        var tank = drawing.cells().stream().filter(c -> c.symbol() == io.hookdev.setpoint.pid.PidDrawing.FLOATING_ROOF_TANK).toList();
+        helper.assertTrue(tank.size() == 1, "the tank should be drawn once, got " + tank.size());
+        helper.assertTrue(tank.get(0).spanW() == 8 && tank.get(0).spanH() == 8, "the tank should cover 8 x 8 cells, covers " + tank.get(0).spanW() + " x " + tank.get(0).spanH());
+        helper.assertTrue(drawing.cells().stream().anyMatch(c -> c.symbol() == io.hookdev.setpoint.pid.PidDrawing.ESD_BUTTON), "the emergency stop should be on the drawing");
+        helper.succeed();
+    }
+
     private static void aFloatingRoofTankFloatsItsRoof(GameTestHelper helper) {
         BlockPos base = new BlockPos(4, 1, 1);
         BlockState state = SetpointContent.FLOATING_ROOF_TANK.get().defaultBlockState().setValue(FloatingRoofTankBlock.FACING, Direction.NORTH);

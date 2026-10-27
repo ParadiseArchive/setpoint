@@ -43,7 +43,7 @@ public record PidLive(String tag, int state, float gauge, String kind, String st
         return new PidLive(tag, state, Float.isNaN(gauge) ? -1 : gauge, kind, status, value);
     }
 
-    /** Hand and drain valves on the drawing that remember where they stand: open or shut right now. */
+    /** Untagged things on the drawing that remember where they stand: hand and drain valves open or shut, an ESD pressed, a beacon going. */
     public static List<PidLive> valves(Level level, PidDrawing drawing) {
         List<PidLive> valves = new ArrayList<>();
         for (PidDrawing.Cell cell : drawing.cells()) {
@@ -54,6 +54,12 @@ public record PidLive(String tag, int state, float gauge, String kind, String st
             if (state.getBlock() instanceof HandValveBlock) {
                 boolean open = HandValveBlock.isOpen(state);
                 valves.add(new PidLive(cell.liveKey(), PLAIN, -1, "VALVE", open ? "OPEN" : "SHUT", ""));
+            } else if (state.getBlock() instanceof io.hookdev.setpoint.block.EsdButtonBlock) {
+                boolean pressed = state.getValue(io.hookdev.setpoint.block.EsdButtonBlock.PRESSED);
+                valves.add(new PidLive(cell.liveKey(), pressed ? ALARM : PLAIN, -1, "ESD", pressed ? "PRESSED" : "READY", ""));
+            } else if (state.getBlock() instanceof io.hookdev.setpoint.block.AlarmBeaconBlock) {
+                boolean alarm = state.getValue(io.hookdev.setpoint.block.AlarmBeaconBlock.ALARM), silenced = state.getValue(io.hookdev.setpoint.block.AlarmBeaconBlock.SILENCED);
+                valves.add(new PidLive(cell.liveKey(), alarm ? (silenced ? ATTENTION : ALARM) : PLAIN, -1, "BEACON", alarm ? (silenced ? "SILENCED" : "ALARM") : "QUIET", ""));
             } else if (state.getBlock() instanceof DrainValveBlock) {
                 boolean open = DrainValveBlock.isOpen(state);
                 valves.add(new PidLive(cell.liveKey(), open ? ACTIVE : PLAIN, -1, "DRAIN", open ? "OPEN" : "SHUT", ""));

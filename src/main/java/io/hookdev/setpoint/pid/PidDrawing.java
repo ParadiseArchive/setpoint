@@ -25,7 +25,15 @@ public record PidDrawing(String name, int width, int height, List<Cell> cells, L
     public static final int PIPE = 0, PUMP = 1, TANK = 2, CONTROL_VALVE = 3, HAND_VALVE = 4, HAND_VALVE_SHUT = 5, LEVEL_TRANSMITTER = 6,
             FLOW_TRANSMITTER = 7, CONTROLLER = 8, BOILER = 9, TURBINE = 10, GENERATOR = 11, INTAKE = 12, CONSOLE = 13,
             SAFETY_VALVE = 14, PRESSURE_TRANSMITTER = 15, DRAIN_VALVE = 16, CHECK_VALVE = 17, DRUM = 18, IBC = 19, FLOATING_ROOF_TANK = 20,
-            ELECTROLYSER = 21, NITROGEN_GENERATOR = 22, GAS_CYLINDER = 23, GAS_SPHERE = 24, COMPRESSOR = 25, FUEL_CELL = 26, AMMONIA_REACTOR = 27, FERTILIZER_MIXER = 28, PUMPJACK = 29, COLUMN = 30, FLARE = 31;
+            ELECTROLYSER = 21, NITROGEN_GENERATOR = 22, GAS_CYLINDER = 23, GAS_SPHERE = 24, COMPRESSOR = 25, FUEL_CELL = 26, AMMONIA_REACTOR = 27, FERTILIZER_MIXER = 28, PUMPJACK = 29, COLUMN = 30, FLARE = 31,
+            ESD_BUTTON = 32, ALARM_BEACON = 33, BURNER = 34;
+    /** Big equipment (a column, a floating roof tank, a gas sphere) covers more cells than one: its rotation holds the footprint. */
+    public static final int BIG = 256;
+
+    /** The rotation of a big symbol that covers w by h cells, from its top-left cell. */
+    public static int big(int w, int h) {
+        return (Math.min(255, w) << 8) | (Math.min(255, h) << 16);
+    }
     // Pipe connections in the drawing: the four sides, plus a riser going up or down
     public static final int NORTH = 1, EAST = 2, SOUTH = 4, WEST = 8, UP = 16, DOWN = 32;
 
@@ -42,6 +50,17 @@ public record PidDrawing(String name, int width, int height, List<Cell> cells, L
 
         public Cell(int x, int y, int symbol, int rotation, int pipes, String tag) {
             this(x, y, symbol, rotation, pipes, tag, NOWHERE);
+        }
+
+        /** How many cells across a big symbol covers (1 for the rest). */
+        public int spanW() { return rotation >= BIG ? (rotation >> 8) & 0xFF : 1; }
+
+        /** How many cells down. */
+        public int spanH() { return rotation >= BIG ? (rotation >> 16) & 0xFF : 1; }
+
+        /** Is drawing cell (px, py) part of this symbol? */
+        public boolean covers(int px, int py) {
+            return px >= x && py >= y && px < x + spanW() && py < y + spanH();
         }
 
         /** The key of this cell's live state: its tag, or its position for an untagged valve, or empty. */
@@ -131,6 +150,9 @@ public record PidDrawing(String name, int width, int height, List<Cell> cells, L
             case PUMPJACK -> "Pumpjack";
             case COLUMN -> "Distillation column";
             case FLARE -> "Flare stack";
+            case ESD_BUTTON -> "Emergency stop";
+            case ALARM_BEACON -> "Alarm beacon";
+            case BURNER -> "Oil and gas burner";
             default -> "Pipe";
         };
     }

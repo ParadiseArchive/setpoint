@@ -22,8 +22,8 @@ public final class PidRenderer {
             return new Layout(originX, originY, cell, Math.max(1, (cell - padding) / 8));
         }
 
-        public int centreX(PidDrawing.Cell c) { return originX + c.x() * cell + cell / 2; }
-        public int centreY(PidDrawing.Cell c) { return originY + c.y() * cell + cell / 2; }
+        public int centreX(PidDrawing.Cell c) { return originX + c.x() * cell + c.spanW() * cell / 2; }
+        public int centreY(PidDrawing.Cell c) { return originY + c.y() * cell + c.spanH() * cell / 2; }
     }
 
     /** How each symbol is coloured. The plain P&ID draws every symbol the same; the console colours them by state. */
@@ -79,10 +79,13 @@ public final class PidRenderer {
         }
         for (PidDrawing.Cell c : drawing.cells()) {
             if (c.symbol() == PidDrawing.PIPE) continue;
-            int size = 8 * l.scale();
-            int sx = l.originX() + c.x() * cell + (cell - size) / 2, sy = l.originY() + c.y() * cell + (cell - size) / 2;
+            // big equipment: the symbol grows to fill its footprint
+            int rectW = c.spanW() * cell, rectH = c.spanH() * cell;
+            int scale = c.spanW() == 1 && c.spanH() == 1 ? l.scale() : Math.max(1, (Math.min(rectW, rectH) - Math.max(2, cell / 4)) / 8);
+            int size = 8 * scale;
+            int sx = l.originX() + c.x() * cell + (rectW - size) / 2, sy = l.originY() + c.y() * cell + (rectH - size) / 2;
             g.fill(sx, sy, sx + size, sy + size, BLUEPRINT);
-            PidSymbols.draw(g, style.symbol(c), c.rotation(), sx, sy, l.scale(), style.line(c), style.accent(c), style.fill(c));
+            PidSymbols.draw(g, style.symbol(c), c.rotation(), sx, sy, scale, style.line(c), style.accent(c), style.fill(c));
         }
         for (PidDrawing.Link link : drawing.links()) {
             if (link.from() >= drawing.cells().size() || link.to() >= drawing.cells().size()) continue;
@@ -103,7 +106,7 @@ public final class PidRenderer {
         }
         for (PidDrawing.Cell c : drawing.cells()) {
             if (c.symbol() == PidDrawing.PIPE) continue;
-            int x0 = l.originX() + c.x() * cell, y0 = l.originY() + c.y() * cell, size = Math.max(1, cell - 1);
+            int x0 = l.originX() + c.x() * cell, y0 = l.originY() + c.y() * cell, size = Math.max(1, Math.min(c.spanW(), c.spanH()) * cell - 1);
             g.fill(x0, y0, x0 + size, y0 + size, style.line(c));
             float fill = style.fill(c);
             if (fill > 0 && size > 2) { // a tank: its level as liquid inside
@@ -117,6 +120,7 @@ public final class PidRenderer {
     public static PidDrawing.@Nullable Cell cellAt(PidDrawing drawing, Layout l, int mouseX, int mouseY) {
         if (mouseX < l.originX() || mouseY < l.originY()) return null;
         int x = (mouseX - l.originX()) / l.cell(), y = (mouseY - l.originY()) / l.cell();
+        for (PidDrawing.Cell c : drawing.cells()) if (c.symbol() != PidDrawing.PIPE && c.covers(x, y)) return c;
         for (PidDrawing.Cell c : drawing.cells()) if (c.x() == x && c.y() == y) return c;
         return null;
     }

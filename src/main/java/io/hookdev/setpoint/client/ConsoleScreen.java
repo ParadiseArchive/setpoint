@@ -290,9 +290,9 @@ public class ConsoleScreen extends AbstractContainerScreen<ConsoleMenu> {
         PidRenderer.draw(g::fill, drawing, l, live());
         PidDrawing.Cell hovered = inArea(mx, my) ? PidRenderer.cellAt(drawing, l, mx, my) : null;
         if (hovered != null) { // a thin frame around the symbol under the mouse
-            int x0 = l.originX() + hovered.x() * l.cell(), y0 = l.originY() + hovered.y() * l.cell(), c = l.cell();
-            g.fill(x0, y0, x0 + c, y0 + 1, CYAN); g.fill(x0, y0 + c - 1, x0 + c, y0 + c, CYAN);
-            g.fill(x0, y0, x0 + 1, y0 + c, CYAN); g.fill(x0 + c - 1, y0, x0 + c, y0 + c, CYAN);
+            int x0 = l.originX() + hovered.x() * l.cell(), y0 = l.originY() + hovered.y() * l.cell(), cw = hovered.spanW() * l.cell(), ch = hovered.spanH() * l.cell();
+            g.fill(x0, y0, x0 + cw, y0 + 1, CYAN); g.fill(x0, y0 + ch - 1, x0 + cw, y0 + ch, CYAN);
+            g.fill(x0, y0, x0 + 1, y0 + ch, CYAN); g.fill(x0 + cw - 1, y0, x0 + cw, y0 + ch, CYAN);
         }
         if (showValues) {
             for (PidDrawing.Cell c : drawing.cells()) {

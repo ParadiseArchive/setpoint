@@ -88,6 +88,15 @@ public final class PidSymbols {
     // a flare: the stack with its flame on top
     private static final String[] FLARE = {
             "..+..+..", "..++++..", "...++...", "...##...", "...##...", "...##...", "..####..", ".######."};
+    // an emergency stop: the red mushroom button on its yellow plate
+    private static final String[] ESD_BUTTON = {
+            "########", "#......#", "#.++++.#", "#++++++#", "#++++++#", "#.++++.#", "#......#", "########"};
+    // an alarm beacon: the rotating lamp on its base, light going out
+    private static final String[] ALARM_BEACON = {
+            "+..##..+", ".+.##.+.", "..####..", "..#++#..", "..#++#..", "..####..", ".######.", "........"};
+    // a burner: the flame on a burner tip, under a firebox
+    private static final String[] BURNER = {
+            "########", "#......#", "#..+...#", "#.+++..#", "#.++++.#", "#..++..#", "#..##..#", "########"};
     private static final String[] CONSOLE = {
             "########", "#++++++#", "#+....+#", "#++++++#", "########", "...##...", "..####..", "........"};
 
@@ -124,6 +133,9 @@ public final class PidSymbols {
             case PidDrawing.PUMPJACK -> PUMPJACK;
             case PidDrawing.COLUMN -> COLUMN;
             case PidDrawing.FLARE -> FLARE;
+            case PidDrawing.ESD_BUTTON -> ESD_BUTTON;
+            case PidDrawing.ALARM_BEACON -> ALARM_BEACON;
+            case PidDrawing.BURNER -> BURNER;
             default -> null;
         };
     }

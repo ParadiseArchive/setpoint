@@ -65,6 +65,20 @@ public final class PidCapture {
         }
     }
 
+    /** Equipment that is drawn over its whole footprint rather than in the one cell of its base. */
+    private static final java.util.Set<Integer> BIG = java.util.Set.of(PidDrawing.FLOATING_ROOF_TANK, PidDrawing.COLUMN, PidDrawing.GAS_SPHERE);
+
+    /** The base of the big piece of equipment this block belongs to (itself for a base), or null. */
+    private static @org.jspecify.annotations.Nullable BlockPos bigBase(Level level, BlockPos pos) {
+        BlockEntity be = level.getBlockEntity(pos);
+        if (be instanceof io.hookdev.setpoint.block.entity.FloatingRoofTankBlockEntity || be instanceof io.hookdev.setpoint.block.entity.DistillationColumnBlockEntity
+                || be instanceof io.hookdev.setpoint.block.entity.GasSphereBlockEntity) return pos.immutable();
+        if (be instanceof io.hookdev.setpoint.block.entity.TankPartBlockEntity part && part.tank() instanceof io.hookdev.setpoint.block.entity.FloatingRoofTankBlockEntity tank) return tank.getBlockPos();
+        if (be instanceof io.hookdev.setpoint.block.entity.GasSpherePartBlockEntity part && part.sphere() != null) return part.sphere().getBlockPos();
+        if (be instanceof io.hookdev.setpoint.block.entity.ColumnPartBlockEntity part) return part.base();
+        return null;
+    }
+
     public static Result capture(Level level, BlockPos a, BlockPos b) {
         int minX = Math.min(a.getX(), b.getX()), maxX = Math.max(a.getX(), b.getX());
         int minY = Math.min(a.getY(), b.getY()), maxY = minY + HEIGHT - 1;
@@ -78,10 +92,17 @@ public final class PidCapture {
         int[][] pipes = new int[w][d];
         List<int[]> hiddenAt = new ArrayList<>(); // x, z of tagged pieces that lost their column
         List<Found> hidden = new ArrayList<>();
+        Map<Long, int[]> footprints = new HashMap<>(); // big equipment, by the cell of its base: the cells it covers (min x, max x, min z, max z)
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         for (int x = 0; x < w; x++) for (int z = 0; z < d; z++) for (int y = 0; y < h; y++) {
             pos.set(minX + x, minY + y, minZ + z);
             BlockState state = level.getBlockState(pos);
+            BlockPos base = bigBase(level, pos);
+            if (base != null) {
+                int cellX = x, cellZ = z;
+                int[] box = footprints.computeIfAbsent((base.getX() - minX) * 65536L + (base.getZ() - minZ), k -> new int[]{cellX, cellX, cellZ, cellZ});
+                box[0] = Math.min(box[0], x); box[1] = Math.max(box[1], x); box[2] = Math.min(box[2], z); box[3] = Math.max(box[3], z);
+            }
             Found here = classify(level, pos, state);
             if (here == null) continue;
             Found loser = here;
@@ -124,6 +145,13 @@ public final class PidCapture {
             int cx = turn ? d - 1 - z : x, cy = turn ? x : z;
             int rotation = (f.rotation + (turn ? 1 : 0)) % 4;
             int mask = turn ? turnClockwise(pipes[x][z]) : pipes[x][z];
+            int[] box = BIG.contains(f.symbol) ? footprints.get(x * 65536L + z) : null;
+            if (box != null && (box[1] > box[0] || box[3] > box[2])) { // drawn over its whole footprint, from the top-left cell
+                int ax = turn ? d - 1 - box[2] : box[0], ay = turn ? box[0] : box[2], bx = turn ? d - 1 - box[3] : box[1], by = turn ? box[1] : box[3];
+                cx = Math.min(ax, bx); cy = Math.min(ay, by);
+                rotation = PidDrawing.big(Math.abs(bx - ax) + 1, Math.abs(by - ay) + 1);
+                mask = 0;
+            }
             if (!f.tag.isEmpty()) byTag.putIfAbsent(f.tag, cells.size());
             cells.add(new PidDrawing.Cell(cx, cy, f.symbol, rotation, mask, f.tag, f.at));
         }
@@ -191,6 +219,9 @@ public final class PidCapture {
         }
         if (block instanceof WaterIntakeBlock && be instanceof WaterIntakeBlockEntity intake) return new Found(PidDrawing.INTAKE, 0, intake.tag(), 5);
         if (block instanceof ConsoleBlock) return new Found(PidDrawing.CONSOLE, 0, "", 4);
+        if (be instanceof io.hookdev.setpoint.block.entity.BurnerBlockEntity burner) return new Found(PidDrawing.BURNER, 0, burner.tag(), 4);
+        if (block instanceof io.hookdev.setpoint.block.EsdButtonBlock) return new Found(PidDrawing.ESD_BUTTON, 0, "", 4, pos.asLong());
+        if (block instanceof io.hookdev.setpoint.block.AlarmBeaconBlock) return new Found(PidDrawing.ALARM_BEACON, 0, "", 4, pos.asLong());
         if (block instanceof ControllerBlock) return new Found(PidDrawing.CONTROLLER, 0, tag, 4);
         if (block instanceof ControlValveBlock) return new Found(PidDrawing.CONTROL_VALVE, axisQuarter(state.getValue(ControlValveBlock.AXIS)), tag, 3);
         if (block instanceof HandValveBlock) {
