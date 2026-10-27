@@ -39,7 +39,7 @@ run/
 repo/
 !**/src/**/repo/
 
-### Secrets: never in git (Niels, 27 Oct 2026) ###
+### Secrets: never in git (owner, 27 Oct 2026) ###
 .env
 .env.*
 *.pem
