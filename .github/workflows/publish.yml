@@ -1,7 +1,7 @@
 name: Publish to CurseForge
 
 # Uploads a release to the CurseForge project page.
-# - Push a version tag (v + mod_version from gradle.properties, e.g. v0.1.0-alpha): build, test and upload.
+# - Push a version tag (v + mod_version from gradle.properties, e.g. v0.2.0): build, test and upload.
 # - Or start it by hand on the Actions tab: "check" only tests the token and finds the game versions,
 #   "upload" builds, tests and uploads the current mod_version.
 # The changelog comes from release/changelog/<mod_version>.md; alpha or beta in the version sets the release type.

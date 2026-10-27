@@ -8,8 +8,6 @@ Setpoint is a process engineering mod. Pumps, tanks, valves and controllers beha
 
 It is easy by default: machines link up and configure themselves, and plain-language messages tell you what is going on. The realistic layer (tuning, manual and cascade modes, NPSH, pressure trips) is there for those who want it.
 
-> **Alpha.** Things will change between versions. Back up your world before updating.
-
 ## P&IDs, the heart of the mod
 
 - **Draw your plant.** Pick two corners with a blank P&ID and get a plan view of everything in the box: every pump, tank, valve and instrument as its real P&ID symbol, pipes as lines, and the signal links from controllers to their valves.
@@ -40,11 +38,13 @@ It is easy by default: machines link up and configure themselves, and plain-lang
 
 ## The control room
 
-- **Video wall.** Overview screens side by side make one wall of up to 8 by 6 blocks, showing the plant overview, the alarm list or the trends.
+- **Video wall.** Overview screens side by side make one wall of up to 8 by 6 blocks, showing the plant overview, the alarm list, the trends or your P&ID live.
 - **Alarm beacon.** An amber light that turns and sounds while an alarm waits for an ACK.
 - **Emergency stop.** A red mushroom button that shuts the whole plant down at once.
 - **Radios.** Pick one up and the field operator calls in what needs a look, worst first.
-- **Furniture.** Control desks, operator screens, a 24-hour chair you can sit in, a raised floor, ceiling lights, a wall clock with the time of day, filing cabinets, a printer, a coffee machine, an exit sign, a blast door and wired glass.
+- **Console desk.** The DCS console built into a desk, with its three screens on top.
+- **Printer.** Feed it paper and it prints the alarm log of the nearest console as a book, for the shift handover.
+- **Furniture.** Control desks, operator screens, a 24-hour chair you can sit in, a raised floor, ceiling lights, a wall clock with the time of day, filing cabinets, a coffee machine, an exit sign, a blast door and wired glass.
 
 ![The DCS console overview](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/console.png)
 
@@ -54,6 +54,7 @@ It is easy by default: machines link up and configure themselves, and plain-lang
 
 - **Stirling engine and biogas generator** for the start.
 - **Coal-fired boiler and steam turbine.** Steam builds real pressure: the burner trips at 9 bar, a safety valve lifts at its set pressure, and a boiler without protection bursts.
+- **Oil and gas burner.** Set it under a boiler and it fires it on naphtha, kerosene, diesel, residue, LPG or hydrogen. Other mods' pipes on top of a boiler take its steam.
 - **Diesel generator** at the top of the power ladder, on diesel from your own refinery.
 - **Fuel cell.** Hydrogen and oxygen back into power: with an electrolyser and a gas sphere it makes a battery.
 
@@ -65,6 +66,7 @@ It is easy by default: machines link up and configure themselves, and plain-lang
 - An **electrolyser** splits water into hydrogen and oxygen, and a **nitrogen generator** takes nitrogen from the air.
 - **Gas cylinders** are colour-coded like real ones, and a **gas sphere** on eight columns holds 3520 buckets of gas at 16 bar.
 - A **compressor** pushes gas from one line into another, up to 200 bar.
+- **Gas valves** shut a line, and a **gas control valve** with a pressure transmitter and a controller holds the pressure of a line.
 - Oxygen piped into a boiler makes its coal last longer. An **ammonia reactor** turns nitrogen and hydrogen into ammonia, and like a real one it wants 100 bar. A **fertilizer mixer** makes fertilizer from ammonia and bone meal that grows every crop in a three by three at once.
 
 ## Refinery
@@ -100,7 +102,7 @@ A purple endgame ore, as rare as diamond, for the big machines.
 
 - The **Setpoint Handbook** is given on first join.
 - Every item has a tooltip (hold Shift for details), and there is an advancement tab.
-- Works with **Jade** (equipment status when you look at a machine), and every recipe shows in **JEI**.
+- Works with **Jade** (equipment status when you look at a machine). In **JEI** every recipe shows, and every machine has a tab with what goes in and what comes out.
 
 ## Requirements
 

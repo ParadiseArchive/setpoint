@@ -6,7 +6,7 @@
   <a href="https://github.com/ParadiseArchive/setpoint/actions/workflows/build.yml"><img src="https://img.shields.io/github/actions/workflow/status/ParadiseArchive/setpoint/build.yml?branch=main&style=flat-square&label=build&labelColor=0a0c13&color=2de2e6" alt="Build"></a>
   <img src="https://img.shields.io/badge/minecraft-26.3-2de2e6?style=flat-square&labelColor=0a0c13" alt="Minecraft 26.3">
   <img src="https://img.shields.io/badge/neoforge-26.3-2de2e6?style=flat-square&labelColor=0a0c13" alt="NeoForge 26.3">
-  <img src="https://img.shields.io/badge/status-alpha-ffb547?style=flat-square&labelColor=0a0c13" alt="Status: alpha">
+  <img src="https://img.shields.io/badge/version-0.2.0-ffb547?style=flat-square&labelColor=0a0c13" alt="Version 0.2.0">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-ff4f8b?style=flat-square&labelColor=0a0c13" alt="License: MIT"></a>
 </p>
 
@@ -48,7 +48,8 @@ there: look at a symbol for its status, click a controller for its faceplate, st
 
 The DCS console sees every tag in your plant: an overview, trends and an alarm list with ACK. Every controller has a
 faceplate like a real DCS: MAN, AUTO and CAS, setpoint and output, alarm limits and tuning. Build the room round it
-with a video wall, an amber alarm beacon, a red emergency stop, desks and a 24-hour chair.
+with a video wall that can show your P&ID live, an amber alarm beacon, a red emergency stop, a console built into a desk,
+a printer that prints the alarm log for the shift handover, and a 24-hour chair.
 
 <p align="center">
   <img src=".github/readme/console.png" width="56%" alt="The DCS console overview: tags, types, status and values, with a pump in DRY RUN alarm.">
@@ -71,13 +72,13 @@ console, P&ID boards and a whole control room.
 
 ### Power and steam
 From a Stirling engine on coal up to diesel: a biogas generator, a boiler with real steam pressure and a safety
-valve, a steam turbine, a diesel generator and a fuel cell.
+valve, an oil and gas burner that fires it on what your refinery makes, a steam turbine, a diesel generator and a fuel cell.
 
 <img src=".github/readme/shelf-power.png" width="100%" alt="Stirling engine, biogas generator, boiler, safety valve, steam turbine, diesel generator, fuel cell and a small steam plant.">
 
 ### Gases and oil
 Hydrogen, oxygen, nitrogen, ammonia and LPG with real pressure. An electrolyser, a compressor up to 200 bar, gas
-cylinders and a gas sphere, an ammonia reactor for fertilizer. A pumpjack and a distillation column that splits crude
+cylinders and a gas sphere, gas valves and pressure control valves, an ammonia reactor for fertilizer. A pumpjack and a distillation column that splits crude
 into LPG, naphtha, kerosene, diesel and residue. And on top of it all, the tallest thing in the mod: a flare stack
 forty blocks high that burns what the plant cannot keep.
 
@@ -91,12 +92,12 @@ grating, handrails, stairs, caged ladders, steel beams and hazard stripes. And H
 
 ## Get it
 
-Setpoint is in **alpha** (0.1.0-alpha): things still change between versions, so back up your world before updating.
+Setpoint **0.2.0** is the first full release. Back up your world before you update to a new version.
 Download it on **[CurseForge](https://www.curseforge.com/minecraft/mc-mods/setpoint)**, or build it yourself (see below).
 
 - Minecraft 26.3 with NeoForge, Java 25
 - In-game help: the **Setpoint Handbook**, tooltips (hold Shift for more) and advancements
-- Works with Jade, and with other mods' tanks
+- Works with JEI (a tab for every machine), Jade, other mods' tanks, and other mods' steam (c:steam)
 
 The full documentation, with every machine, recipe and screen, is on
 **[hookdev.io](https://hookdev.io/projects/minecraft-mods/setpoint/)**.
