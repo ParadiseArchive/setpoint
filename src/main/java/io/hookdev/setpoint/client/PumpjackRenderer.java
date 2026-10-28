@@ -74,7 +74,7 @@ public class PumpjackRenderer implements BlockEntityRenderer<PumpjackBlockEntity
         pose.pushPose();
         // work as if it faces south (the wellhead in front, the rest behind it), from the bottom middle of the wellhead
         pose.translate(0.5f, 0, 0.5f);
-        pose.rotateDegrees(Axis.YP, -state.facing.toYRot());
+        McVersionClient.rotateDegrees(pose, Axis.YP, -state.facing.toYRot());
         double phi = Math.toRadians(state.crank);
         float tilt = (float) (-TILT * Math.sin(phi)); // crank pin up: the back of the beam up, the horsehead down
         double t = Math.toRadians(tilt);
@@ -85,7 +85,7 @@ public class PumpjackRenderer implements BlockEntityRenderer<PumpjackBlockEntity
         // the walking beam, rocking on the samson post
         pose.pushPose();
         pose.translate(0, PIVOT_Y / 16, PIVOT_Z / 16);
-        pose.rotateDegrees(Axis.XP, -tilt);
+        McVersionClient.rotateDegrees(pose, Axis.XP, -tilt);
         part(state, BEAM_FRONT, 0, 0, 0, pose, collector);
         part(state, BEAM_BACK, 0, 0, 0, pose, collector);
         pose.popPose();
@@ -95,7 +95,7 @@ public class PumpjackRenderer implements BlockEntityRenderer<PumpjackBlockEntity
         for (float x : new float[]{-ARM_X, ARM_X}) {
             pose.pushPose();
             pose.translate(x / 16, AXLE_Y / 16, AXLE_Z / 16);
-            pose.rotateDegrees(Axis.XP, 90 - state.crank);
+            McVersionClient.rotateDegrees(pose, Axis.XP, 90 - state.crank);
             part(state, CRANK, 0, 0, 0, pose, collector);
             pose.popPose();
             rod(state, x, pinY, pinZ, x, backY, backZ, pose, collector);
@@ -111,8 +111,8 @@ public class PumpjackRenderer implements BlockEntityRenderer<PumpjackBlockEntity
         float dx = x2 - x1, dy = y2 - y1, dz = z2 - z1, flat = (float) Math.hypot(dx, dz), length = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
         pose.pushPose();
         pose.translate(x1 / 16, y1 / 16, z1 / 16);
-        pose.rotateDegrees(Axis.YP, (float) Math.toDegrees(Math.atan2(dx, dz)));
-        pose.rotateDegrees(Axis.XP, (float) -Math.toDegrees(Math.atan2(dy, flat)));
+        McVersionClient.rotateDegrees(pose, Axis.YP, (float) Math.toDegrees(Math.atan2(dx, dz)));
+        McVersionClient.rotateDegrees(pose, Axis.XP, (float) -Math.toDegrees(Math.atan2(dy, flat)));
         pose.scale(1, 1, length / 16);
         part(state, ROD, 0, 0, 0, pose, collector);
         pose.popPose();

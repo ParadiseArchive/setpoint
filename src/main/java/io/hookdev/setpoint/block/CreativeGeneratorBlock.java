@@ -15,7 +15,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 
 /** Creative-only power source for testing machines without another tech mod. */
-public class CreativeGeneratorBlock extends BaseEntityBlock {
+public class CreativeGeneratorBlock extends SetpointEntityBlock {
     public CreativeGeneratorBlock(BlockBehaviour.Properties properties) {
         super(properties);
     }

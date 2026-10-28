@@ -41,7 +41,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * A drain valve on the side or bottom of a tank: right-click to open it, or give it a redstone signal. While open it
  * lets the liquid run out onto the ground. Handy to empty a tank, and a steady load for a level controller.
  */
-public class DrainValveBlock extends BaseEntityBlock {
+public class DrainValveBlock extends SetpointEntityBlock {
     /** The way the outlet points: away from the tank it sits on. */
     public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
     /** The handwheel: open or shut by hand. */

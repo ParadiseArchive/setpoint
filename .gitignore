@@ -51,3 +51,7 @@ repo/
 secrets/
 credentials*
 *token*.txt
+
+### Builds and runs for the other Minecraft versions (-Pmc=...) ###
+build-*/
+run-*/

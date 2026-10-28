@@ -42,7 +42,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * alarm nobody has acknowledged. Acknowledge on the console and it stops. Right-click it to silence the horn for this
  * alarm (the light keeps turning).
  */
-public class AlarmBeaconBlock extends BaseEntityBlock {
+public class AlarmBeaconBlock extends SetpointEntityBlock {
     /** The way the beacon points: out of the wall, ceiling or floor it sits on. */
     public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
     public static final BooleanProperty ALARM = BooleanProperty.create("alarm");

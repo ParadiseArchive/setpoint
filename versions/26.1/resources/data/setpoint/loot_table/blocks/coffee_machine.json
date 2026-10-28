@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:block",
+  "random_sequence": "setpoint:blocks/coffee_machine",
+  "pools": [
+    {
+      "rolls": 1,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "setpoint:coffee_machine"
+        }
+      ]
+    }
+  ]
+}

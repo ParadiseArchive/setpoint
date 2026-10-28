@@ -1,0 +1,31 @@
+{
+  "type": "minecraft:block",
+  "random_sequence": "setpoint:blocks/gas_cylinder",
+  "pools": [
+    {
+      "rolls": 1,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "setpoint:gas_cylinder",
+          "functions": [
+            {
+              "function": "minecraft:copy_components",
+              "source": "block_entity",
+              "include": [
+                "minecraft:custom_name",
+                "setpoint:fluid_contents",
+                "minecraft:dyed_color"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

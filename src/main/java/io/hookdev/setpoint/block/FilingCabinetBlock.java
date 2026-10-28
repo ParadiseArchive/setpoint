@@ -21,7 +21,7 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
 /** A steel filing cabinet with four drawers: it holds as much as a barrel (procedures, logbooks, spare parts). */
-public class FilingCabinetBlock extends BaseEntityBlock {
+public class FilingCabinetBlock extends SetpointEntityBlock {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 
     public FilingCabinetBlock(BlockBehaviour.Properties properties) {

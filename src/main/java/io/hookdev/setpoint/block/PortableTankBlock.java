@@ -43,7 +43,7 @@ import net.neoforged.neoforge.transfer.fluid.FluidUtil;
  * buckets like a tank, and keeps what is in it when you break it. It is bigger than one block: this block is its
  * base, and {@link TankPartBlock}s fill the rest of its space and pass everything on to it.
  */
-public abstract class PortableTankBlock extends BaseEntityBlock implements VesselBlock, MultiblockBase {
+public abstract class PortableTankBlock extends SetpointEntityBlock implements VesselBlock, MultiblockBase {
     private final int capacity;
     private final String prefix;
 

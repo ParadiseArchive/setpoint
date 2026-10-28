@@ -109,8 +109,10 @@ A purple endgame ore, as rare as diamond, for the big machines and for **operato
 
 ## Requirements
 
-- Minecraft 26.3
-- NeoForge 26.3.0.95 or newer
+- Minecraft 26.3 with NeoForge 26.3.0.95 or newer, or
+- Minecraft 26.1.2 with NeoForge 26.1.2.109 or newer (All the Mods 11)
+
+Each Minecraft version has its own file: pick the one for yours.
 
 ## Links
 

@@ -43,7 +43,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * the wind. Placed with one block: that is the foot of the tower, with its door, where the FE comes out to a cable or a
  * machine. The rotor faces you. {@link WindTurbinePartBlock}s fill the tower and the nacelle. Its renderer draws all of it and turns the rotor.
  */
-public class WindTurbineBlock extends BaseEntityBlock implements MultiblockBase {
+public class WindTurbineBlock extends SetpointEntityBlock implements MultiblockBase {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     /** Set by the server when the blades are feathered (a storm, an ESD): the rotor slows to a stop. */
     public static final BooleanProperty STOPPED = BooleanProperty.create("stopped");

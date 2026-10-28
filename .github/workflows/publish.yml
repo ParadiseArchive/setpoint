@@ -1,6 +1,7 @@
 name: Publish to CurseForge and GitHub
 
-# Uploads a release to the CurseForge project page, and makes the same release on GitHub (the jar and the changelog).
+# Uploads a release to the CurseForge project page, and makes the same release on GitHub (the jars and the changelog).
+# One jar per Minecraft version in versions/ (26.1.2 and 26.3), each with its own game version on CurseForge.
 # - Push a version tag (v + mod_version from gradle.properties, e.g. v0.2.0): build, test and upload.
 # - Or start it by hand on the Actions tab: "check" only tests the token and finds the game versions,
 #   "upload" builds, tests and uploads the current mod_version, "github" only makes the GitHub release for it
@@ -36,13 +37,14 @@ jobs:
       - name: Read the version
         run: |
           version=$(grep '^mod_version=' gradle.properties | cut -d= -f2)
-          mc=$(grep '^minecraft_version=' gradle.properties | cut -d= -f2)
           if [ "$GITHUB_REF_TYPE" = tag ] && [ "$GITHUB_REF_NAME" != "v$version" ]; then
             echo "::error::Tag $GITHUB_REF_NAME does not match mod_version $version (expected v$version)"; exit 1
           fi
           case "$version" in *alpha*) type=alpha ;; *beta*) type=beta ;; *) type=release ;; esac
-          echo "VERSION=$version" >> "$GITHUB_ENV"; echo "MC=$mc" >> "$GITHUB_ENV"; echo "TYPE=$type" >> "$GITHUB_ENV"
-          echo "Setpoint $version ($type) for Minecraft $mc"
+          # every folder in versions/ is a Minecraft version to build for, oldest first so the newest is uploaded last
+          builds=$(ls versions | grep -E '^[0-9.]+$' | sort -V | tr '\n' ' ')
+          echo "VERSION=$version" >> "$GITHUB_ENV"; echo "TYPE=$type" >> "$GITHUB_ENV"; echo "BUILDS=$builds" >> "$GITHUB_ENV"
+          for mc in $builds; do echo "Setpoint $version ($type) for Minecraft $(grep '^minecraft_version=' versions/$mc/gradle.properties | cut -d= -f2)"; done
 
       - name: Find the game versions on CurseForge
         env:
@@ -54,21 +56,23 @@ jobs:
             [ "$code" -lt 300 ] || { echo "::error::CurseForge answered HTTP $code on game/$what: $(head -c 600 "$what.json")"; exit 1; }
           done
           mv version-types.json types.json
-          # Minecraft itself, the loader, the Java version and both sides (CurseForge wants an environment), each by its name in its own version type
-          jq --arg mc "$MC" --slurpfile types types.json '
-            ($types[0] | map({key: (.id | tostring), value: .slug}) | from_entries) as $slug
-            | map(. + {type: $slug[.gameVersionTypeID | tostring]})
-            | map(select(
-                ((.type // "" | startswith("minecraft-")) and .name == $mc)
-                or (.type == "modloader" and .name == "NeoForge")
-                or (.type == "java" and .name == "Java 25")
-                or ((.type // "" | test("environment")) and (.name == "Client" or .name == "Server"))))' versions.json > found.json
-          jq -r '.[] | "  found: \(.name) (\(.type), id \(.id))"' found.json
-          jq -e --arg mc "$MC" 'any(.name == $mc)' found.json > /dev/null || { echo "::error::CurseForge does not know Minecraft $MC yet"; exit 1; }
-          jq -e 'any(.name == "NeoForge")' found.json > /dev/null || { echo "::error::NeoForge not found on CurseForge"; exit 1; }
-          jq -e 'any(.name == "Client")' found.json > /dev/null || { echo "::error::No Client environment found; version types: $(jq -c 'map(.slug)' types.json)"; exit 1; }
-          echo "::notice::Game versions on CurseForge: $(jq -c 'map("\(.name) = \(.id)")' found.json)"
-          echo "GAME_VERSIONS=$(jq -c 'map(.id)' found.json)" >> "$GITHUB_ENV"
+          for mc in $BUILDS; do
+            name=$(grep '^minecraft_version=' versions/$mc/gradle.properties | cut -d= -f2)
+            # Minecraft itself, the loader, the Java version and both sides (CurseForge wants an environment), each by its name in its own version type
+            jq --arg mc "$name" --slurpfile types types.json '
+              ($types[0] | map({key: (.id | tostring), value: .slug}) | from_entries) as $slug
+              | map(. + {type: $slug[.gameVersionTypeID | tostring]})
+              | map(select(
+                  ((.type // "" | startswith("minecraft-")) and .name == $mc)
+                  or (.type == "modloader" and .name == "NeoForge")
+                  or (.type == "java" and .name == "Java 25")
+                  or ((.type // "" | test("environment")) and (.name == "Client" or .name == "Server"))))' versions.json > "found-$mc.json"
+            jq -r '.[] | "  found: \(.name) (\(.type), id \(.id))"' "found-$mc.json"
+            jq -e --arg mc "$name" 'any(.name == $mc)' "found-$mc.json" > /dev/null || { echo "::error::CurseForge does not know Minecraft $name yet"; exit 1; }
+            jq -e 'any(.name == "NeoForge")' "found-$mc.json" > /dev/null || { echo "::error::NeoForge not found on CurseForge"; exit 1; }
+            jq -e 'any(.name == "Client")' "found-$mc.json" > /dev/null || { echo "::error::No Client environment found; version types: $(jq -c 'map(.slug)' types.json)"; exit 1; }
+            echo "::notice::Game versions on CurseForge for Minecraft $name: $(jq -c 'map("\(.name) = \(.id)")' "found-$mc.json")"
+          done
 
       - name: Setup JDK 25
         if: github.event_name == 'push' || inputs.mode == 'upload' || inputs.mode == 'github'
@@ -83,7 +87,19 @@ jobs:
 
       - name: Build and test
         if: github.event_name == 'push' || inputs.mode == 'upload' || inputs.mode == 'github'
-        run: ./gradlew build runGameTestServer
+        run: |
+          for mc in $BUILDS; do
+            echo "::group::Minecraft $mc"
+            ./gradlew build runGameTestServer -Pmc=$mc
+            echo "::endgroup::"
+          done
+          mkdir -p jars
+          for mc in $BUILDS; do
+            name=$(grep '^minecraft_version=' versions/$mc/gradle.properties | cut -d= -f2)
+            jar=$(ls build*/libs/setpoint-$VERSION+mc$name.jar)
+            cp "$jar" jars/
+          done
+          ls -l jars
 
       - name: Upload to CurseForge
         if: github.event_name == 'push' || inputs.mode == 'upload'
@@ -91,30 +107,33 @@ jobs:
           CF_TOKEN: ${{ secrets.CURSEFORGE }}
         run: |
           changelog="release/changelog/$VERSION.md"
-          jar="build/libs/setpoint-$VERSION.jar"
           [ -f "$changelog" ] || { echo "::error::$changelog is missing"; exit 1; }
-          [ -f "$jar" ] || { echo "::error::$jar was not built"; exit 1; }
-          jq -n --rawfile changelog "$changelog" --arg name "Setpoint $VERSION" --arg type "$TYPE" --argjson ids "$GAME_VERSIONS" \
-            '{changelog: $changelog, changelogType: "markdown", displayName: $name, gameVersions: $ids, releaseType: $type}' > metadata.json
-          echo "::notice::Uploading $jar as $(jq -c '{displayName, gameVersions, releaseType}' metadata.json)"
-          # the answer of CurseForge goes into an annotation, so it can be read without the log
-          code=$(curl -sS -o response.txt -w '%{http_code}' -H "X-Api-Token: $CF_TOKEN" \
-            -F "metadata=<metadata.json" -F "file=@$jar" \
-            "$CF_API/projects/$CF_PROJECT/upload-file")
-          if [ "$code" -ge 300 ]; then
-            echo "::error::CurseForge answered HTTP $code: $(head -c 600 response.txt)"; exit 1
-          fi
-          echo "::notice::Uploaded Setpoint $VERSION to CurseForge project $CF_PROJECT: $(cat response.txt)"
+          for mc in $BUILDS; do
+            name=$(grep '^minecraft_version=' versions/$mc/gradle.properties | cut -d= -f2)
+            jar="jars/setpoint-$VERSION+mc$name.jar"
+            [ -f "$jar" ] || { echo "::error::$jar was not built"; exit 1; }
+            jq -n --rawfile changelog "$changelog" --arg name "Setpoint $VERSION for Minecraft $name" --arg type "$TYPE" --slurpfile found "found-$mc.json" \
+              '{changelog: $changelog, changelogType: "markdown", displayName: $name, gameVersions: ($found[0] | map(.id)), releaseType: $type}' > metadata.json
+            echo "::notice::Uploading $jar as $(jq -c '{displayName, gameVersions, releaseType}' metadata.json)"
+            # the answer of CurseForge goes into an annotation, so it can be read without the log
+            code=$(curl -sS -o response.txt -w '%{http_code}' -H "X-Api-Token: $CF_TOKEN" \
+              -F "metadata=<metadata.json" -F "file=@$jar" \
+              "$CF_API/projects/$CF_PROJECT/upload-file")
+            if [ "$code" -ge 300 ]; then
+              echo "::error::CurseForge answered HTTP $code for Minecraft $name: $(head -c 600 response.txt)"; exit 1
+            fi
+            echo "::notice::Uploaded Setpoint $VERSION for Minecraft $name to CurseForge project $CF_PROJECT: $(cat response.txt)"
+          done
 
       - name: GitHub release
         if: github.event_name == 'push' || inputs.mode == 'upload' || inputs.mode == 'github'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          tag="v$VERSION" jar="build/libs/setpoint-$VERSION.jar"
+          tag="v$VERSION"
           if gh release view "$tag" > /dev/null 2>&1; then
-            gh release upload "$tag" "$jar" --clobber
+            gh release upload "$tag" jars/*.jar --clobber
           else
-            gh release create "$tag" "$jar" --title "Setpoint $VERSION" --notes-file "release/changelog/$VERSION.md" $([ "$TYPE" = release ] || echo --prerelease)
+            gh release create "$tag" jars/*.jar --title "Setpoint $VERSION" --notes-file "release/changelog/$VERSION.md" $([ "$TYPE" = release ] || echo --prerelease)
           fi
           echo "::notice::GitHub release $tag: https://github.com/$GITHUB_REPOSITORY/releases/tag/$tag"

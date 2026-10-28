@@ -72,11 +72,11 @@ public class DistillationColumnRenderer implements BlockEntityRenderer<Distillat
         pose.pushPose();
         // work as if it faces south, from the bottom middle of the feed block
         pose.translate(0.5f, 0, 0.5f);
-        pose.rotateDegrees(Axis.YP, -state.facing.toYRot());
+        McVersionClient.rotateDegrees(pose, Axis.YP, -state.facing.toYRot());
         for (int k = 0; k < 24; k++) {
             pose.pushPose();
             pose.translate(0, 0, COLUMN_Z / 16f);
-            pose.rotateDegrees(Axis.YP, k * 15f);
+            McVersionClient.rotateDegrees(pose, Axis.YP, k * 15f);
             for (int course = 0; course < 5; course++) part(state, SHELL, 0, course * 32, 0, pose, collector);
             for (int y : new int[]{64, 128}) part(state, RING, 0, y, 0, pose, collector);
             pose.popPose();

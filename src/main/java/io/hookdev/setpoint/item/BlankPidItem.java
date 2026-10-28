@@ -1,5 +1,6 @@
 package io.hookdev.setpoint.item;
 
+import io.hookdev.setpoint.McVersion;
 import io.hookdev.setpoint.SetpointContent;
 import io.hookdev.setpoint.advancement.PlantEventTrigger;
 import io.hookdev.setpoint.pid.PidCapture;
@@ -10,7 +11,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Prediction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -61,7 +61,7 @@ public class BlankPidItem extends Item {
         ItemStack drawing = new ItemStack(SetpointContent.PID.get());
         drawing.set(SetpointContent.PID_DRAWING.get(), result.drawing());
         sheet.consume(1, player);
-        if (!player.getInventory().add(drawing)) player.drop(drawing, false, Prediction.SERVER_ONLY);
+        if (!player.getInventory().add(drawing)) McVersion.drop(player, drawing);
         level.playSound(null, clicked, SoundEvents.UI_CARTOGRAPHY_TABLE_TAKE_RESULT, SoundSource.PLAYERS, 0.8f, 1.0f);
         say(player, "P&ID drawn: " + result.drawing().cells().size() + " symbols. Right-click it to name and read it.", ChatFormatting.AQUA);
         if (player instanceof ServerPlayer serverPlayer) SetpointContent.PLANT_EVENT.get().trigger(serverPlayer, PlantEventTrigger.PID_DRAWN);

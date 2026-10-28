@@ -1,5 +1,6 @@
 package io.hookdev.setpoint.item;
 
+import io.hookdev.setpoint.McVersion;
 import java.util.List;
 
 import io.hookdev.setpoint.Setpoint;
@@ -15,7 +16,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.TagKey;
-import net.minecraft.util.Prediction;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -97,7 +97,7 @@ public class PipeWrenchItem extends Item {
         level.playSound(null, pos, state.getSoundType().getBreakSound(), SoundSource.BLOCKS, 0.8f, 1.0f);
         level.removeBlock(pos, false);
         for (ItemStack drop : drops) {
-            if (!player.getInventory().add(drop)) player.drop(drop, false, Prediction.SERVER_ONLY);
+            if (!player.getInventory().add(drop)) McVersion.drop(player, drop);
         }
     }
 

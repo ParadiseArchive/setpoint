@@ -32,7 +32,7 @@ import net.minecraft.world.phys.BlockHitResult;
  * Centrifugal pump. Discharge on the FACING side, suction on the opposite side.
  * Runs on FE by itself; a redstone signal stops it, like a stop button on the motor starter.
  */
-public class PumpBlock extends BaseEntityBlock {
+public class PumpBlock extends SetpointEntityBlock {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final EnumProperty<PumpStatus> STATUS = EnumProperty.create("status", PumpStatus.class);
 

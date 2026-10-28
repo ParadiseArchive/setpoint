@@ -1,5 +1,6 @@
 package io.hookdev.setpoint.block;
 
+import io.hookdev.setpoint.McVersion;
 import org.jspecify.annotations.Nullable;
 
 import io.hookdev.setpoint.SetpointContent;
@@ -47,7 +48,7 @@ public class FertilizerMixerBlock extends GasMakerBlock {
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof FertilizerMixerBlockEntity mixer) {
             ItemStack made = mixer.takeOutput();
             if (made.isEmpty()) mixer.describe(player);
-            else if (!player.getInventory().add(made)) player.drop(made, false, net.minecraft.util.Prediction.SERVER_ONLY);
+            else if (!player.getInventory().add(made)) McVersion.drop(player, made);
         }
         return InteractionResult.SUCCESS;
     }

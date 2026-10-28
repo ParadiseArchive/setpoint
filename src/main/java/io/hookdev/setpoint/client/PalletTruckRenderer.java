@@ -68,7 +68,7 @@ public class PalletTruckRenderer extends EntityRenderer<PalletTruckEntity, Palle
     @Override
     public void submit(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         poseStack.pushPose();
-        poseStack.rotateDegrees(Axis.YP, 180 - state.yaw); // the model's tiller points north; turn it to where the truck faces
+        McVersionClient.rotateDegrees(poseStack, Axis.YP, 180 - state.yaw); // the model's tiller points north; turn it to where the truck faces
         poseStack.translate(-PIVOT_X / 16, 0, -PIVOT_Z / 16);
         state.truck.submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
         if (state.drums >= 0) { // the pallet model is two blocks square: its middle over the middle of the forks

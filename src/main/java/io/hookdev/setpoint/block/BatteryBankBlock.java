@@ -33,7 +33,7 @@ import net.minecraft.world.phys.BlockHitResult;
  * leave over and gives it back when they need more than the generators make, so a wind turbine's power keeps for a calm.
  * The green bar on its front shows how full it is. Break it and the charge goes along in the item.
  */
-public class BatteryBankBlock extends BaseEntityBlock {
+public class BatteryBankBlock extends SetpointEntityBlock {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     /** How many of the four bars on the front are lit. */
     public static final IntegerProperty CHARGE = IntegerProperty.create("charge", 0, 4);

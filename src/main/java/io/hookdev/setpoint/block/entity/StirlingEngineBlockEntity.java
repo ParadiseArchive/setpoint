@@ -1,5 +1,6 @@
 package io.hookdev.setpoint.block.entity;
 
+import io.hookdev.setpoint.McVersion;
 import io.hookdev.setpoint.SetpointContent;
 
 import net.minecraft.core.BlockPos;
@@ -9,9 +10,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.CookingFuel;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.loot.providers.number.ints.ResolvableInt;
 
 /**
  * Early-game power. Burns anything a furnace burns (coal is the sensible choice) to heat the hot end
@@ -32,12 +31,12 @@ public class StirlingEngineBlockEntity extends GeneratorBlockEntity {
     @Override
     public boolean accepts(ItemStack stack) {
         // Lava buckets would leave a bucket behind; keep it simple and solid fuels only.
-        return stack.has(DataComponents.COOKING_FUEL) && !stack.is(Items.LAVA_BUCKET);
+        return McVersion.isFuel(level, stack) && !stack.is(Items.LAVA_BUCKET);
     }
 
     @Override
     protected int runTicks(ServerLevel level, ItemStack stack) {
-        return ResolvableInt.getFromItem(stack, DataComponents.COOKING_FUEL, CookingFuel::burnTime, lootContext(level), 0);
+        return McVersion.burnTicks(level, stack, lootContext(level));
     }
 
     @Override

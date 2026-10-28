@@ -29,8 +29,6 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.InterpolationHandler;
-import net.minecraft.world.entity.LinearInterpolationHandler;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.Pose;
@@ -53,7 +51,7 @@ import net.minecraft.world.phys.Vec3;
  * <p>
  * Like a boat, the driver's game moves it and the server checks; the forks are run by the server.
  */
-public class ForkliftEntity extends VehicleEntity implements HornVehicle {
+public class ForkliftEntity extends InterpolatedVehicle implements HornVehicle {
     /** From the middle of the forklift to its front axle (fixed wheels) and its rear axle (steering wheels), in blocks. */
     public static final double FRONT_AXLE = 0.875, REAR_AXLE = 0.75;
     /** From the middle of the forklift to the middle of a pallet on its forks, and the forks' reach, in blocks. */
@@ -176,11 +174,6 @@ public class ForkliftEntity extends VehicleEntity implements HornVehicle {
     protected void removePassenger(Entity passenger) {
         super.removePassenger(passenger);
         liftInput = 0;
-    }
-
-    @Override
-    protected InterpolationHandler createInterpolationHandler() {
-        return LinearInterpolationHandler.create(this, 3);
     }
 
     @Override

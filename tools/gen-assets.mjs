@@ -3703,3 +3703,6 @@ shapeless('handbook', ['minecraft:book', 'minecraft:copper_ingot'], 'setpoint:ha
 }
 
 console.log('assets generated' + (KEEP_TEXTURES ? ' (kept existing textures)' : ''));
+
+// the data files that Minecraft 26.1 reads differently
+await import('./port-26.1.mjs');

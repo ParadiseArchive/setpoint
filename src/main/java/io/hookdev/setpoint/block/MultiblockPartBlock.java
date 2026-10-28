@@ -24,7 +24,7 @@ import net.minecraft.world.phys.BlockHitResult;
  * The rest of something bigger than one block. It draws nothing itself (the base block's model reaches over it),
  * holds you up, and passes clicks, comparators and breaking on to its base: to a player it is the same thing.
  */
-public abstract class MultiblockPartBlock extends BaseEntityBlock {
+public abstract class MultiblockPartBlock extends SetpointEntityBlock {
     protected MultiblockPartBlock(BlockBehaviour.Properties properties) {
         super(properties);
     }

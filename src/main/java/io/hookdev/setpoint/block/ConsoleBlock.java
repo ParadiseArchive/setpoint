@@ -1,5 +1,6 @@
 package io.hookdev.setpoint.block;
 
+import io.hookdev.setpoint.McVersion;
 import org.jspecify.annotations.Nullable;
 
 import io.hookdev.setpoint.SetpointContent;
@@ -12,7 +13,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Prediction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -38,7 +38,7 @@ import net.minecraft.world.phys.BlockHitResult;
  * DCS operator console: the control room. Sees all equipment around it; the screen flashes on new alarms.
  * Right-click it with a P&ID to put the drawing in; the console then shows it live.
  */
-public class ConsoleBlock extends BaseEntityBlock {
+public class ConsoleBlock extends SetpointEntityBlock {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty ALARM = BooleanProperty.create("alarm");
 
@@ -68,7 +68,7 @@ public class ConsoleBlock extends BaseEntityBlock {
         if (!stack.has(SetpointContent.PID_DRAWING.get())) return InteractionResult.TRY_WITH_EMPTY_HAND;
         if (!level.isClientSide() && level.getBlockEntity(pos) instanceof ConsoleBlockEntity console) {
             ItemStack previous = console.insertPid(stack);
-            if (!previous.isEmpty() && !player.getInventory().add(previous)) player.drop(previous, false, Prediction.SERVER_ONLY);
+            if (!previous.isEmpty() && !player.getInventory().add(previous)) McVersion.drop(player, previous);
             level.playSound(null, pos, SoundEvents.BOOK_PAGE_TURN, SoundSource.BLOCKS, 0.6f, 1.0f);
             if (player instanceof ServerPlayer serverPlayer) {
                 serverPlayer.sendSystemMessage(Component.literal("P&ID loaded: open the console and pick the P&ID tab."), true);

@@ -80,7 +80,7 @@ public class ForkliftRenderer extends EntityRenderer<ForkliftEntity, ForkliftRen
     @Override
     public void submit(State state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
         poseStack.pushPose();
-        poseStack.rotateDegrees(Axis.YP, 180 - state.yaw); // the models' forks point north; turn them to where the forklift faces
+        McVersionClient.rotateDegrees(poseStack, Axis.YP, 180 - state.yaw); // the models' forks point north; turn them to where the forklift faces
         float extend = Math.max(0, state.lift - FREE_LIFT);
         part(state, BODY, 0, poseStack, collector);
         part(state, OUTER, 0, poseStack, collector);
@@ -90,7 +90,7 @@ public class ForkliftRenderer extends EntityRenderer<ForkliftEntity, ForkliftRen
         for (float side : new float[]{-1, 1}) { // the rear wheels, turned about their middles
             poseStack.pushPose();
             poseStack.translate(side * WHEEL_X / 16, 0, WHEEL_Z / 16);
-            poseStack.rotateDegrees(Axis.YP, -state.steer);
+            McVersionClient.rotateDegrees(poseStack, Axis.YP, -state.steer);
             poseStack.translate(-0.5f, 0, -0.5f);
             state.parts[REAR_WHEEL].submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
             poseStack.popPose();

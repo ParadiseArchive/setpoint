@@ -1,0 +1,29 @@
+{
+  "type": "minecraft:block",
+  "random_sequence": "setpoint:blocks/blast_door",
+  "pools": [
+    {
+      "rolls": 1,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "setpoint:blast_door",
+          "conditions": [
+            {
+              "condition": "minecraft:block_state_property",
+              "block": "setpoint:blast_door",
+              "properties": {
+                "half": "lower"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -25,7 +25,7 @@ import net.minecraft.world.phys.BlockHitResult;
  * A gas machine you face: an electrolyser, a nitrogen generator, a fuel cell, an ammonia reactor. Its gas lines join on
  * your left and right as you face it (and on top for some); right-click it to read it.
  */
-public abstract class GasMakerBlock extends BaseEntityBlock implements GasPortBlock {
+public abstract class GasMakerBlock extends SetpointEntityBlock implements GasPortBlock {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty RUNNING = BooleanProperty.create("running");
 

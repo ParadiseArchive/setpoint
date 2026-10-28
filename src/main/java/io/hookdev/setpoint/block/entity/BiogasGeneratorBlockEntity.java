@@ -1,5 +1,6 @@
 package io.hookdev.setpoint.block.entity;
 
+import io.hookdev.setpoint.McVersion;
 import io.hookdev.setpoint.SetpointContent;
 
 import net.minecraft.core.BlockPos;
@@ -8,8 +9,6 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.Compostable;
-import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.block.state.BlockState;
 
 /**
@@ -33,7 +32,7 @@ public class BiogasGeneratorBlockEntity extends GeneratorBlockEntity {
 
     @Override
     public boolean accepts(ItemStack stack) {
-        return stack.has(DataComponents.COMPOSTABLE) || stack.is(Items.ROTTEN_FLESH);
+        return McVersion.isCompostable(stack) || stack.is(Items.ROTTEN_FLESH);
     }
 
     @Override
@@ -44,12 +43,7 @@ public class BiogasGeneratorBlockEntity extends GeneratorBlockEntity {
     /** 0 to 1: the composter chance of the item, averaged so the generator is predictable. */
     private double organicValue(ServerLevel level, ItemStack stack) {
         if (stack.is(Items.ROTTEN_FLESH)) return 0.5;
-        Compostable compostable = stack.get(DataComponents.COMPOSTABLE);
-        if (compostable == null) return 0;
-        LootContext context = lootContext(level);
-        int layers = 0;
-        for (int i = 0; i < SAMPLES; i++) layers += Math.min(1, compostable.layers().get(context, 0));
-        return layers / (double) SAMPLES;
+        return McVersion.compostChance(stack, lootContext(level), SAMPLES);
     }
 
     @Override

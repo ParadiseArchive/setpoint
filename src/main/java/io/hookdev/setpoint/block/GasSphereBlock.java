@@ -50,7 +50,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * goes in and out at the bottom, through a pipe to the valve station at the front: this block, where you placed it.
  * Gas pipes join the valve station. {@link GasSpherePartBlock}s fill the rest; its renderer draws all of it.
  */
-public class GasSphereBlock extends BaseEntityBlock implements MultiblockBase, GasPortBlock {
+public class GasSphereBlock extends SetpointEntityBlock implements MultiblockBase, GasPortBlock {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final int SIZE = 8, HIGH = 10;
     /** The shape, in pixels from the middle of the sphere's footprint and up from the ground (tools/gen-assets.mjs draws the same). */

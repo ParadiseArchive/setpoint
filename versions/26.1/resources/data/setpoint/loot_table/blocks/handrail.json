@@ -1,0 +1,96 @@
+{
+  "type": "minecraft:block",
+  "random_sequence": "setpoint:blocks/handrail",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "setpoint:handrail",
+          "conditions": [
+            {
+              "condition": "minecraft:block_state_property",
+              "block": "setpoint:handrail",
+              "properties": {
+                "north": "true"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "setpoint:handrail",
+          "conditions": [
+            {
+              "condition": "minecraft:block_state_property",
+              "block": "setpoint:handrail",
+              "properties": {
+                "east": "true"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "setpoint:handrail",
+          "conditions": [
+            {
+              "condition": "minecraft:block_state_property",
+              "block": "setpoint:handrail",
+              "properties": {
+                "south": "true"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "setpoint:handrail",
+          "conditions": [
+            {
+              "condition": "minecraft:block_state_property",
+              "block": "setpoint:handrail",
+              "properties": {
+                "west": "true"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "rolls": 1,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "setpoint:grating",
+          "conditions": [
+            {
+              "condition": "minecraft:block_state_property",
+              "block": "setpoint:handrail",
+              "properties": {
+                "floor": "true"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

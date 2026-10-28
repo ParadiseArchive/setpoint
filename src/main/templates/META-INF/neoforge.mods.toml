@@ -16,7 +16,9 @@ pressure, gases, logistics, and Hookonium, a purple endgame ore.
 Easy by default, real physics underneath.
 '''
 
-[[dependencies.${mod_id}]]
+<% if (mixin_config) { %>[[mixins]]
+config="${mixin_config}"
+<% } %>[[dependencies.${mod_id}]]
     modId="neoforge"
     type="required"
     versionRange="[${neo_version},)"

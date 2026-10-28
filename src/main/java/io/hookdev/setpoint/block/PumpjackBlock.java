@@ -46,7 +46,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * where the crude oil comes out to a pipe; the pumpjack stands behind it, away from you. It works anywhere, slowly and
  * for ever. {@link PumpjackPartBlock}s fill the rest; its renderer draws all of it and makes it nod.
  */
-public class PumpjackBlock extends BaseEntityBlock implements MultiblockBase, VesselBlock {
+public class PumpjackBlock extends SetpointEntityBlock implements MultiblockBase, VesselBlock {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty RUNNING = BooleanProperty.create("running");
     private static final VoxelShape WELLHEAD = Block.box(4, 0, 4, 12, 12, 12);

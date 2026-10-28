@@ -1,5 +1,6 @@
 package io.hookdev.setpoint.block.entity;
 
+import io.hookdev.setpoint.McVersion;
 import java.util.Optional;
 
 import org.jspecify.annotations.Nullable;
@@ -29,7 +30,6 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.CookingFuel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -41,7 +41,6 @@ import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
-import net.minecraft.world.level.storage.loot.providers.number.ints.ResolvableInt;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
@@ -148,9 +147,9 @@ public class BoilerBlockEntity extends BlockEntity implements MenuProvider, Vess
         super(SetpointContent.BOILER_ENTITY.get(), pos, state);
     }
 
-    public static boolean accepts(ItemStack stack) {
+    public boolean accepts(ItemStack stack) {
         // Lava buckets would leave a bucket behind; solid fuels only, like the Stirling engine.
-        return stack.has(DataComponents.COOKING_FUEL) && !stack.is(Items.LAVA_BUCKET);
+        return McVersion.isFuel(level, stack) && !stack.is(Items.LAVA_BUCKET);
     }
 
     // ---------- vessel: the water drum ----------
@@ -375,7 +374,7 @@ public class BoilerBlockEntity extends BlockEntity implements MenuProvider, Vess
                 .withParameter(LootContextParams.ORIGIN, Vec3.atCenterOf(worldPosition))
                 .create(LootContextParamSets.BLOCK_INTERACT))
                 .create(Optional.empty());
-        return ResolvableInt.getFromItem(stack, DataComponents.COOKING_FUEL, CookingFuel::burnTime, context, 0);
+        return McVersion.burnTicks(level, stack, context);
     }
 
     private void effects(ServerLevel level, BlockPos pos) {

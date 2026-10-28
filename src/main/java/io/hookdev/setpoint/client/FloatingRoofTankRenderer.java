@@ -93,7 +93,7 @@ public class FloatingRoofTankRenderer implements BlockEntityRenderer<FloatingRoo
         poseStack.pushPose();
         // work as if the tank faces south, from its middle: this block is half a block right and three and a half in front of it
         poseStack.translate(0.5f, 0, 0.5f);
-        poseStack.rotateDegrees(Axis.YP, -state.facing.toYRot());
+        McVersionClient.rotateDegrees(poseStack, Axis.YP, -state.facing.toYRot());
         poseStack.translate(-0.5f, 0, -3.5f);
         float step = 360f / SEGMENTS;
         for (int k = 0; k < SEGMENTS; k++) {
@@ -114,9 +114,9 @@ public class FloatingRoofTankRenderer implements BlockEntityRenderer<FloatingRoo
         // the rolling ladder: hinged at the platform, its wheels on the roof, steeper the lower the roof floats
         float drop = LADDER_TOP - state.deck, pitch = (float) Math.toDegrees(Math.asin(Math.min(1, drop / LADDER_LENGTH)));
         poseStack.pushPose();
-        poseStack.rotateDegrees(Axis.YP, LADDER_ANGLE);
+        McVersionClient.rotateDegrees(poseStack, Axis.YP, LADDER_ANGLE);
         poseStack.translate(0, LADDER_TOP / 16, LADDER_PIVOT / 16);
-        poseStack.rotateDegrees(Axis.XP, -pitch);
+        McVersionClient.rotateDegrees(poseStack, Axis.XP, -pitch);
         for (int piece = 0; piece < 3; piece++) part(state, ROLLING_LADDER, 0, 0, 0, -28 * piece, poseStack, collector);
         poseStack.popPose();
         poseStack.popPose();
@@ -126,7 +126,7 @@ public class FloatingRoofTankRenderer implements BlockEntityRenderer<FloatingRoo
     private static void part(State state, int part, float angle, float x, float y, float z, PoseStack poseStack, SubmitNodeCollector collector) {
         float[] shift = SHIFT[part];
         poseStack.pushPose();
-        if (angle != 0) poseStack.rotateDegrees(Axis.YP, angle);
+        if (angle != 0) McVersionClient.rotateDegrees(poseStack, Axis.YP, angle);
         poseStack.translate((x - 8 - shift[0]) / 16, (y - shift[1]) / 16, (z - 8 - shift[2]) / 16);
         state.parts[part].submit(poseStack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
         poseStack.popPose();

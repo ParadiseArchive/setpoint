@@ -31,7 +31,7 @@ import net.minecraft.world.phys.BlockHitResult;
  * Gas compressor. Like the pump: discharge on the FACING side, away from you as you place it; suction on the side that
  * faced you. Gas pipes join it on those two sides. Right-click to read it.
  */
-public class CompressorBlock extends BaseEntityBlock implements GasPortBlock {
+public class CompressorBlock extends SetpointEntityBlock implements GasPortBlock {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty RUNNING = BooleanProperty.create("running");
 

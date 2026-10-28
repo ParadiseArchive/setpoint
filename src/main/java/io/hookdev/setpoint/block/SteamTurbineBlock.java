@@ -27,7 +27,7 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
 /** Steam turbine. Place it against a boiler, or bring it steam with a gas pipe; right-click to read speed and output. */
-public class SteamTurbineBlock extends BaseEntityBlock implements io.hookdev.setpoint.gas.GasPortBlock {
+public class SteamTurbineBlock extends SetpointEntityBlock implements io.hookdev.setpoint.gas.GasPortBlock {
     /** A steam line can come in on any side. */
     @Override
     public boolean gasPort(BlockState state, Direction side) {

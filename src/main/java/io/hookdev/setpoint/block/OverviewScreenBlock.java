@@ -35,7 +35,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * shows what the nearest DCS console (within 32 blocks) sees: every tag at a glance, the alarm list, or the trends.
  * Right-click to switch page.
  */
-public class OverviewScreenBlock extends BaseEntityBlock {
+public class OverviewScreenBlock extends SetpointEntityBlock {
     /** The way the screen faces: away from the wall. */
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final int LIGHT = 7;

@@ -27,7 +27,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 
 /** Atmospheric storage tank. Click it with a bucket, use the bucket slots on its screen, or let a pump do the work. */
-public class TankBlock extends BaseEntityBlock implements VesselBlock, io.hookdev.setpoint.gas.GasPortBlock {
+public class TankBlock extends SetpointEntityBlock implements VesselBlock, io.hookdev.setpoint.gas.GasPortBlock {
     /** A gas pipe on top brings nitrogen to blanket a volatile liquid. */
     @Override
     public boolean gasPort(BlockState state, Direction side) {

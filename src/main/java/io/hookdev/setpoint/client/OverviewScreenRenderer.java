@@ -80,7 +80,7 @@ public class OverviewScreenRenderer implements BlockEntityRenderer<OverviewScree
         poseStack.pushPose();
         // work as if the screen faces south: then the wall runs right along +x and down along -y from this block
         poseStack.translate(0.5f, 0, 0.5f);
-        poseStack.rotateDegrees(Axis.YP, -state.facing.toYRot());
+        McVersionClient.rotateDegrees(poseStack, Axis.YP, -state.facing.toYRot());
         poseStack.translate(-0.5f, 0, -0.5f);
         float z = 2 / 16f + LIFT, top = 1, bottom = 1 - state.height, right = state.width;
         int light = LightCoordsUtil.FULL_BRIGHT; // a screen: it glows, day and night

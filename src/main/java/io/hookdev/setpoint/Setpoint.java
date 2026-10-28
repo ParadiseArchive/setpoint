@@ -14,7 +14,6 @@ import io.hookdev.setpoint.network.TruckHorn;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.Prediction;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -40,7 +39,7 @@ public class Setpoint {
 
     public Setpoint(IEventBus modEventBus, ModContainer modContainer) {
         SetpointContent.register(modEventBus);
-        modContainer.registerConfig(ModConfig.Type.SYNCED, SetpointConfig.SPEC);
+        modContainer.registerConfig(McVersion.WORLD_CONFIG, SetpointConfig.SPEC);
         SetpointGameTests.register(modEventBus);
         modEventBus.addListener(Setpoint::registerCapabilities);
         modEventBus.addListener(Setpoint::registerPayloads);
@@ -60,7 +59,7 @@ public class Setpoint {
         if (player.level().isClientSide() || !SetpointConfig.giveHandbook() || player.getData(SetpointContent.HANDBOOK_GIVEN)) return;
         player.setData(SetpointContent.HANDBOOK_GIVEN, true);
         ItemStack book = new ItemStack(SetpointContent.HANDBOOK.get());
-        if (!player.getInventory().add(book)) player.drop(book, false, Prediction.SERVER_ONLY);
+        if (!player.getInventory().add(book)) McVersion.drop(player, book);
     }
 
     /** A renamed name tag on a pump, tank, boiler or other machine gives it that tag, like P-FEED. Instruments do this themselves. */

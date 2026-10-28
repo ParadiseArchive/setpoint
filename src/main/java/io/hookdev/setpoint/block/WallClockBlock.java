@@ -23,7 +23,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 /** A wall clock for the control room: its hands show the time of day in the world, like the console's alarm times. */
-public class WallClockBlock extends BaseEntityBlock {
+public class WallClockBlock extends SetpointEntityBlock {
     /** The way the clock face looks: away from the wall. */
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     private static final Map<Direction, VoxelShape> SHAPES = Shapes.rotateHorizontal(Block.box(2, 2, 15, 14, 14, 16));

@@ -1,5 +1,6 @@
 package io.hookdev.setpoint.gametest;
 
+import io.hookdev.setpoint.McVersion;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import io.hookdev.setpoint.block.TankBlock;
@@ -66,7 +67,6 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.FurnaceBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
@@ -114,6 +114,7 @@ public final class SetpointGameTests {
         test("a_power_meter_reads_its_cable", SetpointGameTests::aPowerMeterReadsItsCable, 200);
         test("a_coverall_takes_dye", SetpointGameTests::aCoverallTakesDye, 20);
         test("walkways_side_by_side_make_one_wide_walkway", SetpointGameTests::walkwaysSideBySideMakeOneWideWalkway, 20);
+        test("water_flows_round_pipes_and_cables", SetpointGameTests::waterFlowsRoundPipesAndCables, 60);
         test("a_blast_door_stands_an_explosion", SetpointGameTests::aBlastDoorStandsAnExplosion, 40);
         test("a_local_control_station_stops_a_pump", SetpointGameTests::aLocalControlStationStopsAPump, 200);
         test("a_wall_sleeve_joins_only_through_the_wall", SetpointGameTests::aWallSleeveJoinsOnlyThroughTheWall, 20);
@@ -593,6 +594,20 @@ public final class SetpointGameTests {
         });
     }
 
+    /** Water poured beside a pipe, a cable, a check valve and a handrail flows round them, on every Minecraft version. */
+    private static void waterFlowsRoundPipesAndCables(GameTestHelper helper) {
+        BlockPos water = new BlockPos(2, 1, 2);
+        java.util.Map<BlockPos, Block> round = java.util.Map.of(
+                water.west(), SetpointContent.PIPE.get(), water.east(), SetpointContent.POWER_CABLE.get(),
+                water.north(), SetpointContent.CHECK_VALVE.get(), water.south(), SetpointContent.HANDRAIL.get());
+        round.forEach(helper::setBlock);
+        helper.setBlock(water, Blocks.WATER);
+        helper.runAfterDelay(40, () -> {
+            round.forEach((pos, block) -> helper.assertBlockPresent(block, pos));
+            helper.succeed();
+        });
+    }
+
     /** Two walkways side by side, running north: the line between them goes, the outer ones stay. */
     private static void walkwaysSideBySideMakeOneWideWalkway(GameTestHelper helper) {
         BlockState walkway = SetpointContent.EPOXY_WALKWAY.get().defaultBlockState().setValue(io.hookdev.setpoint.block.FurnitureBlock.FACING, Direction.NORTH);
@@ -607,7 +622,7 @@ public final class SetpointGameTests {
     /** A coverall and a red dye in the crafting grid make a red coverall, like leather armour. */
     private static void aCoverallTakesDye(GameTestHelper helper) {
         var level = helper.getLevel();
-        var input = net.minecraft.world.item.crafting.CraftingInput.of(2, 1, java.util.List.of(new ItemStack(SetpointContent.COVERALL_TOP.get()), new ItemStack(Items.DYE.red())));
+        var input = net.minecraft.world.item.crafting.CraftingInput.of(2, 1, java.util.List.of(new ItemStack(SetpointContent.COVERALL_TOP.get()), new ItemStack(dye("red"))));
         var recipe = level.recipeAccess().getRecipeFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING, input, level);
         helper.assertTrue(recipe.isPresent(), "a coverall and a dye should make a recipe");
         ItemStack dyed = recipe.get().value().assemble(input);
@@ -1094,10 +1109,8 @@ public final class SetpointGameTests {
         helper.assertTrue(added, "hookonium veins should be part of overworld generation");
 
         for (int x = 0; x < 7; x++) for (int y = 1; y < 10; y++) for (int z = 0; z < 3; z++) helper.setBlock(x, y, z, Blocks.DEEPSLATE);
-        Feature vein = level.registryAccess().lookupOrThrow(Registries.FEATURE).getValue(Setpoint.id("ore_hookonium_small"));
-        helper.assertTrue(vein != null, "the vein feature should be registered");
         for (int i = 0; i < 40; i++) {
-            vein.place(level, level.getChunkSource().getGenerator(), level.getRandom(), helper.absolutePos(new BlockPos(3, 5, 1)));
+            helper.assertTrue(McVersion.placeFeature(level, Setpoint.id("ore_hookonium_small"), helper.absolutePos(new BlockPos(3, 5, 1))), "the vein feature should be registered");
         }
         int ore = 0;
         for (int x = 0; x < 7; x++) for (int y = 1; y < 10; y++) for (int z = 0; z < 3; z++) {
@@ -1544,12 +1557,12 @@ public final class SetpointGameTests {
         PortableTankBlockEntity drum = helper.getBlockEntity(drumPos, PortableTankBlockEntity.class), ibc = helper.getBlockEntity(ibcPos, PortableTankBlockEntity.class);
         helper.assertTrue(drum.bodyColour() == PortableTankBlockEntity.DRUM_BLUE, "a new drum should be blue");
         var player = helper.makeMockPlayer(GameType.SURVIVAL);
-        ItemStack red = new ItemStack(Items.DYE.red(), 2);
+        ItemStack red = new ItemStack(dye("red"), 2);
         PortableTankBlock.dye(red, helper.getLevel(), helper.absolutePos(drumPos), player);
         helper.assertTrue(drum.colour() == net.minecraft.world.item.DyeColor.RED && red.getCount() == 1, "red dye should paint the drum red and be used up");
         PortableTankBlock.dye(red, helper.getLevel(), ibcAbs, player);
         helper.assertTrue(ibc.colour() == null && red.getCount() == 1, "an IBC should not take red dye");
-        PortableTankBlock.dye(new ItemStack(Items.DYE.black()), helper.getLevel(), ibcAbs, player);
+        PortableTankBlock.dye(new ItemStack(dye("black")), helper.getLevel(), ibcAbs, player);
         helper.assertTrue(ibc.bodyColour() == PortableTankBlockEntity.IBC_BLACK, "black dye should make the IBC black");
         var drops = Block.getDrops(helper.getBlockState(drumPos), helper.getLevel(), helper.absolutePos(drumPos), drum, null, new ItemStack(Items.IRON_PICKAXE));
         helper.assertTrue(drops.size() == 1 && drops.get(0).has(net.minecraft.core.component.DataComponents.DYED_COLOR), "a red drum should drop red");
@@ -2206,5 +2219,10 @@ public final class SetpointGameTests {
         helper.assertTrue(drawing != null && drawing.cells().stream().anyMatch(c -> c.symbol() == io.hookdev.setpoint.pid.PidDrawing.TANK),
                 "the tank five blocks up should be in the drawing");
         helper.succeed();
+    }
+
+    /** A vanilla dye by its colour name, the same in every Minecraft version. */
+    private static net.minecraft.world.item.Item dye(String color) {
+        return net.minecraft.core.registries.BuiltInRegistries.ITEM.getValue(net.minecraft.resources.Identifier.withDefaultNamespace(color + "_dye"));
     }
 }

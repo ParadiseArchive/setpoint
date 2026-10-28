@@ -80,7 +80,7 @@ public class GasSphereRenderer implements BlockEntityRenderer<GasSphereBlockEnti
         pose.pushPose();
         // work as if it faces south, from the middle of its footprint: this block is half a block right and three and a half in front
         pose.translate(0.5f, 0, 0.5f);
-        pose.rotateDegrees(Axis.YP, -state.facing.toYRot());
+        McVersionClient.rotateDegrees(pose, Axis.YP, -state.facing.toYRot());
         pose.translate(-0.5f, 0, -3.5f);
 
         // the shell: bands of plates from the bottom to the top, each plate as wide as its wider edge
@@ -92,9 +92,9 @@ public class GasSphereRenderer implements BlockEntityRenderer<GasSphereBlockEnti
             float width = (float) (2 * RADIUS * wide * Math.tan(Math.toRadians(turn / 2)));
             for (int k = 0; k < SEGMENTS; k++) {
                 pose.pushPose();
-                pose.rotateDegrees(Axis.YP, k * turn);
+                McVersionClient.rotateDegrees(pose, Axis.YP, k * turn);
                 pose.translate(0, EQUATOR / 16f, 0);
-                pose.rotateDegrees(Axis.XP, -middle);
+                McVersionClient.rotateDegrees(pose, Axis.XP, -middle);
                 pose.translate(0, 0, RADIUS / 16f);
                 pose.scale(width / 16, height / 16, 1);
                 part(state, PLATE, 0, 0, 0, pose, collector);
@@ -118,7 +118,7 @@ public class GasSphereRenderer implements BlockEntityRenderer<GasSphereBlockEnti
         part(state, STATION, 0, 0, 48, pose, collector); // built in the station block's own pixels
         // the caged ladder in the corner, up to the bridge to the platform on top
         pose.pushPose();
-        pose.rotateDegrees(Axis.YP, CORNER_ANGLE);
+        McVersionClient.rotateDegrees(pose, Axis.YP, CORNER_ANGLE);
         for (int course = 0; course < 5; course++) {
             part(state, LADDER, 0, course * 32, 0, pose, collector);
             if (course > 0) part(state, CAGE, 0, course * 32, 0, pose, collector);
@@ -134,8 +134,8 @@ public class GasSphereRenderer implements BlockEntityRenderer<GasSphereBlockEnti
         float dx = x2 - x1, dy = y2 - y1, dz = z2 - z1, flat = (float) Math.hypot(dx, dz), length = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
         pose.pushPose();
         pose.translate(x1 / 16, y1 / 16, z1 / 16);
-        pose.rotateDegrees(Axis.YP, (float) Math.toDegrees(Math.atan2(dx, dz)));
-        pose.rotateDegrees(Axis.XP, (float) -Math.toDegrees(Math.atan2(dy, flat)));
+        McVersionClient.rotateDegrees(pose, Axis.YP, (float) Math.toDegrees(Math.atan2(dx, dz)));
+        McVersionClient.rotateDegrees(pose, Axis.XP, (float) -Math.toDegrees(Math.atan2(dy, flat)));
         pose.scale(1, 1, length / 16);
         part(state, ROD, 0, 0, 0, pose, collector);
         pose.popPose();

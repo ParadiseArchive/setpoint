@@ -1,5 +1,6 @@
 package io.hookdev.setpoint.block;
 
+import io.hookdev.setpoint.McVersion;
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +18,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Prediction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -48,7 +48,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * Right-click a symbol to work it: a controller opens its faceplate, a pump starts or stops, anything else reports.
  * Sneak-right-click with an empty hand to take the P&ID back. A comparator counts the alarms on the drawing.
  */
-public class PidBoardBlock extends BaseEntityBlock {
+public class PidBoardBlock extends SetpointEntityBlock {
     /** The way the drawing faces: away from the wall. */
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     /** Part of a panel that shows a P&ID: the screen glows. */
@@ -103,7 +103,7 @@ public class PidBoardBlock extends BaseEntityBlock {
         BlockPos origin = topLeft(level, pos, state.getValue(FACING));
         if (!level.isClientSide() && level.getBlockEntity(origin) instanceof PidBoardBlockEntity board) {
             ItemStack previous = board.insertPid(stack);
-            if (!previous.isEmpty() && !player.getInventory().add(previous)) player.drop(previous, false, Prediction.SERVER_ONLY);
+            if (!previous.isEmpty() && !player.getInventory().add(previous)) McVersion.drop(player, previous);
             level.playSound(null, pos, SoundEvents.BOOK_PAGE_TURN, SoundSource.BLOCKS, 0.6f, 1.0f);
             if (player instanceof ServerPlayer serverPlayer) {
                 int[] size = size(level, origin, state.getValue(FACING));
@@ -130,7 +130,7 @@ public class PidBoardBlock extends BaseEntityBlock {
         }
         if (!level.isClientSide() && level.getBlockEntity(origin) instanceof PidBoardBlockEntity board && !board.pid().isEmpty()) {
             ItemStack pid = board.ejectPid();
-            if (!player.getInventory().add(pid)) player.drop(pid, false, Prediction.SERVER_ONLY);
+            if (!player.getInventory().add(pid)) McVersion.drop(player, pid);
         }
         return InteractionResult.SUCCESS;
     }

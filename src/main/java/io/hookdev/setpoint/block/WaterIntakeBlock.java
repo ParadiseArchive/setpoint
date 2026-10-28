@@ -19,7 +19,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 
 /** Water intake: place it in open water and pipe it to a pump's suction. Right-click to see if it is in water. */
-public class WaterIntakeBlock extends BaseEntityBlock implements VesselBlock {
+public class WaterIntakeBlock extends SetpointEntityBlock implements VesselBlock {
     public WaterIntakeBlock(BlockBehaviour.Properties properties) {
         super(properties);
     }

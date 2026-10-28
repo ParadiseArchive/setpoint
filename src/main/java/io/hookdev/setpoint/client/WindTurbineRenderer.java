@@ -86,11 +86,11 @@ public class WindTurbineRenderer implements BlockEntityRenderer<WindTurbineBlock
         for (Direction side : Direction.Plane.HORIZONTAL) {
             if (!state.cables[side.get2DDataValue()]) continue;
             pose.pushPose();
-            pose.rotateDegrees(Axis.YP, -side.toYRot());
+            McVersionClient.rotateDegrees(pose, Axis.YP, -side.toYRot());
             part(state, GLAND, pose, collector);
             pose.popPose();
         }
-        pose.rotateDegrees(Axis.YP, -state.facing.toYRot());
+        McVersionClient.rotateDegrees(pose, Axis.YP, -state.facing.toYRot());
         part(state, FOOT, pose, collector);
         for (int up = 1; up < WindTurbineBlock.TOWER; up++) {
             float width = 1 - TAPER * up / WindTurbineBlock.TOWER;
@@ -104,14 +104,14 @@ public class WindTurbineRenderer implements BlockEntityRenderer<WindTurbineBlock
         part(state, NACELLE, pose, collector);
         // the rotor, turning on its axle towards the front
         pose.translate(0, HUB_Y / 16, HUB_Z / 16);
-        pose.rotateDegrees(Axis.ZP, state.rotor);
+        McVersionClient.rotateDegrees(pose, Axis.ZP, state.rotor);
         part(state, HUB, pose, collector);
         float length = WindTurbineBlock.BLADE - ROOT / 16;
         for (int blade = 0; blade < 3; blade++) {
             pose.pushPose();
-            pose.rotateDegrees(Axis.ZP, blade * 120);
+            McVersionClient.rotateDegrees(pose, Axis.ZP, blade * 120);
             pose.translate(0, ROOT / 16, 1.5f / 16); // just in front of the spinner's back
-            pose.rotateDegrees(Axis.YP, PITCH);
+            McVersionClient.rotateDegrees(pose, Axis.YP, PITCH);
             pose.scale(1, length, 1);
             part(state, BLADE, pose, collector);
             pose.popPose();

@@ -11,7 +11,7 @@ public final class ClientHooks {
     private ClientHooks() {}
 
     public static void openPid(PidDrawing drawing, InteractionHand hand) {
-        Minecraft.getInstance().gui.setScreen(new PidScreen(drawing, hand));
+        McVersionClient.setScreen(new PidScreen(drawing, hand));
     }
 
     public static void boardRemoved(BlockPos pos) {
@@ -36,6 +36,6 @@ public final class ClientHooks {
     }
 
     public static void openHandbook() {
-        Minecraft.getInstance().gui.setScreen(new HandbookScreen(Handbook.load()));
+        McVersionClient.setScreen(new HandbookScreen(Handbook.load()));
     }
 }

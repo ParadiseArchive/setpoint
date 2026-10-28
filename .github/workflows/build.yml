@@ -1,5 +1,7 @@
 name: Build
 
+# Builds and tests Setpoint for every Minecraft version it supports (versions/<mc>), on every push and pull request.
+
 on: [push, pull_request]
 
 permissions:
@@ -7,6 +9,11 @@ permissions:
 
 jobs:
   build:
+    strategy:
+      fail-fast: false
+      matrix:
+        mc: ['26.3', '26.1']
+    name: Minecraft ${{ matrix.mc }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -24,7 +31,13 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: The 26.1 data files match the 26.3 ones
+        if: matrix.mc == '26.1'
+        run: |
+          node tools/port-26.1.mjs
+          [ -z "$(git status --porcelain -- versions/26.1/resources)" ] || { git status --short -- versions/26.1/resources; echo "::error::Run node tools/port-26.1.mjs and commit versions/26.1/resources"; exit 1; }
+
       - name: Build with Gradle
-        run: ./gradlew build
+        run: ./gradlew build -Pmc=${{ matrix.mc }}
       - name: Run game tests
-        run: ./gradlew runGameTestServer
+        run: ./gradlew runGameTestServer -Pmc=${{ matrix.mc }}

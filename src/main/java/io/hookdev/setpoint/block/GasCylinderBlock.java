@@ -25,7 +25,7 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 /** A gas cylinder: gas pipes join it on top and on its sides. Right-click to read it; break it and the gas goes along. */
-public class GasCylinderBlock extends BaseEntityBlock implements GasPortBlock {
+public class GasCylinderBlock extends SetpointEntityBlock implements GasPortBlock {
     private static final VoxelShape SHAPE = Block.box(4, 0, 4, 12, 16, 12);
 
     public GasCylinderBlock(BlockBehaviour.Properties properties) {

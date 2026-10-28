@@ -21,7 +21,7 @@ import net.minecraft.world.phys.BlockHitResult;
  * Shared behaviour of instruments: a renamed name tag sets the tag, the field communicator
  * gets first go, and an empty hand shows the live values.
  */
-public abstract class InstrumentBlock extends BaseEntityBlock {
+public abstract class InstrumentBlock extends SetpointEntityBlock {
     protected InstrumentBlock(BlockBehaviour.Properties properties) {
         super(properties);
     }

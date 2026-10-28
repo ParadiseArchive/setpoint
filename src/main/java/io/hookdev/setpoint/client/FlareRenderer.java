@@ -89,7 +89,7 @@ public class FlareRenderer implements BlockEntityRenderer<FlareBlockEntity, Flar
         pose.pushPose();
         // work as if it faces south, from the middle of the stack: this block is the stack's seventh block in front of it
         pose.translate(0.5f, 0, 0.5f);
-        pose.rotateDegrees(Axis.YP, -state.facing.toYRot());
+        McVersionClient.rotateDegrees(pose, Axis.YP, -state.facing.toYRot());
         pose.translate(0, 0, -FlareBlock.BACK);
 
         // the stack, a block at a time, and its tip
@@ -120,7 +120,7 @@ public class FlareRenderer implements BlockEntityRenderer<FlareBlockEntity, Flar
         for (int d = 0; d < DECKS.length; d++) platform(state, DECKS[d], DECK_HALF[d], d > 0, pose, collector);
         pose.pushPose();
         pose.translate(-62 / 16f, 0, 0);
-        pose.rotateDegrees(Axis.YP, 90);
+        McVersionClient.rotateDegrees(pose, Axis.YP, 90);
         for (int course = 0; course * 32 <= TOWER_TOP; course++) {
             part(state, LADDER, 0, course * 32, 0, pose, collector);
             boolean landing = course * 32 == DECKS[0] || course * 32 == DECKS[1] || course * 32 == DECKS[2];
@@ -133,17 +133,17 @@ public class FlareRenderer implements BlockEntityRenderer<FlareBlockEntity, Flar
         part(state, HEAD, 0, 0, FlareBlock.DRUM_FRONT, pose, collector);
         pose.pushPose();
         pose.translate(0, 0, FlareBlock.DRUM_BACK / 16f);
-        pose.rotateDegrees(Axis.YP, 180);
+        McVersionClient.rotateDegrees(pose, Axis.YP, 180);
         part(state, HEAD, 0, 0, 0, pose, collector);
         pose.popPose();
         pose.pushPose();
         pose.translate(0, (FlareBlock.DRUM_Y + 10) / 16f, FlareBlock.PIPE_Z / 16f);
-        pose.rotateDegrees(Axis.XP, -90);
+        McVersionClient.rotateDegrees(pose, Axis.XP, -90);
         part(state, PIPE, 0, 0, 0, pose, collector);
         pose.popPose();
         pose.pushPose();
         pose.translate(0, FlareBlock.PIPE_Y / 16f, FlareBlock.PIPE_Z / 16f);
-        pose.rotateDegrees(Axis.YP, 180);
+        McVersionClient.rotateDegrees(pose, Axis.YP, 180);
         for (int n = 0; n * 16 < FlareBlock.PIPE_Z; n++) part(state, PIPE, 0, 0, n * 16, pose, collector);
         pose.popPose();
         // the ignition panel, in its own block's pixels
@@ -181,14 +181,14 @@ public class FlareRenderer implements BlockEntityRenderer<FlareBlockEntity, Flar
         float width = FlareBlockEntity.flameWidth(height) * (1 + 0.05f * (float) Math.sin(t * 1.7));
         pose.pushPose();
         pose.translate(0, TIP_TOP / 16f, 0);
-        pose.rotateDegrees(Axis.YP, state.facing.toYRot());  // back to the world, where the wind blows
-        pose.rotateDegrees(Axis.YP, -state.windYaw);
-        pose.rotateDegrees(Axis.XP, state.lean);
-        pose.rotateDegrees(Axis.YP, t * 0.7f);               // turn slowly, so the sheets of fire never line up
+        McVersionClient.rotateDegrees(pose, Axis.YP, state.facing.toYRot());  // back to the world, where the wind blows
+        McVersionClient.rotateDegrees(pose, Axis.YP, -state.windYaw);
+        McVersionClient.rotateDegrees(pose, Axis.XP, state.lean);
+        McVersionClient.rotateDegrees(pose, Axis.YP, t * 0.7f);               // turn slowly, so the sheets of fire never line up
         pose.scale(width, height, width);
         part(state, FLAME, 0, 0, 0, pose, collector);
         pose.scale(0.55f, 0.6f, 0.55f);
-        pose.rotateDegrees(Axis.YP, 30);
+        McVersionClient.rotateDegrees(pose, Axis.YP, 30);
         part(state, FLAME_CORE, 0, 0, 0, pose, collector);
         pose.popPose();
     }
@@ -199,8 +199,8 @@ public class FlareRenderer implements BlockEntityRenderer<FlareBlockEntity, Flar
         float dx = x2 - x1, dy = y2 - y1, dz = z2 - z1, flat = (float) Math.hypot(dx, dz), length = (float) Math.sqrt(dx * dx + dy * dy + dz * dz);
         pose.pushPose();
         pose.translate(x1 / 16, y1 / 16, z1 / 16);
-        pose.rotateDegrees(Axis.YP, (float) Math.toDegrees(Math.atan2(dx, dz)));
-        pose.rotateDegrees(Axis.XP, (float) -Math.toDegrees(Math.atan2(dy, flat)));
+        McVersionClient.rotateDegrees(pose, Axis.YP, (float) Math.toDegrees(Math.atan2(dx, dz)));
+        McVersionClient.rotateDegrees(pose, Axis.XP, (float) -Math.toDegrees(Math.atan2(dy, flat)));
         pose.scale(thick, thick, length / 16);
         part(state, model, 0, 0, 0, pose, collector);
         pose.popPose();

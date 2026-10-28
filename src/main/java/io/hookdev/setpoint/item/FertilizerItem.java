@@ -1,12 +1,12 @@
 package io.hookdev.setpoint.item;
 
+import io.hookdev.setpoint.McVersion;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.BonemealSource;
 import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -29,14 +29,14 @@ public class FertilizerItem extends Item {
         boolean grew = false;
         for (BlockPos pos : BlockPos.betweenClosed(clicked.offset(-1, -1, -1), clicked.offset(1, 1, 1))) {
             BlockState state = level.getBlockState(pos);
-            if (!(state.getBlock() instanceof BonemealableBlock plant) || !plant.isValidBonemealTarget(level, pos, state, BonemealSource.INTERACTION)) continue;
+            if (!(state.getBlock() instanceof BonemealableBlock plant) || !McVersion.canBonemeal(plant, level, pos, state)) continue;
             grew = true;
             if (!(level instanceof ServerLevel server)) continue;
             BlockPos at = pos.immutable();
             for (int go = 0; go < GOES; go++) {
                 BlockState now = server.getBlockState(at);
-                if (!(now.getBlock() instanceof BonemealableBlock still) || !still.isValidBonemealTarget(server, at, now, BonemealSource.INTERACTION)) break;
-                still.performBonemeal(server, server.getRandom(), at, now, BonemealSource.INTERACTION);
+                if (!(now.getBlock() instanceof BonemealableBlock still) || !McVersion.canBonemeal(still, server, at, now)) break;
+                McVersion.bonemeal(still, server, server.getRandom(), at, now);
             }
             server.levelEvent(1505, at, 15); // the bone meal sparkles
         }

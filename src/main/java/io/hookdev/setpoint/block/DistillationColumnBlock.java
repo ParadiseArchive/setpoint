@@ -48,7 +48,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * kerosene and naphtha, and at the top the cooling water inlet (left) and the LPG outlet (right). Every nozzle faces
  * the front. {@link ColumnPartBlock}s fill the rest; its renderer draws all of it.
  */
-public class DistillationColumnBlock extends BaseEntityBlock implements MultiblockBase, VesselBlock {
+public class DistillationColumnBlock extends SetpointEntityBlock implements MultiblockBase, VesselBlock {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     /** In pixels from the bottom middle of the feed block (z towards the front): the column's middle, its radius and height. */
     public static final int COLUMN_Z = -32, RADIUS = 20, HEIGHT = 10, TOP = 10;

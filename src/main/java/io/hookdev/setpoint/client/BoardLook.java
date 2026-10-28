@@ -57,7 +57,7 @@ public final class BoardLook {
         lastCell = cell;
         if (target == null || origin == null) return;
         if (!changed && ++age % 10 != 0) return; // keep the line up to date while looking
-        mc.gui.hud.setOverlayMessage(describe(target, origin.live().get(target.liveKey())), false);
+        McVersionClient.overlayMessage(describe(target, origin.live().get(target.liveKey())));
     }
 
     private static Component describe(PidDrawing.Cell cell, @Nullable PidLive live) {

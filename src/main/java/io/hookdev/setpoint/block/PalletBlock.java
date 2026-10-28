@@ -1,5 +1,6 @@
 package io.hookdev.setpoint.block;
 
+import io.hookdev.setpoint.McVersion;
 import net.neoforged.neoforge.fluids.SimpleFluidContent;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +19,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Prediction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -50,7 +50,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * base. Sneak-right-click with an empty hand to take the last one off. What is on it keeps its liquid and colour;
  * break the pallet and everything drops.
  */
-public class PalletBlock extends BaseEntityBlock implements MultiblockBase {
+public class PalletBlock extends SetpointEntityBlock implements MultiblockBase {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     /** Drums on it. */
     public static final IntegerProperty DRUMS = IntegerProperty.create("drums", 0, PalletBlockEntity.MAX_DRUMS);
@@ -204,7 +204,7 @@ public class PalletBlock extends BaseEntityBlock implements MultiblockBase {
         }
         ItemStack drum = pallet.takeLast();
         if (drum.isEmpty()) return InteractionResult.SUCCESS;
-        if (!player.getInventory().add(drum)) player.drop(drum, false, Prediction.SERVER_ONLY);
+        if (!player.getInventory().add(drum)) McVersion.drop(player, drum);
         BlockState next = stateFor(state.getValue(FACING), pallet.drums());
         if (!loaded(next)) for (BlockPos up : above(pos, state.getValue(FACING))) removePart(level, up, pos);
         level.setBlock(pos, next, Block.UPDATE_ALL);

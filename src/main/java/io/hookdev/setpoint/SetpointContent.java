@@ -107,8 +107,8 @@ public final class SetpointContent {
     public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(Registries.MENU, Setpoint.MODID);
     public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(Registries.SOUND_EVENT, Setpoint.MODID);
     public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(Registries.ENTITY_TYPE, Setpoint.MODID);
-    public static final DeferredRegister<net.minecraft.advancements.triggers.CriterionTrigger<?>> TRIGGERS = DeferredRegister.create(Registries.TRIGGER_TYPE, Setpoint.MODID);
-    public static final DeferredHolder<net.minecraft.advancements.triggers.CriterionTrigger<?>, PlantEventTrigger> PLANT_EVENT = TRIGGERS.register("plant_event", PlantEventTrigger::new);
+    public static final DeferredRegister<?> TRIGGERS = io.hookdev.setpoint.advancement.PlantEventTriggerBase.TRIGGERS;
+    public static final java.util.function.Supplier<PlantEventTrigger> PLANT_EVENT = io.hookdev.setpoint.advancement.PlantEventTriggerBase.PLANT_EVENT;
     public static final DeferredRegister<DataComponentType<?>> COMPONENTS = DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, Setpoint.MODID);
     /** The drawing on a P&ID. */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<PidDrawing>> PID_DRAWING = COMPONENTS.register("pid_drawing",
@@ -285,7 +285,7 @@ public final class SetpointContent {
     public static final DeferredBlock<net.minecraft.world.level.block.DoorBlock> BLAST_DOOR = BLOCKS.registerBlock("blast_door",
             p -> new net.minecraft.world.level.block.DoorBlock(BLAST_DOOR_TYPE, p),
             p -> p.mapColor(MapColor.METAL).strength(5.0f, 1200.0f).sound(SoundType.IRON).noOcclusion().requiresCorrectToolForDrops()
-                    .pushReaction(net.minecraft.world.level.material.PushReaction.POPPED));
+                    .pushReaction(McVersion.POPPED));
     /** Wired glass: glass with a steel mesh cast in, for control-room windows onto the plant. Much tougher than glass. */
     public static final DeferredBlock<net.minecraft.world.level.block.TransparentBlock> WIRED_GLASS = BLOCKS.registerBlock("wired_glass",
             net.minecraft.world.level.block.TransparentBlock::new, p -> p.mapColor(MapColor.NONE).strength(1.5f, 12.0f).sound(SoundType.GLASS).noOcclusion()

@@ -65,7 +65,7 @@ public class WallClockRenderer implements BlockEntityRenderer<WallClockBlockEnti
         pose.pushPose();
         // work as if the clock faces south, on the north side of its block
         pose.translate(0.5f, 0, 0.5f);
-        pose.rotateDegrees(Axis.YP, -state.facing.toYRot());
+        McVersionClient.rotateDegrees(pose, Axis.YP, -state.facing.toYRot());
         pose.translate(-0.5f, 0, -0.5f);
         hand(state.hour, state.hours / 12 * 360, 0.0f, state, pose, collector);
         hand(state.minute, state.minutes / 60 * 360, 0.5f, state, pose, collector);
@@ -76,7 +76,7 @@ public class WallClockRenderer implements BlockEntityRenderer<WallClockBlockEnti
     private static void hand(BlockModelRenderState hand, float degrees, float lift, State state, PoseStack pose, SubmitNodeCollector collector) {
         pose.pushPose();
         pose.translate(0.5f, 0.5f, (1.5f + lift) / 16);
-        pose.rotateDegrees(Axis.ZP, -degrees);
+        McVersionClient.rotateDegrees(pose, Axis.ZP, -degrees);
         pose.translate(-0.5f, -0.5f, 0);
         hand.submit(pose, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, 0);
         pose.popPose();

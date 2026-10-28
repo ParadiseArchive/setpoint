@@ -39,7 +39,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * generator, boiler and machine within 32 blocks stops at once and stays stopped; pull it out (right-click again) to
  * let the plant start. While it is pressed in it gives a full redstone signal.
  */
-public class EsdButtonBlock extends BaseEntityBlock {
+public class EsdButtonBlock extends SetpointEntityBlock {
     /** The way the button points: out of the wall (or up from the desk) it sits on. */
     public static final EnumProperty<Direction> FACING = BlockStateProperties.FACING;
     public static final BooleanProperty PRESSED = BooleanProperty.create("pressed");

@@ -48,7 +48,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * panel with three gas connections. The flare header comes in at the front, pilot gas on your left, steam on your
  * right. {@link FlarePartBlock}s fill the rest; its renderer draws all of it, and the flame on top.
  */
-public class FlareBlock extends BaseEntityBlock implements MultiblockBase, GasPortBlock {
+public class FlareBlock extends SetpointEntityBlock implements MultiblockBase, GasPortBlock {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     /** In blocks: the tower reaches this far either side of the stack, the stack stands this far behind this block, and it is this high. */
     public static final int HALF = 3, BACK = 7, HIGH = 40;

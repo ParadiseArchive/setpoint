@@ -29,7 +29,7 @@ import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
 /** A fuel-burning generator. Right-click opens its screen, like a furnace. */
-public class GeneratorBlock extends BaseEntityBlock {
+public class GeneratorBlock extends SetpointEntityBlock {
     public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
     public static final BooleanProperty LIT = BlockStateProperties.LIT;
 

@@ -1,5 +1,6 @@
 package io.hookdev.setpoint.menu;
 
+import io.hookdev.setpoint.McVersion;
 import java.util.List;
 
 import org.jspecify.annotations.Nullable;
@@ -18,7 +19,6 @@ import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.util.Prediction;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -82,7 +82,7 @@ public class ConsoleMenu extends AbstractContainerMenu {
             console.acknowledge();
         } else if (buttonId == BUTTON_EJECT) {
             ItemStack pid = console.ejectPid();
-            if (!pid.isEmpty() && !player.getInventory().add(pid)) player.drop(pid, false, Prediction.SERVER_ONLY);
+            if (!pid.isEmpty() && !player.getInventory().add(pid)) McVersion.drop(player, pid);
         } else if (buttonId >= BUTTON_FACEPLATE) {
             int row = buttonId - BUTTON_FACEPLATE;
             if (row < readings.size() && console.getLevel() != null
