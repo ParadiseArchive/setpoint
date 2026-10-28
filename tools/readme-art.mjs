@@ -47,7 +47,7 @@ p{margin:0;font-size:18px;color:#aeb6c9;max-width:440px}
     <img class="logo" src="${IMG}setpoint-logo.png">
     <h1>Process engineering<br>you can play</h1>
     <p>Build a plant that behaves like the real thing, then draw it as a live P&amp;ID.</p>
-    <div class="chips"><span class="chip" style="color:#2de2e6">Minecraft 26.3</span><span class="chip" style="color:#2de2e6">NeoForge</span><span class="chip" style="color:#ffb547">Version ${VERSION}</span><span class="chip" style="color:#ff4f8b">Open source</span></div>
+    <div class="chips"><span class="chip" style="color:#2de2e6">Minecraft 26.1.2 · 26.3</span><span class="chip" style="color:#2de2e6">NeoForge</span><span class="chip" style="color:#ffb547">Version ${VERSION}</span><span class="chip" style="color:#ff4f8b">Open source</span></div>
   </div>
   <div class="sky">
     <img src="${IMG}gas_sphere.png" style="height:212px;margin-bottom:12px">

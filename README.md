@@ -6,7 +6,7 @@
   <a href="https://github.com/ParadiseArchive/setpoint/actions/workflows/build.yml"><img src="https://img.shields.io/github/actions/workflow/status/ParadiseArchive/setpoint/build.yml?branch=main&style=flat-square&label=build&labelColor=0a0c13&color=2de2e6" alt="Build"></a>
   <img src="https://img.shields.io/badge/minecraft-26.1.2%20%7C%2026.3-2de2e6?style=flat-square&labelColor=0a0c13" alt="Minecraft 26.1.2 and 26.3">
   <img src="https://img.shields.io/badge/neoforge-26.1.2%20%7C%2026.3-2de2e6?style=flat-square&labelColor=0a0c13" alt="NeoForge 26.1.2 and 26.3">
-  <img src="https://img.shields.io/badge/version-0.2.2-ffb547?style=flat-square&labelColor=0a0c13" alt="Version 0.2.2">
+  <img src="https://img.shields.io/badge/version-0.2.3-ffb547?style=flat-square&labelColor=0a0c13" alt="Version 0.2.3">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-ff4f8b?style=flat-square&labelColor=0a0c13" alt="License: MIT"></a>
 </p>
 
@@ -97,7 +97,7 @@ dye and safety boots.
 
 ## Get it
 
-Setpoint **0.2.2** is the latest release. Back up your world before you update to a new version.
+Setpoint **0.2.3** is the latest release. Back up your world before you update to a new version.
 Download it on **[CurseForge](https://www.curseforge.com/minecraft/mc-mods/setpoint)**, or build it yourself (see below).
 
 - Minecraft 26.3 or 26.1.2 (the version of All the Mods 11) with NeoForge, Java 25: pick the file for your Minecraft version
