@@ -1,6 +1,6 @@
 # Setpoint
 
-![Setpoint: process engineering you can play](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/banner.png)
+![Setpoint: process engineering you can play](https://raw.githubusercontent.com/ParadiseArchive/setpoint/v0.2.2/.github/readme/banner.png)
 
 **Build a real process plant in Minecraft, then draw it as a P&ID.**
 
@@ -14,9 +14,9 @@ It is easy by default: machines link up and configure themselves, and plain-lang
 - **Live in the control room.** Put a P&ID in the DCS console: equipment that runs lights up, alarms flash, tanks fill to their real level. Click a symbol for its trend.
 - **On the wall.** Put P&ID boards side by side for a big mimic board that updates live, and run the plant from it: open a controller's faceplate, start and stop pumps, open and shut hand valves.
 
-![A P&ID of a small steam plant](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/pid.png)
+![A P&ID of a small steam plant](https://raw.githubusercontent.com/ParadiseArchive/setpoint/v0.2.2/.github/readme/pid.png)
 
-![The same plant live on a P&ID board](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/board.png)
+![The same plant live on a P&ID board](https://raw.githubusercontent.com/ParadiseArchive/setpoint/v0.2.2/.github/readme/board.png)
 
 ## Liquids
 
@@ -26,7 +26,7 @@ It is easy by default: machines link up and configure themselves, and plain-lang
 - **Drums and IBCs.** Containers you carry around, liquid and all, in any colour you dye them.
 - **Floating roof tank.** A tank of eight by eight by six blocks for 8000 buckets, placed with one block. Its roof floats on the liquid, rising and sinking with the level, and you can walk on it.
 
-![Water intake, pump, valves, tanks, drum, IBC and floating roof tank](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/shelf-liquids.png)
+![Water intake, pump, valves, tanks, drum, IBC and floating roof tank](https://raw.githubusercontent.com/ParadiseArchive/setpoint/v0.2.2/.github/readme/shelf-liquids.png)
 
 ## Control
 
@@ -34,7 +34,7 @@ It is easy by default: machines link up and configure themselves, and plain-lang
 - **DCS controllers.** Place one against a tank and it finds its own valve and holds the level at 50 %. Open its faceplate to change the setpoint, tune the PID, or switch between AUTO, MAN and CAS.
 - **DCS console.** Overview, five-minute trends and an ISA-style alarm list for everything within 32 blocks.
 
-![Transmitters, controller, field communicator, DCS console, P&ID board, alarm beacon, emergency stop and a control room](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/shelf-control.png)
+![Transmitters, controller, field communicator, DCS console, P&ID board, alarm beacon, emergency stop and a control room](https://raw.githubusercontent.com/ParadiseArchive/setpoint/v0.2.2/.github/readme/shelf-control.png)
 
 ## The control room
 
@@ -46,9 +46,9 @@ It is easy by default: machines link up and configure themselves, and plain-lang
 - **Printer.** Feed it paper and it prints the alarm log of the nearest console as a book, for the shift handover.
 - **Furniture.** Control desks, operator screens, a 24-hour chair you can sit in, a raised floor, ceiling lights, a wall clock with the time of day, filing cabinets, a coffee machine that pours you a mug of coffee, an exit sign, a blast door and wired glass.
 
-![The DCS console overview](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/console.png)
+![The DCS console overview](https://raw.githubusercontent.com/ParadiseArchive/setpoint/v0.2.2/.github/readme/console.png)
 
-![A controller faceplate](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/faceplate.png)
+![A controller faceplate](https://raw.githubusercontent.com/ParadiseArchive/setpoint/v0.2.2/.github/readme/faceplate.png)
 
 ## Power
 
@@ -61,7 +61,7 @@ It is easy by default: machines link up and configure themselves, and plain-lang
 - **Power cables** carry FE from any generator to the machines along them, shared out evenly. They work with other mods' generators and machines too, and pull from generators that wait to be drained. Cable trays and transformers carry power the same way.
 - **Battery bank.** A million FE: it keeps what the machines leave over and gives it back when the wind drops. A **power meter** in the cable shows what flows.
 
-![Stirling engine, biogas generator, boiler, safety valve, steam turbine, diesel generator, fuel cell, power cable and wind turbine](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/shelf-power.png)
+![Stirling engine, biogas generator, boiler, safety valve, steam turbine, diesel generator, fuel cell, power cable and wind turbine](https://raw.githubusercontent.com/ParadiseArchive/setpoint/v0.2.2/.github/readme/shelf-power.png)
 
 ## Gases
 
@@ -78,7 +78,7 @@ It is easy by default: machines link up and configure themselves, and plain-lang
 - A **distillation column**, eleven blocks high, splits crude oil like a real crude unit, with steam in its reboiler and cooling water in its condenser: LPG at the top, then naphtha, kerosene and diesel, and residue at the bottom.
 - Crude oil and naphtha give off vapour in an ordinary tank: blanket them with nitrogen, or keep them in a floating roof tank.
 
-![Electrolyser, nitrogen generator, compressor, gas cylinders, ammonia reactor, fertilizer mixer, gas sphere, pumpjack, distillation column and flare stack](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/shelf-gases.png)
+![Electrolyser, nitrogen generator, compressor, gas cylinders, ammonia reactor, fertilizer mixer, gas sphere, pumpjack, distillation column and flare stack](https://raw.githubusercontent.com/ParadiseArchive/setpoint/v0.2.2/.github/readme/shelf-gases.png)
 
 ## The flare stack
 
@@ -91,7 +91,7 @@ The tallest thing in the mod: a flare forty blocks high in a red and white derri
 - A **forklift** you drive, with rear-wheel steering and forks up to six blocks high.
 - **Pallet racking** to store loaded pallets up high.
 
-![Pallet, pallet truck, forklift and pallet racking](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/shelf-logistics.png)
+![Pallet, pallet truck, forklift and pallet racking](https://raw.githubusercontent.com/ParadiseArchive/setpoint/v0.2.2/.github/readme/shelf-logistics.png)
 
 ## Factory blocks
 
