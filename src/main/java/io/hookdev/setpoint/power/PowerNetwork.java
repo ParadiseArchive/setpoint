@@ -18,12 +18,14 @@ import net.minecraft.world.level.LevelReader;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
 /**
  * All the cables that touch each other, and the machines at their ends. A cable holds no FE: what a generator pushes into
  * any cable of the network goes straight on to the machines that want it, shared out evenly, within the same transaction.
- * Networks are worked out when FE first comes in and kept until a cable or a neighbour changes.
+ * Networks are worked out when FE first comes in and kept until a cable or a neighbour changes. A cable next to a
+ * generator that only waits to be drained (some mods make them so) also pulls its FE, see {@link #pull}.
  */
 public final class PowerNetwork {
     /** No network grows bigger than this many cables, so a huge grid cannot stall the server. */
@@ -132,35 +134,80 @@ public final class PowerNetwork {
         }
     }
 
-    /** Shares {@code amount} FE out over every machine that takes it; what nobody wants stays with the sender. */
+    /** FE a cable pulls from each block beside it in a tick, at most. */
+    public static final int PULL_PER_SIDE = io.hookdev.setpoint.block.entity.EnergyPush.PER_SIDE;
+
+    /**
+     * The cable at {@code pos} takes FE out of every block beside it that gives it up and sends it over its network,
+     * only as much as the machines on it take. Machines that only use power give none; batteries and generators do.
+     */
+    public static void pull(Level level, BlockPos pos) {
+        for (Direction direction : Direction.values()) {
+            BlockPos source = pos.relative(direction);
+            if (!level.isLoaded(source) || level.getBlockState(source).getBlock() instanceof PowerCableBlock) continue;
+            EnergyHandler handler = level.getCapability(Capabilities.Energy.BLOCK, source, direction.getOpposite());
+            if (handler == null || handler instanceof Handler) continue;
+            PowerNetwork network = of(level, pos);
+            boolean fromStore = handler instanceof Storage; // a battery feeds machines, never another battery
+            int wanted;
+            // first find out how much the network takes, then take exactly that
+            try (Transaction trial = Transaction.openRoot()) {
+                int out = handler.extract(PULL_PER_SIDE, trial);
+                wanted = out > 0 ? network.send(level, out, trial, source, !fromStore) : 0;
+            }
+            if (wanted <= 0) continue;
+            try (Transaction transaction = Transaction.openRoot()) {
+                int out = handler.extract(wanted, transaction);
+                if (network.send(level, out, transaction, source, !fromStore) == out) transaction.commit();
+            }
+        }
+    }
+
+    /** A battery: it takes what the machines leave over, and gives it back when they need more than the generators make. */
+    public interface Storage extends EnergyHandler {}
+
+    /** Shares {@code amount} FE out over every machine that takes it, then what is left into batteries; what nobody wants stays with the sender. */
     int send(Level level, int amount, TransactionContext transaction) {
+        return send(level, amount, transaction, null, true);
+    }
+
+    /** The same, but never back into the block at {@code from}, where the FE came from, and into batteries only if {@code toStores}. */
+    int send(Level level, int amount, TransactionContext transaction, @org.jspecify.annotations.Nullable BlockPos from, boolean toStores) {
         if (busy || amount <= 0) return 0;
         busy = true;
         try {
-            List<EnergyHandler> takers = new ArrayList<>(ends.size());
+            List<EnergyHandler> machines = new ArrayList<>(ends.size()), stores = new ArrayList<>();
             for (Map.Entry<BlockPos, Direction> end : ends) {
+                if (end.getKey().equals(from)) continue;
                 EnergyHandler handler = level.getCapability(Capabilities.Energy.BLOCK, end.getKey(), end.getValue());
-                if (handler != null && !(handler instanceof Handler)) takers.add(handler);
+                if (handler == null || handler instanceof Handler) continue;
+                (handler instanceof Storage ? stores : machines).add(handler);
             }
-            int left = amount;
-            // twice round: what a full machine leaves over goes to the ones that still have room
-            for (int round = 0; round < 2 && left > 0 && !takers.isEmpty(); round++) {
-                int share = Math.max(1, (left + takers.size() - 1) / takers.size());
-                List<EnergyHandler> hungry = new ArrayList<>(takers.size());
-                for (EnergyHandler taker : takers) {
-                    if (left <= 0) break;
-                    int offer = Math.min(share, left);
-                    int taken = taker.insert(offer, transaction);
-                    left -= taken;
-                    if (taken == offer) hungry.add(taker);
-                }
-                takers = hungry;
-            }
+            int left = share(machines, amount, transaction);
+            if (toStores) left = share(stores, left, transaction);
             if (left < amount) flow.add(level, amount - left, transaction);
             return amount - left;
         } finally {
             busy = false;
         }
+    }
+
+    /** Shares {@code amount} evenly over {@code takers}, twice round so what a full one leaves goes to the rest; returns what is left. */
+    private static int share(List<EnergyHandler> takers, int amount, TransactionContext transaction) {
+        int left = amount;
+        for (int round = 0; round < 2 && left > 0 && !takers.isEmpty(); round++) {
+            int share = Math.max(1, (left + takers.size() - 1) / takers.size());
+            List<EnergyHandler> hungry = new ArrayList<>(takers.size());
+            for (EnergyHandler taker : takers) {
+                if (left <= 0) break;
+                int offer = Math.min(share, left);
+                int taken = taker.insert(offer, transaction);
+                left -= taken;
+                if (taken == offer) hungry.add(taker);
+            }
+            takers = hungry;
+        }
+        return left;
     }
 
     /** What a cable shows: room for FE, never any stored, nothing to take out. */

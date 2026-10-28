@@ -199,12 +199,15 @@ public final class Showcase {
 
     /**
      * A wind turbine on the west side, its rotor turned away from the plant, and a cable buried under the floor to the
-     * two water pumps: it helps the steam turbine, which shares its power with them over the same cable.
+     * two water pumps: it helps the steam turbine, which shares its power with them over the same cable. A power meter
+     * reads the cable and a battery bank keeps what the pumps leave over.
      */
     private void wind() {
         multiblock(0, 0, 20, SetpointContent.WIND_TURBINE.get().defaultBlockState().setValue(io.hookdev.setpoint.block.WindTurbineBlock.FACING, Direction.WEST),
                 new ItemStack(SetpointContent.WIND_TURBINE_ITEM.get()));
-        cable(1, 0, 20);
+        // a power meter at the foot and a battery bank beside it, for what the pumps leave over
+        set(1, 0, 20, SetpointContent.POWER_METER.get().defaultBlockState().setValue(io.hookdev.setpoint.block.PowerMeterBlock.FACING, Direction.SOUTH));
+        set(2, 0, 20, SetpointContent.BATTERY_BANK.get().defaultBlockState().setValue(io.hookdev.setpoint.block.BatteryBankBlock.FACING, Direction.SOUTH));
         cable(1, -1, 20);
         for (int x = 2; x <= 5; x++) cable(x, -1, 20);
         for (int z = 19; z >= 4; z--) cable(5, -1, z);

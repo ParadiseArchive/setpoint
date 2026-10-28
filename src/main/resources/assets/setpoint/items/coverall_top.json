@@ -1,0 +1,12 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "setpoint:item/coverall_top",
+    "tints": [
+      {
+        "type": "minecraft:dye",
+        "default": -13672536
+      }
+    ]
+  }
+}

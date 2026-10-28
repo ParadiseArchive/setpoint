@@ -19,12 +19,32 @@ import io.hookdev.setpoint.control.TrendBuffer;
  * @param alarms   the alarm list (alarm page)
  * @param unacked  alarms waiting for an ACK
  * @param trends   a few tags with their recent history (trend page)
+ * @param power    what the generators make and the batteries hold (power page)
  */
 public record OverviewData(boolean linked, String clock, List<Tile> tiles, List<AlarmLine> alarms, int unacked, List<Trend> trends,
-                           java.util.Optional<io.hookdev.setpoint.pid.PidDrawing> pid, List<io.hookdev.setpoint.pid.PidLive> live) {
+                           java.util.Optional<io.hookdev.setpoint.pid.PidDrawing> pid, List<io.hookdev.setpoint.pid.PidLive> live, Power power) {
     /** Trends shown at once, and samples sent per series (one every {@link #STEP} seconds of the console's five minutes). */
     public static final int MAX_TRENDS = 4, STEP = 3;
-    public static final OverviewData EMPTY = new OverviewData(false, "--:--", List.of(), List.of(), 0, List.of(), java.util.Optional.empty(), List.of());
+    public static final OverviewData EMPTY = new OverviewData(false, "--:--", List.of(), List.of(), 0, List.of(), java.util.Optional.empty(), List.of(), Power.NONE);
+
+    /**
+     * The power page: FE a tick made by every generator together, the charge of every battery bank together and how fast
+     * it changes, and a line per generator, battery and power meter.
+     */
+    public record Power(int made, long stored, long capacity, int rate, List<PowerLine> lines) {
+        public static final Power NONE = new Power(0, 0, 0, 0, List.of());
+        public static final Codec<Power> CODEC = RecordCodecBuilder.create(i -> i.group(
+                Codec.INT.fieldOf("made").forGetter(Power::made), Codec.LONG.fieldOf("stored").forGetter(Power::stored),
+                Codec.LONG.fieldOf("capacity").forGetter(Power::capacity), Codec.INT.fieldOf("rate").forGetter(Power::rate),
+                PowerLine.CODEC.listOf().fieldOf("lines").forGetter(Power::lines)).apply(i, Power::new));
+    }
+
+    /** @param fe FE a tick: made by a generator, in (positive) or out of a battery, carried past a meter; @param percent a battery's charge, or -1 */
+    public record PowerLine(String tag, String kind, int fe, int percent) {
+        public static final Codec<PowerLine> CODEC = RecordCodecBuilder.create(i -> i.group(
+                Codec.STRING.fieldOf("tag").forGetter(PowerLine::tag), Codec.STRING.fieldOf("kind").forGetter(PowerLine::kind),
+                Codec.INT.fieldOf("fe").forGetter(PowerLine::fe), Codec.INT.fieldOf("percent").forGetter(PowerLine::percent)).apply(i, PowerLine::new));
+    }
 
     public record Tile(String tag, String kind, String status, int severity, String value) {
         public static final Codec<Tile> CODEC = RecordCodecBuilder.create(i -> i.group(
@@ -52,7 +72,8 @@ public record OverviewData(boolean linked, String clock, List<Tile> tiles, List<
             Tile.CODEC.listOf().fieldOf("tiles").forGetter(OverviewData::tiles), AlarmLine.CODEC.listOf().fieldOf("alarms").forGetter(OverviewData::alarms),
             Codec.INT.fieldOf("unacked").forGetter(OverviewData::unacked), Trend.CODEC.listOf().fieldOf("trends").forGetter(OverviewData::trends),
             io.hookdev.setpoint.pid.PidDrawing.CODEC.optionalFieldOf("pid").forGetter(OverviewData::pid),
-            io.hookdev.setpoint.pid.PidLive.CODEC.listOf().optionalFieldOf("live", List.of()).forGetter(OverviewData::live)).apply(i, OverviewData::new));
+            io.hookdev.setpoint.pid.PidLive.CODEC.listOf().optionalFieldOf("live", List.of()).forGetter(OverviewData::live),
+            Power.CODEC.optionalFieldOf("power", Power.NONE).forGetter(OverviewData::power)).apply(i, OverviewData::new));
 
     /** Reads what a console knows right now. */
     public static OverviewData of(ConsoleBlockEntity console, long gameTime) {
@@ -81,6 +102,36 @@ public record OverviewData(boolean linked, String clock, List<Tile> tiles, List<
             for (Reading r : console.readings()) live.add(io.hookdev.setpoint.pid.PidLive.of(r));
             if (console.getLevel() != null) live.addAll(io.hookdev.setpoint.pid.PidLive.valves(console.getLevel(), drawing));
         }
-        return new OverviewData(true, console.clock(gameTime), tiles, alarms, console.alarms().unacknowledged(), trends, java.util.Optional.ofNullable(drawing), live);
+        return new OverviewData(true, console.clock(gameTime), tiles, alarms, console.alarms().unacknowledged(), trends, java.util.Optional.ofNullable(drawing), live, power(console));
+    }
+
+    /** Every generator, battery bank and power meter the console sees, with what it makes, holds or carries. */
+    private static Power power(ConsoleBlockEntity console) {
+        if (console.getLevel() == null) return Power.NONE;
+        int made = 0, rate = 0;
+        long stored = 0, capacity = 0;
+        List<PowerLine> lines = new ArrayList<>();
+        for (Reading r : console.readings()) {
+            var be = console.getLevel().getBlockEntity(r.pos());
+            int fe;
+            if (be instanceof io.hookdev.setpoint.block.entity.GeneratorBlockEntity generator) fe = generator.running() ? generator.output() : 0;
+            else if (be instanceof io.hookdev.setpoint.block.entity.DieselGeneratorBlockEntity diesel) fe = diesel.status().equals("RUNNING") ? io.hookdev.setpoint.block.entity.DieselGeneratorBlockEntity.POWER : 0;
+            else if (be instanceof io.hookdev.setpoint.block.entity.FuelCellBlockEntity cell) fe = cell.status().equals("RUNNING") ? io.hookdev.setpoint.block.entity.FuelCellBlockEntity.POWER : 0;
+            else if (be instanceof io.hookdev.setpoint.block.entity.SteamTurbineBlockEntity turbine) fe = turbine.output();
+            else if (be instanceof io.hookdev.setpoint.block.entity.WindTurbineBlockEntity wind) fe = wind.output();
+            else if (be instanceof io.hookdev.setpoint.block.entity.BatteryBankBlockEntity battery) {
+                stored += battery.stored();
+                capacity += io.hookdev.setpoint.block.entity.BatteryBankBlockEntity.CAPACITY;
+                rate += battery.rate();
+                lines.add(new PowerLine(r.tag(), r.kind(), battery.rate(), (int) Math.round(battery.fraction() * 100)));
+                continue;
+            } else if (be instanceof io.hookdev.setpoint.block.entity.PowerMeterBlockEntity meter) {
+                lines.add(new PowerLine(r.tag(), r.kind(), meter.reading(), -1));
+                continue;
+            } else continue;
+            made += fe;
+            lines.add(new PowerLine(r.tag(), r.kind(), fe, -1));
+        }
+        return new Power(made, stored, capacity, rate, lines);
     }
 }

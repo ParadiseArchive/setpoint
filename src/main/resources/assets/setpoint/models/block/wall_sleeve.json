@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "north": "setpoint:block/wall_sleeve_face",
+    "south": "setpoint:block/wall_sleeve_face",
+    "east": "setpoint:block/plant_concrete",
+    "west": "setpoint:block/plant_concrete",
+    "up": "setpoint:block/plant_concrete_top",
+    "down": "setpoint:block/plant_concrete",
+    "particle": "setpoint:block/plant_concrete"
+  }
+}

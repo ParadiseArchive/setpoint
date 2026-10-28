@@ -294,6 +294,26 @@ render('safety_valve', [{ model: 'safety_valve' }], 6);
 render('drain_valve', [{ model: 'drain_valve_open', y: 90 }], 6);
 render('check_valve', [{ model: 'check_valve', y: 90 }], 6);
 render('pid_board', [{ model: 'pid_board', y: S }]);
+render('wall_clock', [{ model: 'wall_clock', y: S }], 8);
+// building blocks of a plant (0.2.2)
+render('concrete_plinth', [{ model: 'concrete_plinth' }]);
+render('bund_wall', [{ model: 'bund_wall_post' }, { model: 'bund_wall_side', y: 90 }, { model: 'bund_wall_side', y: 270 }]);
+render('bollard', [{ model: 'bollard' }], 6);
+render('epoxy_floor', [{ model: 'epoxy_floor' }]);
+render('epoxy_walkway', [{ model: 'epoxy_walkway_l' }, { model: 'epoxy_walkway_r', at: [1, 0, 0] }]);
+render('pipe_rack', [{ model: 'pipe_rack', y: S }]);
+render('junction_box', [{ model: 'junction_box', y: S }], 6);
+for (let n = 0; n < 6; n++) render('safety_sign_' + n, [{ model: 'safety_sign_' + n, y: S }], 6);
+render('mcc_cabinet', [{ model: 'mcc_cabinet', y: S }]);
+const arms = (base, at, dirs) => dirs.map((y) => ({ model: base + '_arm', at, y }));
+render('insulated_pipe', [{ model: 'insulated_pipe_core' }, ...arms('insulated_pipe', [0, 0, 0], [E, W_, S])]);
+render('insulated_gas_pipe', [{ model: 'insulated_gas_pipe_core' }, ...arms('insulated_gas_pipe', [0, 0, 0], [E, W_, S])]);
+render('wall_sleeve', [{ model: 'wall_sleeve', y: 90 }]);
+render('cable_tray', [{ model: 'cable_tray_core' }, ...arms('cable_tray', [0, 0, 0], [E, W_, S])]);
+render('transformer', [{ model: 'transformer' }]);
+render('local_control_station', [{ model: 'local_control_station_on', y: S }], 6);
+render('battery_bank', [{ model: 'battery_bank_3', y: S }]);
+render('power_meter', [{ model: 'power_meter_box_3', y: S }, { model: 'power_cable_arm', y: 90 }, { model: 'power_cable_arm', y: 270 }], 6);
 render('drum', [{ model: 'drum', y: S, tints: [[0x3b, 0x79, 0xde]] }], 6);
 render('drum_colours', [
   { model: 'drum', y: S, at: [0, 0, 0], tints: [[0xb0, 0x2e, 0x26]] }, { model: 'drum', y: S, at: [1, 0, 0], tints: [[0xfe, 0xd8, 0x3d]] },
@@ -430,7 +450,7 @@ const flareStack = (load) => {
       rod('rod', b[0] * w0, y0, b[1] * w0, a[0] * w1, y1, a[1] * w1);
       rod('rod', a[0] * w1, y1, a[1] * w1, b[0] * w1, y1, b[1] * w1, 1.5);
     }
-    for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) rod('rod', dx * 5, y1, dz * 5, dx * w1, y1, dz * w1);
+    for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { const reach = dx === 1 ? 9 : w1; rod('rod', dx * 5, y1, dz * 5, dx * reach, y1, dz * reach); } // east: stops at the ladder
   }
   [[192, 48], [384, 40], [576, 40]].forEach(([y, half], d) => {
     for (let x = -half; x < half; x += 8) for (let z = -half; z < half; z += 8) {
@@ -666,7 +686,7 @@ render('plant', [
 
 // ---------- item icons and recipes for the docs ----------
 // Items the machine screens on the docs page show (fuel, buckets). Add any new ones here.
-const SCREEN_ITEMS = ['minecraft:coal', 'minecraft:bucket', 'minecraft:water_bucket', 'setpoint:pid'];
+const SCREEN_ITEMS = ['minecraft:coal', 'minecraft:bucket', 'minecraft:water_bucket', 'setpoint:pid', 'setpoint:mug_of_coffee'];
 
 /** Writes items/<namespace>/<name>.png: a flat item at 16x16, a block item rendered like in the inventory. */
 function icon(id) {
@@ -678,10 +698,17 @@ function icon(id) {
   const m = loadModel(modelId);
   const file = 'items/' + ns + '/' + name;
   if (m.generated) {
-    const t = texture(m.textures.layer0), px = Buffer.alloc(16 * 16 * 4);
-    for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
-      const from = ((y * t.w / 16 | 0) * t.w + (x * t.w / 16 | 0)) * 4;
-      t.px.copy(px, (y * 16 + x) * 4, from, from + 4);
+    // every layer over the one before, the first tinted with its default dye colour if it has one (an undyed coverall is blue)
+    const px = Buffer.alloc(16 * 16 * 4), tints = definition.model.tints || [];
+    for (let layer = 0; m.textures['layer' + layer]; layer++) {
+      const t = texture(m.textures['layer' + layer]), dye = tints[layer]?.type === 'minecraft:dye' ? tints[layer].default : null;
+      const tint = dye === null ? [255, 255, 255] : [(dye >> 16) & 255, (dye >> 8) & 255, dye & 255];
+      for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
+        const from = ((y * t.w / 16 | 0) * t.w + (x * t.w / 16 | 0)) * 4, to = (y * 16 + x) * 4;
+        if (t.px[from + 3] === 0) continue;
+        for (let c = 0; c < 3; c++) px[to + c] = t.px[from + c] * tint[c] / 255;
+        px[to + 3] = t.px[from + 3];
+      }
     }
     save(file, 16, 16, px, 1, false);
   } else {

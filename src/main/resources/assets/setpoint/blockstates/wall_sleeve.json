@@ -1,0 +1,15 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "setpoint:block/wall_sleeve",
+      "y": 90
+    },
+    "axis=y": {
+      "model": "setpoint:block/wall_sleeve",
+      "x": 90
+    },
+    "axis=z": {
+      "model": "setpoint:block/wall_sleeve"
+    }
+  }
+}

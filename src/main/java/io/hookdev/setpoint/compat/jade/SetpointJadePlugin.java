@@ -61,7 +61,8 @@ public class SetpointJadePlugin implements IWailaPlugin {
             io.hookdev.setpoint.block.entity.FertilizerMixerBlockEntity.class, io.hookdev.setpoint.block.entity.PumpjackBlockEntity.class,
             io.hookdev.setpoint.block.entity.DistillationColumnBlockEntity.class, io.hookdev.setpoint.block.entity.DieselGeneratorBlockEntity.class,
             io.hookdev.setpoint.block.entity.FlareBlockEntity.class, io.hookdev.setpoint.block.entity.MultiblockPartBlockEntity.class,
-            io.hookdev.setpoint.block.entity.BurnerBlockEntity.class, io.hookdev.setpoint.block.entity.WindTurbineBlockEntity.class};
+            io.hookdev.setpoint.block.entity.BurnerBlockEntity.class, io.hookdev.setpoint.block.entity.WindTurbineBlockEntity.class,
+            io.hookdev.setpoint.block.entity.BatteryBankBlockEntity.class, io.hookdev.setpoint.block.entity.PowerMeterBlockEntity.class};
     @SuppressWarnings("unchecked")
     private static final Class<? extends Block>[] BLOCKS = new Class[]{PumpBlock.class, TankBlock.class, ControlValveBlock.class,
             ControllerBlock.class, LevelTransmitterBlock.class, BoilerBlock.class, SteamTurbineBlock.class, GeneratorBlock.class,
@@ -71,7 +72,8 @@ public class SetpointJadePlugin implements IWailaPlugin {
             io.hookdev.setpoint.block.GasSphereBlock.class, io.hookdev.setpoint.block.GasSpherePartBlock.class,
             io.hookdev.setpoint.block.CompressorBlock.class, io.hookdev.setpoint.block.PumpjackBlock.class, io.hookdev.setpoint.block.DistillationColumnBlock.class,
             io.hookdev.setpoint.block.FlareBlock.class, io.hookdev.setpoint.block.FlarePartBlock.class,
-            io.hookdev.setpoint.block.WindTurbineBlock.class, io.hookdev.setpoint.block.WindTurbinePartBlock.class};
+            io.hookdev.setpoint.block.WindTurbineBlock.class, io.hookdev.setpoint.block.WindTurbinePartBlock.class,
+            io.hookdev.setpoint.block.BatteryBankBlock.class, io.hookdev.setpoint.block.PowerMeterBlock.class};
 
     @Override
     public void register(IWailaCommonRegistration registration) {

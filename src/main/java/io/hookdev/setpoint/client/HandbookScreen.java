@@ -36,8 +36,15 @@ public class HandbookScreen extends Screen {
     /** One element placed on a page, with its wrapped lines for text. */
     private record Placed(Element element, int y, List<FormattedCharSequence> lines) {}
 
-    /** A page: the contents page (chapter -1) or part of a chapter. */
-    private record Page(int chapter, List<Placed> placed) {}
+    /** A page: a contents page (chapter -1; {@code first} is its first chapter) or part of a chapter. */
+    private record Page(int chapter, List<Placed> placed, int first) {
+        Page(int chapter, List<Placed> placed) {
+            this(chapter, placed, 0);
+        }
+    }
+
+    /** Chapters on one contents page, each a row this high; more chapters take a second contents page. */
+    private static final int ROW = 15, PER_CONTENTS_PAGE = (BOTTOM - TOP - 16) / ROW;
 
     private final Handbook book;
     private final List<Page> pages = new ArrayList<>();
@@ -91,7 +98,7 @@ public class HandbookScreen extends Screen {
     private void layout() {
         pages.clear();
         chapterStart.clear();
-        pages.add(new Page(-1, List.of()));
+        for (int first = 0; first < book.chapters().size(); first += PER_CONTENTS_PAGE) pages.add(new Page(-1, List.of(), first));
         for (int c = 0; c < book.chapters().size(); c++) {
             chapterStart.add(pages.size());
             List<Placed> current = new ArrayList<>();
@@ -141,7 +148,7 @@ public class HandbookScreen extends Screen {
 
         ItemStack hovered = ItemStack.EMPTY;
         if (p.chapter < 0) {
-            hovered = contentsPage(g, mouseX, mouseY);
+            hovered = contentsPage(g, p.first(), mouseX, mouseY);
         } else {
             for (Placed placed : p.placed()) {
                 ItemStack h = draw(g, placed, left + CX, top + TOP + placed.y(), mouseX, mouseY);
@@ -152,13 +159,13 @@ public class HandbookScreen extends Screen {
         if (!hovered.isEmpty()) g.setTooltipForNextFrame(font, hovered, mouseX, mouseY);
     }
 
-    private ItemStack contentsPage(GuiGraphicsExtractor g, int mouseX, int mouseY) {
+    private ItemStack contentsPage(GuiGraphicsExtractor g, int first, int mouseX, int mouseY) {
         int x = left + CX, y = top + TOP;
-        g.text(font, "Contents", x, y, HEAD, false);
+        g.text(font, first == 0 ? "Contents" : "Contents (more)", x, y, HEAD, false);
         g.fill(x, y + 10, x + 40, y + 11, ACCENT);
-        for (int c = 0; c < book.chapters().size(); c++) {
+        for (int c = first; c < Math.min(book.chapters().size(), first + PER_CONTENTS_PAGE); c++) {
             Chapter chapter = book.chapters().get(c);
-            int ry = y + 16 + c * 15;
+            int ry = y + 16 + (c - first) * ROW;
             boolean hover = mouseX >= x && mouseX < x + CW && mouseY >= ry - 1 && mouseY < ry + 14;
             if (hover) g.fill(x - 2, ry - 1, x + CW, ry + 14, PAPER_EDGE);
             g.item(chapter.icon(), x, ry - 2);
@@ -240,10 +247,10 @@ public class HandbookScreen extends Screen {
     // ---------- input ----------
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        if (page == 0 && event.button() == 0) {
-            int x = left + CX, y = top + TOP;
-            for (int c = 0; c < book.chapters().size(); c++) {
-                int ry = y + 16 + c * 15;
+        if (pages.get(page).chapter() < 0 && event.button() == 0) {
+            int x = left + CX, y = top + TOP, first = pages.get(page).first();
+            for (int c = first; c < Math.min(book.chapters().size(), first + PER_CONTENTS_PAGE); c++) {
+                int ry = y + 16 + (c - first) * ROW;
                 if (event.x() >= x && event.x() < x + CW && event.y() >= ry - 1 && event.y() < ry + 14) {
                     page = chapterStart.get(c);
                     refresh();

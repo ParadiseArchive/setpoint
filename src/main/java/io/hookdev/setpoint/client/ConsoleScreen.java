@@ -297,7 +297,7 @@ public class ConsoleScreen extends AbstractContainerScreen<ConsoleMenu> {
         if (showValues) {
             for (PidDrawing.Cell c : drawing.cells()) {
                 ConsoleSnapshot.Row r = byTag.get(c.tag());
-                if (r == null || c.symbol() == PidDrawing.PIPE) continue;
+                if (r == null || c.symbol() == PidDrawing.PIPE || c.symbol() == PidDrawing.CABLE) continue;
                 String text = brief(r);
                 int tx = l.centreX(c) + 4 * l.scale() + 2, ty = l.centreY(c) - 4;
                 g.fill(tx - 1, ty - 1, tx + font.width(text) + 1, ty + 9, 0xD0000000);

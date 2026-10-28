@@ -6,7 +6,7 @@
   <a href="https://github.com/ParadiseArchive/setpoint/actions/workflows/build.yml"><img src="https://img.shields.io/github/actions/workflow/status/ParadiseArchive/setpoint/build.yml?branch=main&style=flat-square&label=build&labelColor=0a0c13&color=2de2e6" alt="Build"></a>
   <img src="https://img.shields.io/badge/minecraft-26.3-2de2e6?style=flat-square&labelColor=0a0c13" alt="Minecraft 26.3">
   <img src="https://img.shields.io/badge/neoforge-26.3-2de2e6?style=flat-square&labelColor=0a0c13" alt="NeoForge 26.3">
-  <img src="https://img.shields.io/badge/version-0.2.1-ffb547?style=flat-square&labelColor=0a0c13" alt="Version 0.2.1">
+  <img src="https://img.shields.io/badge/version-0.2.2-ffb547?style=flat-square&labelColor=0a0c13" alt="Version 0.2.2">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-ff4f8b?style=flat-square&labelColor=0a0c13" alt="License: MIT"></a>
 </p>
 
@@ -73,7 +73,8 @@ console, P&ID boards and a whole control room.
 ### Power and steam
 From a Stirling engine on coal up to diesel: a biogas generator, a boiler with real steam pressure and a safety
 valve, an oil and gas burner that fires it on what your refinery makes, a steam turbine, a diesel generator, a fuel cell
-and a wind turbine thirty blocks high. Power cables bring the FE to machines that do not touch a generator.
+and a wind turbine thirty blocks high. Power cables, cable trays and transformers bring the FE to machines that do not
+touch a generator, a battery bank keeps what they leave over, and a power meter shows what flows.
 
 <img src=".github/readme/shelf-power.png" width="100%" alt="Stirling engine, biogas generator, boiler, safety valve, steam turbine, diesel generator, fuel cell, power cable, wind turbine and a small steam plant.">
 
@@ -87,13 +88,16 @@ forty blocks high that burns what the plant cannot keep.
 
 ### Logistics
 Pallets of drums, an electric pallet truck, a forklift and pallet racking. Plus factory blocks to build round it all:
-grating, handrails, stairs, caged ladders, steel beams and hazard stripes. And Hookonium, a purple endgame ore.
+grating, handrails, stairs, caged ladders, steel beams, hazard stripes, concrete plinths and bund walls, an epoxy floor
+with walkways, pipe racks, insulated pipes, wall sleeves, safety signs, an MCC cabinet and a local control station. And
+Hookonium, a purple endgame ore, for operator gear as strong as diamond: a hard hat, a bump cap, a coverall you can
+dye and safety boots.
 
 <img src=".github/readme/shelf-logistics.png" width="100%" alt="A pallet of drums, a loaded pallet truck, a forklift lifting a pallet and pallet racking.">
 
 ## Get it
 
-Setpoint **0.2.1** is the latest release. Back up your world before you update to a new version.
+Setpoint **0.2.2** is the latest release. Back up your world before you update to a new version.
 Download it on **[CurseForge](https://www.curseforge.com/minecraft/mc-mods/setpoint)**, or build it yourself (see below).
 
 - Minecraft 26.3 with NeoForge, Java 25

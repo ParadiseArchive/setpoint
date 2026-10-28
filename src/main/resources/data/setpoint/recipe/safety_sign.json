@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "Y": "minecraft:yellow_dye",
+    "I": "minecraft:iron_ingot",
+    "K": "minecraft:black_dye"
+  },
+  "pattern": [
+    "YIK"
+  ],
+  "result": {
+    "count": 3,
+    "id": "setpoint:safety_sign"
+  }
+}

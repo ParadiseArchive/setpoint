@@ -114,6 +114,9 @@ public final class SetpointContent {
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<PidDrawing>> PID_DRAWING = COMPONENTS.register("pid_drawing",
             () -> DataComponentType.<PidDrawing>builder().persistent(PidDrawing.CODEC).networkSynchronized(PidDrawing.STREAM_CODEC).build());
     /** The liquid inside a drum or IBC item, so it keeps its contents when you carry it away. */
+    /** The charge a battery bank keeps when you break it. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> STORED_ENERGY = COMPONENTS.register("stored_energy",
+            () -> DataComponentType.<Integer>builder().persistent(com.mojang.serialization.Codec.INT).networkSynchronized(net.minecraft.network.codec.ByteBufCodecs.VAR_INT).build());
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<SimpleFluidContent>> FLUID_CONTENTS = COMPONENTS.register("fluid_contents",
             () -> DataComponentType.<SimpleFluidContent>builder().persistent(SimpleFluidContent.CODEC).networkSynchronized(SimpleFluidContent.STREAM_CODEC).build());
     /** The first corner picked with a blank P&ID. */
@@ -215,6 +218,24 @@ public final class SetpointContent {
             p -> p.mapColor(MapColor.COLOR_BLUE).strength(3.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
     public static final DeferredBlock<io.hookdev.setpoint.block.RackBeamBlock> RACK_BEAM = BLOCKS.registerBlock("rack_beam", io.hookdev.setpoint.block.RackBeamBlock::new,
             p -> p.mapColor(MapColor.COLOR_ORANGE).strength(3.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    // building blocks of a plant (0.2.2): concrete, floors, a pipe rack, signs and the electrical room
+    public static final DeferredBlock<Block> CONCRETE_PLINTH = BLOCKS.registerSimpleBlock("concrete_plinth", p -> p.mapColor(MapColor.STONE).strength(2.0f, 6.0f).sound(SoundType.STONE).requiresCorrectToolForDrops().noOcclusion());
+    public static final DeferredBlock<net.minecraft.world.level.block.WallBlock> BUND_WALL = BLOCKS.registerBlock("bund_wall", net.minecraft.world.level.block.WallBlock::new,
+            p -> p.mapColor(MapColor.STONE).strength(2.0f, 6.0f).sound(SoundType.STONE).requiresCorrectToolForDrops());
+    public static final DeferredBlock<io.hookdev.setpoint.block.FurnitureBlock> BOLLARD = BLOCKS.registerBlock("bollard", p -> new io.hookdev.setpoint.block.FurnitureBlock(p, Block.box(5, 0, 5, 11, 14, 11)),
+            p -> p.mapColor(MapColor.COLOR_YELLOW).strength(3.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<Block> EPOXY_FLOOR = BLOCKS.registerSimpleBlock("epoxy_floor", p -> p.mapColor(MapColor.COLOR_GREEN).strength(2.0f, 6.0f).sound(SoundType.STONE).requiresCorrectToolForDrops());
+    public static final DeferredBlock<io.hookdev.setpoint.block.EpoxyWalkwayBlock> EPOXY_WALKWAY = BLOCKS.registerBlock("epoxy_walkway", io.hookdev.setpoint.block.EpoxyWalkwayBlock::new,
+            p -> p.mapColor(MapColor.COLOR_GREEN).strength(2.0f, 6.0f).sound(SoundType.STONE).requiresCorrectToolForDrops());
+    public static final DeferredBlock<io.hookdev.setpoint.block.FurnitureBlock> JUNCTION_BOX = BLOCKS.registerBlock("junction_box", p -> new io.hookdev.setpoint.block.FurnitureBlock(p, Block.box(4, 4, 13, 12, 12, 16)),
+            p -> p.mapColor(MapColor.COLOR_GRAY).strength(1.5f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.SafetySignBlock> SAFETY_SIGN = BLOCKS.registerBlock("safety_sign", io.hookdev.setpoint.block.SafetySignBlock::new,
+            p -> p.mapColor(MapColor.COLOR_YELLOW).strength(1.0f, 3.0f).sound(SoundType.METAL).noOcclusion().noCollision());
+    public static final DeferredBlock<io.hookdev.setpoint.block.FurnitureBlock> PIPE_RACK = BLOCKS.registerBlock("pipe_rack",
+            p -> new io.hookdev.setpoint.block.FurnitureBlock(p, net.minecraft.world.phys.shapes.Shapes.or(Block.box(0, 0, 6, 3, 16, 10), Block.box(13, 0, 6, 16, 16, 10), Block.box(0, 12, 6, 16, 16, 10))),
+            p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.FurnitureBlock> MCC_CABINET = BLOCKS.registerBlock("mcc_cabinet", p -> new io.hookdev.setpoint.block.FurnitureBlock(p, Block.box(0, 0, 2, 16, 16, 16)),
+            p -> p.mapColor(MapColor.COLOR_GRAY).strength(3.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
     public static final DeferredBlock<Block> HAZARD_STRIPES = BLOCKS.registerSimpleBlock("hazard_stripes", p -> p.mapColor(MapColor.COLOR_YELLOW).strength(3.0f, 6.0f).sound(SoundType.METAL));
     public static final DeferredBlock<Block> CORRUGATED_STEEL = BLOCKS.registerSimpleBlock("corrugated_steel", p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
     public static final DeferredBlock<io.hookdev.setpoint.block.IndustrialLampBlock> INDUSTRIAL_LAMP = BLOCKS.registerBlock("industrial_lamp", io.hookdev.setpoint.block.IndustrialLampBlock::new,
@@ -321,6 +342,23 @@ public final class SetpointContent {
 
     public static final DeferredBlock<io.hookdev.setpoint.block.PowerCableBlock> POWER_CABLE = BLOCKS.registerBlock("power_cable", io.hookdev.setpoint.block.PowerCableBlock::new,
             p -> p.mapColor(MapColor.COLOR_BLACK).strength(0.5f).sound(SoundType.WOOL).noOcclusion());
+    // round 2 of the plant's building blocks: they work on the line
+    public static final DeferredBlock<io.hookdev.setpoint.block.CableTrayBlock> CABLE_TRAY = BLOCKS.registerBlock("cable_tray", io.hookdev.setpoint.block.CableTrayBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(1.5f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.TransformerBlock> TRANSFORMER = BLOCKS.registerBlock("transformer", io.hookdev.setpoint.block.TransformerBlock::new,
+            p -> p.mapColor(MapColor.COLOR_GRAY).strength(3.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<FluidPipeBlock> INSULATED_PIPE = BLOCKS.registerBlock("insulated_pipe", FluidPipeBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(2.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.GasPipeBlock> INSULATED_GAS_PIPE = BLOCKS.registerBlock("insulated_gas_pipe", io.hookdev.setpoint.block.GasPipeBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(2.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.WallSleeveBlock> WALL_SLEEVE = BLOCKS.registerBlock("wall_sleeve", io.hookdev.setpoint.block.WallSleeveBlock::new,
+            p -> p.mapColor(MapColor.STONE).strength(2.0f, 6.0f).sound(SoundType.STONE).requiresCorrectToolForDrops());
+    public static final DeferredBlock<io.hookdev.setpoint.block.LocalControlStationBlock> LOCAL_CONTROL_STATION = BLOCKS.registerBlock("local_control_station", io.hookdev.setpoint.block.LocalControlStationBlock::new,
+            p -> p.mapColor(MapColor.COLOR_GRAY).strength(1.5f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.PowerMeterBlock> POWER_METER = BLOCKS.registerBlock("power_meter", io.hookdev.setpoint.block.PowerMeterBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(1.5f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.BatteryBankBlock> BATTERY_BANK = BLOCKS.registerBlock("battery_bank", io.hookdev.setpoint.block.BatteryBankBlock::new,
+            p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
     public static final DeferredBlock<io.hookdev.setpoint.block.WindTurbineBlock> WIND_TURBINE = BLOCKS.registerBlock("wind_turbine", io.hookdev.setpoint.block.WindTurbineBlock::new,
             p -> p.mapColor(MapColor.SNOW).strength(4.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
     public static final DeferredBlock<io.hookdev.setpoint.block.WindTurbinePartBlock> WIND_TURBINE_PART = BLOCKS.registerBlock("wind_turbine_part", io.hookdev.setpoint.block.WindTurbinePartBlock::new,
@@ -391,6 +429,15 @@ public final class SetpointContent {
     public static final DeferredItem<BlockItem> RACK_UPRIGHT_ITEM = ITEMS.registerSimpleBlockItem(RACK_UPRIGHT);
     public static final DeferredItem<BlockItem> RACK_BEAM_ITEM = ITEMS.registerSimpleBlockItem(RACK_BEAM);
     public static final DeferredItem<BlockItem> HAZARD_STRIPES_ITEM = ITEMS.registerSimpleBlockItem(HAZARD_STRIPES);
+    public static final DeferredItem<BlockItem> CONCRETE_PLINTH_ITEM = ITEMS.registerSimpleBlockItem(CONCRETE_PLINTH);
+    public static final DeferredItem<BlockItem> BUND_WALL_ITEM = ITEMS.registerSimpleBlockItem(BUND_WALL);
+    public static final DeferredItem<BlockItem> BOLLARD_ITEM = ITEMS.registerSimpleBlockItem(BOLLARD);
+    public static final DeferredItem<BlockItem> EPOXY_FLOOR_ITEM = ITEMS.registerSimpleBlockItem(EPOXY_FLOOR);
+    public static final DeferredItem<BlockItem> EPOXY_WALKWAY_ITEM = ITEMS.registerSimpleBlockItem(EPOXY_WALKWAY);
+    public static final DeferredItem<BlockItem> JUNCTION_BOX_ITEM = ITEMS.registerSimpleBlockItem(JUNCTION_BOX);
+    public static final DeferredItem<BlockItem> SAFETY_SIGN_ITEM = ITEMS.registerSimpleBlockItem(SAFETY_SIGN);
+    public static final DeferredItem<BlockItem> PIPE_RACK_ITEM = ITEMS.registerSimpleBlockItem(PIPE_RACK);
+    public static final DeferredItem<BlockItem> MCC_CABINET_ITEM = ITEMS.registerSimpleBlockItem(MCC_CABINET);
     public static final DeferredItem<BlockItem> CORRUGATED_STEEL_ITEM = ITEMS.registerSimpleBlockItem(CORRUGATED_STEEL);
     public static final DeferredItem<BlockItem> INDUSTRIAL_LAMP_ITEM = ITEMS.registerSimpleBlockItem(INDUSTRIAL_LAMP);
     public static final DeferredItem<BlockItem> OVERVIEW_SCREEN_ITEM = ITEMS.registerSimpleBlockItem(OVERVIEW_SCREEN);
@@ -420,6 +467,14 @@ public final class SetpointContent {
     public static final DeferredItem<BlockItem> STIRLING_ENGINE_ITEM = ITEMS.registerSimpleBlockItem(STIRLING_ENGINE);
     public static final DeferredItem<BlockItem> POWER_CABLE_ITEM = ITEMS.registerSimpleBlockItem(POWER_CABLE);
     public static final DeferredItem<BlockItem> WIND_TURBINE_ITEM = ITEMS.registerSimpleBlockItem(WIND_TURBINE, p -> p.stacksTo(1));
+    public static final DeferredItem<BlockItem> POWER_METER_ITEM = ITEMS.registerSimpleBlockItem(POWER_METER);
+    public static final DeferredItem<BlockItem> CABLE_TRAY_ITEM = ITEMS.registerSimpleBlockItem(CABLE_TRAY);
+    public static final DeferredItem<BlockItem> TRANSFORMER_ITEM = ITEMS.registerSimpleBlockItem(TRANSFORMER);
+    public static final DeferredItem<BlockItem> INSULATED_PIPE_ITEM = ITEMS.registerSimpleBlockItem(INSULATED_PIPE);
+    public static final DeferredItem<BlockItem> INSULATED_GAS_PIPE_ITEM = ITEMS.registerSimpleBlockItem(INSULATED_GAS_PIPE);
+    public static final DeferredItem<BlockItem> WALL_SLEEVE_ITEM = ITEMS.registerSimpleBlockItem(WALL_SLEEVE);
+    public static final DeferredItem<BlockItem> LOCAL_CONTROL_STATION_ITEM = ITEMS.registerSimpleBlockItem(LOCAL_CONTROL_STATION);
+    public static final DeferredItem<BlockItem> BATTERY_BANK_ITEM = ITEMS.registerSimpleBlockItem(BATTERY_BANK, p -> p.stacksTo(1));
     public static final DeferredItem<BlockItem> BIOGAS_GENERATOR_ITEM = ITEMS.registerSimpleBlockItem(BIOGAS_GENERATOR);
     public static final DeferredItem<BlockItem> BOILER_ITEM = ITEMS.registerSimpleBlockItem(BOILER);
     public static final DeferredItem<BlockItem> STEAM_TURBINE_ITEM = ITEMS.registerSimpleBlockItem(STEAM_TURBINE);
@@ -449,6 +504,24 @@ public final class SetpointContent {
     public static final DeferredItem<BlockItem> RAW_HOOKONIUM_BLOCK_ITEM = ITEMS.registerSimpleBlockItem(RAW_HOOKONIUM_BLOCK);
     public static final DeferredItem<Item> RAW_HOOKONIUM = ITEMS.registerSimpleItem("raw_hookonium");
     public static final DeferredItem<Item> HOOKONIUM_INGOT = ITEMS.registerSimpleItem("hookonium_ingot", p -> p.rarity(Rarity.RARE));
+    /** A mug of coffee from the coffee machine: drink it (right-click and hold) for a minute of speed and haste; the mug is gone after. */
+    public static final DeferredItem<Item> MUG_OF_COFFEE = ITEMS.registerSimpleItem("mug_of_coffee", p -> p.stacksTo(1)
+            .component(net.minecraft.core.component.DataComponents.CONSUMABLE, net.minecraft.world.item.component.Consumables.defaultDrink()
+                    .onConsume(new net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect(java.util.List.of(
+                            new net.minecraft.world.effect.MobEffectInstance(net.minecraft.world.effect.MobEffects.SPEED, io.hookdev.setpoint.block.CoffeeMachineBlock.DURATION, 0),
+                            new net.minecraft.world.effect.MobEffectInstance(net.minecraft.world.effect.MobEffects.HASTE, io.hookdev.setpoint.block.CoffeeMachineBlock.DURATION, 0))))
+                    .build()));
+    // operator gear: as strong as diamond, made with Hookonium (see OperatorGear)
+    public static final DeferredItem<Item> OPERATOR_HELMET = ITEMS.registerSimpleItem("operator_helmet",
+            p -> p.humanoidArmor(io.hookdev.setpoint.item.OperatorGear.HARD_HAT, net.minecraft.world.item.equipment.ArmorType.HELMET));
+    public static final DeferredItem<Item> BUMP_CAP = ITEMS.registerSimpleItem("bump_cap",
+            p -> p.humanoidArmor(io.hookdev.setpoint.item.OperatorGear.BUMP_CAP, net.minecraft.world.item.equipment.ArmorType.HELMET));
+    public static final DeferredItem<Item> COVERALL_TOP = ITEMS.registerSimpleItem("coverall_top",
+            p -> p.humanoidArmor(io.hookdev.setpoint.item.OperatorGear.COVERALL, net.minecraft.world.item.equipment.ArmorType.CHESTPLATE));
+    public static final DeferredItem<Item> COVERALL_TROUSERS = ITEMS.registerSimpleItem("coverall_trousers",
+            p -> p.humanoidArmor(io.hookdev.setpoint.item.OperatorGear.COVERALL, net.minecraft.world.item.equipment.ArmorType.LEGGINGS));
+    public static final DeferredItem<Item> WORK_BOOTS = ITEMS.registerSimpleItem("work_boots",
+            p -> p.humanoidArmor(io.hookdev.setpoint.item.OperatorGear.WORK_BOOTS, net.minecraft.world.item.equipment.ArmorType.BOOTS));
     public static final DeferredItem<BlankPidItem> BLANK_PID = ITEMS.registerItem("blank_pid", BlankPidItem::new);
     public static final DeferredItem<PidItem> PID = ITEMS.registerItem("pid", PidItem::new, p -> p.stacksTo(1));
     public static final DeferredItem<PalletTruckItem> PALLET_TRUCK = ITEMS.registerItem("pallet_truck", PalletTruckItem::new, p -> p.stacksTo(1));
@@ -525,6 +598,10 @@ public final class SetpointContent {
             () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.BurnerBlockEntity::new, BURNER.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.DieselGeneratorBlockEntity>> DIESEL_GENERATOR_ENTITY = BLOCK_ENTITIES.register("diesel_generator",
             () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.DieselGeneratorBlockEntity::new, DIESEL_GENERATOR.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.BatteryBankBlockEntity>> BATTERY_BANK_ENTITY = BLOCK_ENTITIES.register("battery_bank",
+            () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.BatteryBankBlockEntity::new, BATTERY_BANK.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.PowerMeterBlockEntity>> POWER_METER_ENTITY = BLOCK_ENTITIES.register("power_meter",
+            () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.PowerMeterBlockEntity::new, POWER_METER.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.WindTurbineBlockEntity>> WIND_TURBINE_ENTITY = BLOCK_ENTITIES.register("wind_turbine",
             () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.WindTurbineBlockEntity::new, WIND_TURBINE.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MultiblockPartBlockEntity>> WIND_TURBINE_PART_ENTITY = BLOCK_ENTITIES.register("wind_turbine_part",
@@ -590,8 +667,17 @@ public final class SetpointContent {
                 output.accept(BLANK_PID.get());
                 output.accept(PID_BOARD_ITEM.get());
                 output.accept(PIPE_WRENCH.get());
+                output.accept(MUG_OF_COFFEE.get());
+                output.accept(OPERATOR_HELMET.get());
+                output.accept(BUMP_CAP.get());
+                output.accept(COVERALL_TOP.get());
+                output.accept(COVERALL_TROUSERS.get());
+                output.accept(WORK_BOOTS.get());
                 output.accept(PIPE_ITEM.get());
                 output.accept(GAS_PIPE_ITEM.get());
+                output.accept(INSULATED_PIPE_ITEM.get());
+                output.accept(INSULATED_GAS_PIPE_ITEM.get());
+                output.accept(WALL_SLEEVE_ITEM.get());
                 output.accept(GAS_VALVE_ITEM.get());
                 output.accept(GAS_CONTROL_VALVE_ITEM.get());
                 output.accept(ELECTROLYSER_ITEM.get());
@@ -637,11 +723,25 @@ public final class SetpointContent {
                 output.accept(STEEL_BEAM_ITEM.get());
                 output.accept(CHECKER_PLATE_ITEM.get());
                 output.accept(HAZARD_STRIPES_ITEM.get());
+                output.accept(CONCRETE_PLINTH_ITEM.get());
+                output.accept(BUND_WALL_ITEM.get());
+                output.accept(BOLLARD_ITEM.get());
+                output.accept(EPOXY_FLOOR_ITEM.get());
+                output.accept(EPOXY_WALKWAY_ITEM.get());
+                output.accept(PIPE_RACK_ITEM.get());
+                output.accept(JUNCTION_BOX_ITEM.get());
+                output.accept(SAFETY_SIGN_ITEM.get());
+                output.accept(MCC_CABINET_ITEM.get());
                 output.accept(CORRUGATED_STEEL_ITEM.get());
                 output.accept(INDUSTRIAL_LAMP_ITEM.get());
                 output.accept(PUMP_ITEM.get());
                 output.accept(POWER_CABLE_ITEM.get());
                 output.accept(WIND_TURBINE_ITEM.get());
+                output.accept(POWER_METER_ITEM.get());
+                output.accept(CABLE_TRAY_ITEM.get());
+                output.accept(TRANSFORMER_ITEM.get());
+                output.accept(LOCAL_CONTROL_STATION_ITEM.get());
+                output.accept(BATTERY_BANK_ITEM.get());
                 output.accept(STIRLING_ENGINE_ITEM.get());
                 output.accept(BIOGAS_GENERATOR_ITEM.get());
                 output.accept(BOILER_ITEM.get());

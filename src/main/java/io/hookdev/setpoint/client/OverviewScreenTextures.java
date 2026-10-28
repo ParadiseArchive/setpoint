@@ -112,6 +112,7 @@ public final class OverviewScreenTextures {
             case OverviewScreenBlockEntity.ALARMS -> alarms(c, labels, data, blink, font, x0, y0, x1, y1);
             case OverviewScreenBlockEntity.TRENDS -> trends(c, labels, data, font, x0, y0, x1, y1);
             case OverviewScreenBlockEntity.PID -> pid(c, labels, data, blink, x0, y0, x1, y1);
+            case OverviewScreenBlockEntity.POWER -> power(c, labels, data, x0, y0, x1, y1);
             default -> overview(c, labels, data, blink, x0, y0, x1, y1);
         }
         return labels;
@@ -129,6 +130,49 @@ public final class OverviewScreenTextures {
         c.fill(x0, y0, x1, y1, PidRenderer.BLUEPRINT);
         int cell = PidRenderer.fitCell(drawing, x1 - x0, y1 - y0, PidRenderer.MAX_CELL);
         PidRenderer.draw(c::fill, drawing, PidRenderer.centred(drawing, x0, y0, x1 - x0, y1 - y0, cell), new LiveStyle(live, blink));
+    }
+
+    /**
+     * The power page: on top what all generators make together and the batteries' charge with a bar; below a line per
+     * generator (what it makes), battery (its charge, in or out) and power meter (what its cable carries).
+     */
+    private static void power(Canvas c, List<Label> labels, OverviewData data, int x0, int y0, int x1, int y1) {
+        OverviewData.Power power = data.power();
+        if (power.lines().isEmpty()) {
+            labels.add(new Label(x0 + 2, y0 + 2, "No generators, batteries or power meters near the console", GREY, x1 - x0));
+            return;
+        }
+        int row = 9, half = (x0 + x1) / 2;
+        labels.add(new Label(x0 + 2, y0 + 1, "MADE", GREY, 26));
+        labels.add(new Label(x0 + 28, y0 + 1, power.made() + " FE/t", CYAN, half - x0 - 30));
+        if (power.capacity() > 0) {
+            int percent = (int) (power.stored() * 100 / power.capacity());
+            labels.add(new Label(half, y0 + 1, String.format("BATTERY %d %%  %+d FE/t", percent, power.rate()), percent == 0 ? AMBER : TEXT, x1 - half));
+            c.fill(half, y0 + row - 2, x1 - 2, y0 + row, TILE);
+            c.fill(half, y0 + row - 2, half + (x1 - 2 - half) * percent / 100, y0 + row, percent == 0 ? AMBER : CYAN);
+        }
+        c.fill(x0, y0 + row + 1, x1, y0 + row + 2, GRID);
+        int most = 1;
+        for (OverviewData.PowerLine line : power.lines()) most = Math.max(most, Math.abs(line.fe()));
+        int rows = Math.max(1, (y1 - y0 - row - 4) / row), kindX = x0 + Math.min(60, (x1 - x0) / 4), valueX = kindX + 46, barX = valueX + 54;
+        for (int i = 0; i < Math.min(power.lines().size(), rows); i++) {
+            float y = y0 + row + 4 + i * row;
+            if (i == rows - 1 && power.lines().size() > rows) {
+                labels.add(new Label(x0 + 2, y, "+" + (power.lines().size() - rows + 1) + " more on the console", GREY, x1 - x0));
+                break;
+            }
+            OverviewData.PowerLine line = power.lines().get(i);
+            if (i % 2 == 1) c.fill(x0, (int) y - 1, x1, (int) y + row - 1, TILE);
+            labels.add(new Label(x0 + 2, y, line.tag(), TEXT, kindX - x0 - 4));
+            labels.add(new Label(kindX, y, line.kind(), GREY, valueX - kindX - 2));
+            String value = line.percent() >= 0 ? String.format("%d %% %+d", line.percent(), line.fe()) : line.fe() + " FE/t";
+            labels.add(new Label(valueX, y, value, line.fe() == 0 && line.percent() < 0 ? GREY : CYAN, barX - valueX - 2));
+            if (x1 - 3 - barX > 8) { // a bar: a battery's charge, or what this one carries next to the biggest
+                int length = line.percent() >= 0 ? (x1 - 3 - barX) * line.percent() / 100 : (x1 - 3 - barX) * Math.abs(line.fe()) / most;
+                c.fill(barX, (int) y + 2, x1 - 3, (int) y + 5, TILE);
+                c.fill(barX, (int) y + 2, barX + length, (int) y + 5, line.percent() >= 0 ? CYAN : AMBER);
+            }
+        }
     }
 
     /** Every tag as a tile: the tag, and its status in the colour of how it is doing. */

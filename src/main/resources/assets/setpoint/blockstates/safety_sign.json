@@ -1,0 +1,94 @@
+{
+  "variants": {
+    "facing=north,sign=0": {
+      "model": "setpoint:block/safety_sign_0"
+    },
+    "facing=north,sign=1": {
+      "model": "setpoint:block/safety_sign_1"
+    },
+    "facing=north,sign=2": {
+      "model": "setpoint:block/safety_sign_2"
+    },
+    "facing=north,sign=3": {
+      "model": "setpoint:block/safety_sign_3"
+    },
+    "facing=north,sign=4": {
+      "model": "setpoint:block/safety_sign_4"
+    },
+    "facing=north,sign=5": {
+      "model": "setpoint:block/safety_sign_5"
+    },
+    "facing=east,sign=0": {
+      "model": "setpoint:block/safety_sign_0",
+      "y": 90
+    },
+    "facing=east,sign=1": {
+      "model": "setpoint:block/safety_sign_1",
+      "y": 90
+    },
+    "facing=east,sign=2": {
+      "model": "setpoint:block/safety_sign_2",
+      "y": 90
+    },
+    "facing=east,sign=3": {
+      "model": "setpoint:block/safety_sign_3",
+      "y": 90
+    },
+    "facing=east,sign=4": {
+      "model": "setpoint:block/safety_sign_4",
+      "y": 90
+    },
+    "facing=east,sign=5": {
+      "model": "setpoint:block/safety_sign_5",
+      "y": 90
+    },
+    "facing=south,sign=0": {
+      "model": "setpoint:block/safety_sign_0",
+      "y": 180
+    },
+    "facing=south,sign=1": {
+      "model": "setpoint:block/safety_sign_1",
+      "y": 180
+    },
+    "facing=south,sign=2": {
+      "model": "setpoint:block/safety_sign_2",
+      "y": 180
+    },
+    "facing=south,sign=3": {
+      "model": "setpoint:block/safety_sign_3",
+      "y": 180
+    },
+    "facing=south,sign=4": {
+      "model": "setpoint:block/safety_sign_4",
+      "y": 180
+    },
+    "facing=south,sign=5": {
+      "model": "setpoint:block/safety_sign_5",
+      "y": 180
+    },
+    "facing=west,sign=0": {
+      "model": "setpoint:block/safety_sign_0",
+      "y": 270
+    },
+    "facing=west,sign=1": {
+      "model": "setpoint:block/safety_sign_1",
+      "y": 270
+    },
+    "facing=west,sign=2": {
+      "model": "setpoint:block/safety_sign_2",
+      "y": 270
+    },
+    "facing=west,sign=3": {
+      "model": "setpoint:block/safety_sign_3",
+      "y": 270
+    },
+    "facing=west,sign=4": {
+      "model": "setpoint:block/safety_sign_4",
+      "y": 270
+    },
+    "facing=west,sign=5": {
+      "model": "setpoint:block/safety_sign_5",
+      "y": 270
+    }
+  }
+}

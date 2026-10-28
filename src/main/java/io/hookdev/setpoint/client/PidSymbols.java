@@ -97,6 +97,15 @@ public final class PidSymbols {
     // a burner: the flame on a burner tip, under a firebox
     private static final String[] BURNER = {
             "########", "#......#", "#..+...#", "#.+++..#", "#.++++.#", "#..++..#", "#..##..#", "########"};
+    // a wind turbine: three blades on the hub, the tower down to its foot
+    private static final String[] WIND_TURBINE = {
+            "...+....", "...+....", "...##...", "..+##+..", ".+.##.+.", "...##...", "...##...", ".######."};
+    // a battery: its cells as long and short plates, plus and minus
+    private static final String[] BATTERY = {
+            "...##...", "########", "#......#", "#+.##..#", "+++..+.#", "#+.####.", "#......#", "########"};
+    // a power meter: an instrument bubble with a lightning bolt
+    private static final String[] POWER_METER = {
+            "..####..", ".#....#.", "#...++.#", "#..++..#", "#.++++.#", "#..++..#", ".#++..#.", "..####.."};
     private static final String[] CONSOLE = {
             "########", "#++++++#", "#+....+#", "#++++++#", "########", "...##...", "..####..", "........"};
 
@@ -136,6 +145,9 @@ public final class PidSymbols {
             case PidDrawing.ESD_BUTTON -> ESD_BUTTON;
             case PidDrawing.ALARM_BEACON -> ALARM_BEACON;
             case PidDrawing.BURNER -> BURNER;
+            case PidDrawing.WIND_TURBINE -> WIND_TURBINE;
+            case PidDrawing.BATTERY -> BATTERY;
+            case PidDrawing.POWER_METER -> POWER_METER;
             default -> null;
         };
     }

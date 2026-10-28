@@ -94,7 +94,9 @@ public class Setpoint {
         // Hoppers can feed the tank's bucket slot and take the result out below.
         event.registerBlockEntity(Capabilities.Item.BLOCK, SetpointContent.TANK_ENTITY.get(), (tank, side) -> tank.buckets());
         // Power cables take FE from generators and hand it straight on to the machines along them.
-        event.registerBlock(Capabilities.Energy.BLOCK, (level, pos, state, blockEntity, side) -> io.hookdev.setpoint.power.PowerNetwork.handler(level, pos), SetpointContent.POWER_CABLE.get());
+        event.registerBlock(Capabilities.Energy.BLOCK, (level, pos, state, blockEntity, side) -> io.hookdev.setpoint.power.PowerNetwork.handler(level, pos), SetpointContent.POWER_CABLE.get(), SetpointContent.POWER_METER.get(),
+                SetpointContent.CABLE_TRAY.get(), SetpointContent.TRANSFORMER.get());
+        event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.BATTERY_BANK_ENTITY.get(), (battery, side) -> battery.energy());
         event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.WIND_TURBINE_ENTITY.get(), (turbine, side) -> turbine.energy());
         // Pumps take FE from any side; cables from other mods can power them.
         event.registerBlockEntity(Capabilities.Energy.BLOCK, SetpointContent.PUMP_ENTITY.get(), (pump, side) -> pump.energy());

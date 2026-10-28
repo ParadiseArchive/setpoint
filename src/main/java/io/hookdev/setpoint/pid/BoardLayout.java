@@ -30,7 +30,7 @@ public record BoardLayout(int texW, int texH, int originX, int originY, int cell
         double px = u * texW - originX, py = v * texH - originY;
         if (px < 0 || py < 0) return null;
         int x = (int) (px / cell), y = (int) (py / cell);
-        for (PidDrawing.Cell c : drawing.cells()) if (c.symbol() != PidDrawing.PIPE && c.covers(x, y)) return c;
+        for (PidDrawing.Cell c : drawing.cells()) if (c.symbol() != PidDrawing.PIPE && c.symbol() != PidDrawing.CABLE && c.covers(x, y)) return c;
         return null;
     }
 

@@ -1,0 +1,78 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "tray": "setpoint:block/cable_tray",
+    "cable": "setpoint:block/power_cable",
+    "particle": "setpoint:block/cable_tray"
+  },
+  "elements": [
+    {
+      "from": [
+        2,
+        4,
+        2
+      ],
+      "to": [
+        14,
+        5,
+        14
+      ],
+      "faces": {
+        "north": {
+          "uv": [
+            2,
+            11,
+            14,
+            12
+          ],
+          "texture": "#tray"
+        },
+        "south": {
+          "uv": [
+            2,
+            11,
+            14,
+            12
+          ],
+          "texture": "#tray"
+        },
+        "east": {
+          "uv": [
+            2,
+            11,
+            14,
+            12
+          ],
+          "texture": "#tray"
+        },
+        "west": {
+          "uv": [
+            2,
+            11,
+            14,
+            12
+          ],
+          "texture": "#tray"
+        },
+        "up": {
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ],
+          "texture": "#tray"
+        },
+        "down": {
+          "uv": [
+            2,
+            2,
+            14,
+            14
+          ],
+          "texture": "#tray"
+        }
+      }
+    }
+  ]
+}

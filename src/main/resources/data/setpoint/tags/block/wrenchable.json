@@ -35,6 +35,7 @@
     "setpoint:gas_control_valve",
     "setpoint:burner",
     "setpoint:power_cable",
-    "setpoint:wind_turbine"
+    "setpoint:wind_turbine",
+    "setpoint:power_meter"
   ]
 }

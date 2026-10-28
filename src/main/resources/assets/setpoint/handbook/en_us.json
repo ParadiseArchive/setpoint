@@ -732,6 +732,134 @@
           "count": 8
         },
         {
+          "type": "h",
+          "text": "A real plant"
+        },
+        {
+          "type": "p",
+          "text": "Pumps and tanks stand on a **concrete plinth**; a **bund wall** round a tank catches a spill and joins up like any wall. **Bollards** keep forklifts off the pipes. Inside, an **epoxy floor** and **epoxy walkways**: walkways side by side that run the same way make one wide walkway."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:concrete_plinth",
+          "grid": [
+            "minecraft:light_gray_concrete",
+            "minecraft:gravel",
+            "minecraft:light_gray_concrete",
+            "minecraft:gravel",
+            "minecraft:light_gray_concrete",
+            "minecraft:gravel",
+            "minecraft:light_gray_concrete",
+            "minecraft:gravel",
+            "minecraft:light_gray_concrete"
+          ],
+          "count": 8
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:bund_wall",
+          "grid": [
+            "setpoint:concrete_plinth",
+            "setpoint:concrete_plinth",
+            "setpoint:concrete_plinth",
+            "setpoint:concrete_plinth",
+            "setpoint:concrete_plinth",
+            "setpoint:concrete_plinth",
+            "",
+            "",
+            ""
+          ],
+          "count": 6
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:epoxy_walkway",
+          "grid": [
+            "",
+            "",
+            "",
+            "setpoint:epoxy_floor",
+            "minecraft:yellow_dye",
+            "setpoint:epoxy_floor",
+            "",
+            "",
+            ""
+          ],
+          "count": 2
+        },
+        {
+          "type": "p",
+          "text": "A row of **pipe racks** carries your pipes above the ground. **Insulated pipes** (liquid, and gas with yellow bands for steam) work like pipes in an aluminium jacket. A **wall sleeve** takes a liquid pipe straight through a wall: it runs the way you look when you place it."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:pipe_rack",
+          "grid": [
+            "setpoint:steel_beam",
+            "setpoint:steel_beam",
+            "setpoint:steel_beam",
+            "setpoint:steel_beam",
+            "",
+            "setpoint:steel_beam",
+            "",
+            "",
+            ""
+          ],
+          "count": 4
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:insulated_pipe",
+          "grid": [
+            "minecraft:iron_nugget",
+            "minecraft:white_wool",
+            "minecraft:iron_nugget",
+            "setpoint:pipe",
+            "setpoint:pipe",
+            "setpoint:pipe",
+            "minecraft:iron_nugget",
+            "minecraft:white_wool",
+            "minecraft:iron_nugget"
+          ],
+          "count": 3
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:wall_sleeve",
+          "grid": [
+            "",
+            "",
+            "",
+            "setpoint:concrete_plinth",
+            "setpoint:pipe",
+            "setpoint:concrete_plinth",
+            "",
+            "",
+            ""
+          ],
+          "count": 2
+        },
+        {
+          "type": "p",
+          "text": "And the finishing touches: a **junction box**, **safety signs** (right-click for the next: flammable, toxic, high voltage, hard hat area, ear protection, assembly point) and an **MCC cabinet** for the electrical room."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:safety_sign",
+          "grid": [
+            "",
+            "",
+            "",
+            "minecraft:yellow_dye",
+            "minecraft:iron_ingot",
+            "minecraft:black_dye",
+            "",
+            "",
+            ""
+          ],
+          "count": 3
+        },
+        {
           "type": "craft",
           "result": "setpoint:hazard_stripes",
           "grid": [
@@ -1426,7 +1554,11 @@
         },
         {
           "type": "p",
-          "text": "A cable holds nothing: what a generator pushes into it goes straight on to the machines along it, **shared out evenly**. Water flows round it, so you can bury it under a pond."
+          "text": "A cable holds nothing: what a generator pushes into it goes straight on to the machines along it, **shared out evenly**. It also pulls FE out of generators beside it, so generators from other mods that wait to be drained work too. Water flows round it, so you can bury it under a pond."
+        },
+        {
+          "type": "p",
+          "text": "On a P&ID, cables are dotted purple lines beside the pipes, and the wind turbine has its own symbol."
         },
         {
           "type": "craft",
@@ -1468,6 +1600,114 @@
             "",
             "",
             "minecraft:iron_block",
+            ""
+          ],
+          "count": 1
+        },
+        {
+          "type": "h",
+          "text": "Battery bank"
+        },
+        {
+          "type": "p",
+          "text": "Stores a **million FE**. On a cable it takes what the machines leave over and gives it back when they need more than the generators make, so wind power keeps for a calm. Machines always come first; a battery feeds machines, never another battery. Break it and the charge goes along."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:battery_bank",
+          "grid": [
+            "minecraft:iron_ingot",
+            "minecraft:redstone_block",
+            "minecraft:iron_ingot",
+            "minecraft:copper_block",
+            "minecraft:redstone_block",
+            "minecraft:copper_block",
+            "minecraft:iron_ingot",
+            "minecraft:redstone_block",
+            "minecraft:iron_ingot"
+          ],
+          "count": 1
+        },
+        {
+          "type": "h",
+          "text": "Power meter"
+        },
+        {
+          "type": "p",
+          "text": "Put it in a cable run: it joins the cable like a piece of it. Its four lights count up with the FE/t its network carries, and the console shows it as a JI tag. The video wall has a POWER page too."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:power_meter",
+          "grid": [
+            "",
+            "minecraft:glass_pane",
+            "",
+            "setpoint:power_cable",
+            "minecraft:redstone",
+            "setpoint:power_cable",
+            "",
+            "",
+            ""
+          ],
+          "count": 1
+        },
+        {
+          "type": "p",
+          "text": "A **cable tray** and a **transformer** carry power like a cable, and look the part."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:cable_tray",
+          "grid": [
+            "minecraft:iron_ingot",
+            "",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "setpoint:power_cable",
+            "minecraft:iron_ingot",
+            "",
+            "",
+            ""
+          ],
+          "count": 4
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:transformer",
+          "grid": [
+            "minecraft:iron_ingot",
+            "",
+            "minecraft:iron_ingot",
+            "minecraft:copper_block",
+            "minecraft:redstone_block",
+            "minecraft:copper_block",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot",
+            "minecraft:iron_ingot"
+          ],
+          "count": 1
+        },
+        {
+          "type": "h",
+          "text": "Local control station"
+        },
+        {
+          "type": "p",
+          "text": "START and STOP push buttons beside a machine: press the top half to start, the bottom half to stop. Stopped, it gives a redstone signal, so a pump beside it stops."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:local_control_station",
+          "grid": [
+            "minecraft:iron_nugget",
+            "minecraft:stone_button",
+            "minecraft:iron_nugget",
+            "minecraft:iron_nugget",
+            "minecraft:redstone_torch",
+            "minecraft:iron_nugget",
+            "",
+            "",
             ""
           ],
           "count": 1
@@ -1824,7 +2064,7 @@
         },
         {
           "type": "p",
-          "text": "To finish the room: a **raised floor** (with **vent** tiles), **ceiling panels** and **ceiling lights**, a **wall clock** with the time of day, a **filing cabinet** that holds as much as a barrel, a **printer** (right-click it with paper and it prints the alarm log of the nearest console as a book, for the shift handover), a **coffee machine** (a cup gives a minute of speed and haste), a lit **exit sign** (right-click to turn its arrow), a **blast door** and **wired glass** for windows onto the plant."
+          "text": "To finish the room: a **raised floor** (with **vent** tiles), **ceiling panels** and **ceiling lights**, a **wall clock** with the time of day, a **filing cabinet** that holds as much as a barrel, a **printer** (right-click it with paper and it prints the alarm log of the nearest console as a book, for the shift handover), a **coffee machine** (it pours you a **mug of coffee**: right-click and hold to drink it for a minute of speed and haste; one coffee at a time), a lit **exit sign** (right-click to turn its arrow), a **blast door** and **wired glass** for windows onto the plant."
         },
         {
           "type": "craft",
@@ -1857,6 +2097,105 @@
             "minecraft:glass"
           ],
           "count": 8
+        }
+      ]
+    },
+    {
+      "id": "gear",
+      "title": "Operator gear",
+      "icon": "setpoint:operator_helmet",
+      "content": [
+        {
+          "type": "h",
+          "text": "Dressed for the plant"
+        },
+        {
+          "type": "p",
+          "text": "What an operator wears, as strong as **diamond armour**, made and repaired with Hookonium: a white **operator helmet** with a brim all round, a yellow **bump cap** with a peak, a blue **coverall** (top and trousers) with reflective bands, and **safety boots** with steel toe caps."
+        },
+        {
+          "type": "p",
+          "text": "Dye the coverall any colour in the crafting grid, like leather armour. The bands, the zip and the badge keep their colour."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:operator_helmet",
+          "grid": [
+            "minecraft:white_concrete",
+            "setpoint:hookonium_ingot",
+            "minecraft:white_concrete",
+            "setpoint:hookonium_ingot",
+            "",
+            "setpoint:hookonium_ingot",
+            "",
+            "",
+            ""
+          ],
+          "count": 1
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:bump_cap",
+          "grid": [
+            "minecraft:yellow_wool",
+            "setpoint:hookonium_ingot",
+            "minecraft:yellow_wool",
+            "setpoint:hookonium_ingot",
+            "",
+            "setpoint:hookonium_ingot",
+            "",
+            "",
+            ""
+          ],
+          "count": 1
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:coverall_top",
+          "grid": [
+            "setpoint:hookonium_ingot",
+            "",
+            "setpoint:hookonium_ingot",
+            "minecraft:blue_wool",
+            "setpoint:hookonium_ingot",
+            "minecraft:blue_wool",
+            "minecraft:blue_wool",
+            "minecraft:blue_wool",
+            "minecraft:blue_wool"
+          ],
+          "count": 1
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:coverall_trousers",
+          "grid": [
+            "minecraft:blue_wool",
+            "setpoint:hookonium_ingot",
+            "minecraft:blue_wool",
+            "minecraft:blue_wool",
+            "",
+            "minecraft:blue_wool",
+            "setpoint:hookonium_ingot",
+            "",
+            "setpoint:hookonium_ingot"
+          ],
+          "count": 1
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:work_boots",
+          "grid": [
+            "minecraft:leather",
+            "",
+            "minecraft:leather",
+            "setpoint:hookonium_ingot",
+            "",
+            "setpoint:hookonium_ingot",
+            "",
+            "",
+            ""
+          ],
+          "count": 1
         }
       ]
     },
@@ -1894,7 +2233,7 @@
         },
         {
           "type": "p",
-          "text": "Nine ingots make a block, and back. Hookonium is saved for machines that are still being designed."
+          "text": "Nine ingots make a block, and back. Hookonium makes the operator gear and the floating roof tank; more machines are still being designed."
         }
       ]
     },

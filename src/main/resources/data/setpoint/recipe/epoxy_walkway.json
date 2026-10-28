@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "F": "setpoint:epoxy_floor",
+    "Y": "minecraft:yellow_dye"
+  },
+  "pattern": [
+    "FYF"
+  ],
+  "result": {
+    "count": 2,
+    "id": "setpoint:epoxy_walkway"
+  }
+}

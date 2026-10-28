@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "G": "minecraft:glass_pane",
+    "C": "setpoint:power_cable",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    " G ",
+    "CRC"
+  ],
+  "result": {
+    "id": "setpoint:power_meter"
+  }
+}

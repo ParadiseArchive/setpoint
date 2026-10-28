@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": "minecraft:light_gray_concrete",
+    "G": "minecraft:gravel"
+  },
+  "pattern": [
+    "CGC",
+    "GCG",
+    "CGC"
+  ],
+  "result": {
+    "count": 8,
+    "id": "setpoint:concrete_plinth"
+  }
+}

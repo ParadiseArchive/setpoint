@@ -11,6 +11,8 @@ import io.hookdev.setpoint.pid.PidDrawing;
  */
 public final class PidRenderer {
     public static final int BLUEPRINT = 0xFF10294D, GRID = 0xFF16345F, LINE = 0xFFE8F1FF, ACCENT = 0xFF2DE2E6, SIGNAL = 0xFFFFB547;
+    /** Power cables: a dotted purple line, off the middle so a pipe in the same cell still shows. */
+    public static final int CABLE = 0xFFB98CFF;
     public static final int MIN_CELL = 8, MAX_CELL = 32;
 
     private PidRenderer() {}
@@ -76,9 +78,10 @@ public final class PidRenderer {
                 g.fill(cx - 2, cy - 2, cx + 3, cy + 3, LINE);
                 g.fill(cx - 1, cy - 1, cx + 2, cy + 2, BLUEPRINT);
             }
+            cable(g, c, x0, y0, cell, cx + 2 * thick, cy + 2 * thick, thick);
         }
         for (PidDrawing.Cell c : drawing.cells()) {
-            if (c.symbol() == PidDrawing.PIPE) continue;
+            if (c.symbol() == PidDrawing.PIPE || c.symbol() == PidDrawing.CABLE) continue;
             // big equipment: the symbol grows to fill its footprint
             int rectW = c.spanW() * cell, rectH = c.spanH() * cell;
             int scale = c.spanW() == 1 && c.spanH() == 1 ? l.scale() : Math.max(1, (Math.min(rectW, rectH) - Math.max(2, cell / 4)) / 8);
@@ -103,9 +106,10 @@ public final class PidRenderer {
             if ((c.pipes() & PidDrawing.SOUTH) != 0) g.fill(cx, cy, cx + 1, y0 + cell, LINE);
             if ((c.pipes() & PidDrawing.WEST) != 0) g.fill(x0, cy, cx + 1, cy + 1, LINE);
             if ((c.pipes() & PidDrawing.EAST) != 0) g.fill(cx, cy, x0 + cell, cy + 1, LINE);
+            cable(g, c, x0, y0, cell, cx, cy, 1);
         }
         for (PidDrawing.Cell c : drawing.cells()) {
-            if (c.symbol() == PidDrawing.PIPE) continue;
+            if (c.symbol() == PidDrawing.PIPE || c.symbol() == PidDrawing.CABLE) continue;
             int x0 = l.originX() + c.x() * cell, y0 = l.originY() + c.y() * cell, size = Math.max(1, Math.min(c.spanW(), c.spanH()) * cell - 1);
             g.fill(x0, y0, x0 + size, y0 + size, style.line(c));
             float fill = style.fill(c);
@@ -117,10 +121,20 @@ public final class PidRenderer {
         }
     }
 
+    /** A cell's power cables: dotted lines (one on, one off) through (cx, cy), out to the sides they run to. */
+    private static void cable(PidCanvas g, PidDrawing.Cell c, int x0, int y0, int cell, int cx, int cy, int thick) {
+        int bits = c.pipes() >> PidDrawing.CABLE_SHIFT;
+        if (bits == 0) return;
+        if ((bits & PidDrawing.NORTH) != 0) for (int y = y0; y <= cy; y += 2 * thick) g.fill(cx, y, cx + thick, y + thick, CABLE);
+        if ((bits & PidDrawing.SOUTH) != 0) for (int y = cy; y < y0 + cell; y += 2 * thick) g.fill(cx, y, cx + thick, Math.min(y + thick, y0 + cell), CABLE);
+        if ((bits & PidDrawing.WEST) != 0) for (int x = x0; x <= cx; x += 2 * thick) g.fill(x, cy, x + thick, cy + thick, CABLE);
+        if ((bits & PidDrawing.EAST) != 0) for (int x = cx; x < x0 + cell; x += 2 * thick) g.fill(x, cy, Math.min(x + thick, x0 + cell), cy + thick, CABLE);
+    }
+
     public static PidDrawing.@Nullable Cell cellAt(PidDrawing drawing, Layout l, int mouseX, int mouseY) {
         if (mouseX < l.originX() || mouseY < l.originY()) return null;
         int x = (mouseX - l.originX()) / l.cell(), y = (mouseY - l.originY()) / l.cell();
-        for (PidDrawing.Cell c : drawing.cells()) if (c.symbol() != PidDrawing.PIPE && c.covers(x, y)) return c;
+        for (PidDrawing.Cell c : drawing.cells()) if (c.symbol() != PidDrawing.PIPE && c.symbol() != PidDrawing.CABLE && c.covers(x, y)) return c;
         for (PidDrawing.Cell c : drawing.cells()) if (c.x() == x && c.y() == y) return c;
         return null;
     }

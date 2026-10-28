@@ -109,6 +109,15 @@ public final class SetpointGameTests {
         test("controller_links_itself", SetpointGameTests::controllerLinksItself, 2400);
         test("stirling_engine_runs_a_pump", SetpointGameTests::stirlingEngineRunsAPump, 400);
         test("a_cable_carries_power_to_a_pump", SetpointGameTests::aCableCarriesPowerToAPump, 400);
+        test("a_cable_pulls_from_a_generator", SetpointGameTests::aCablePullsFromAGenerator, 100);
+        test("a_battery_stores_what_machines_leave", SetpointGameTests::aBatteryStoresWhatMachinesLeave, 20);
+        test("a_power_meter_reads_its_cable", SetpointGameTests::aPowerMeterReadsItsCable, 200);
+        test("a_coverall_takes_dye", SetpointGameTests::aCoverallTakesDye, 20);
+        test("walkways_side_by_side_make_one_wide_walkway", SetpointGameTests::walkwaysSideBySideMakeOneWideWalkway, 20);
+        test("a_blast_door_stands_an_explosion", SetpointGameTests::aBlastDoorStandsAnExplosion, 40);
+        test("a_local_control_station_stops_a_pump", SetpointGameTests::aLocalControlStationStopsAPump, 200);
+        test("a_wall_sleeve_joins_only_through_the_wall", SetpointGameTests::aWallSleeveJoinsOnlyThroughTheWall, 20);
+        test("the_coffee_machine_pours_one_mug", SetpointGameTests::theCoffeeMachinePoursOneMug, 20);
         test("biogas_generator_runs_on_seeds", SetpointGameTests::biogasGeneratorRunsOnSeeds, 200);
         test("generator_keeps_fuel_when_idle", SetpointGameTests::generatorKeepsFuelWhenIdle, 200);
         test("tank_bucket_slots", SetpointGameTests::tankBucketSlots, 100);
@@ -445,6 +454,167 @@ public final class SetpointGameTests {
         });
     }
 
+    /**
+     * A cable pulls FE out of a generator beside it, for other mods' generators that wait to be drained: here a Stirling
+     * engine with a full buffer, pulled from at once before it ever ticks (and pushes) itself. A pump that only takes
+     * power gives none back.
+     */
+    private static void aCablePullsFromAGenerator(GameTestHelper helper) {
+        helper.setBlock(1, 1, 1, SetpointContent.STIRLING_ENGINE.get());
+        helper.setBlock(2, 1, 1, SetpointContent.POWER_CABLE.get());
+        helper.setBlock(3, 1, 1, SetpointContent.PUMP.get().defaultBlockState().setValue(PumpBlock.FACING, Direction.NORTH));
+        helper.setBlock(3, 2, 1, Blocks.REDSTONE_BLOCK); // stopped: it keeps what it gets
+        var engine = helper.getBlockEntity(new BlockPos(1, 1, 1), StirlingEngineBlockEntity.class);
+        var pump = helper.getBlockEntity(new BlockPos(3, 1, 1), PumpBlockEntity.class);
+        engine.energy().set(5_000);
+        helper.assertBlockProperty(new BlockPos(2, 1, 1), io.hookdev.setpoint.block.PowerCableBlock.PULL, true);
+        io.hookdev.setpoint.power.PowerNetwork.pull(helper.getLevel(), helper.absolutePos(new BlockPos(2, 1, 1)));
+        int moved = pump.energy().getAmountAsInt();
+        helper.assertTrue(moved > 0, "the cable should pull the engine's FE to the pump");
+        helper.assertTrue(engine.energy().getAmountAsInt() == 5_000 - moved, "the FE should come out of the engine, not out of nowhere");
+        io.hookdev.setpoint.power.PowerNetwork.pull(helper.getLevel(), helper.absolutePos(new BlockPos(2, 1, 1)));
+        helper.assertTrue(engine.energy().getAmountAsInt() + pump.energy().getAmountAsInt() == 5_000, "pulling again must not make or lose FE");
+        helper.succeed();
+    }
+
+    /**
+     * The coffee machine pours a mug into an empty hand, and no second one while you hold it. Drinking it gives speed and
+     * haste, and the mug is gone.
+     */
+    private static void theCoffeeMachinePoursOneMug(GameTestHelper helper) {
+        BlockPos machine = new BlockPos(1, 1, 1);
+        helper.setBlock(machine, SetpointContent.COFFEE_MACHINE.get());
+        var player = helper.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        helper.useBlock(machine, player);
+        helper.assertTrue(player.getMainHandItem().is(SetpointContent.MUG_OF_COFFEE.get()), "the machine should pour a mug into the empty hand");
+        helper.useBlock(machine, player);
+        helper.assertTrue(player.getInventory().countItem(SetpointContent.MUG_OF_COFFEE.get()) == 1, "with a coffee in hand the machine should pour no other");
+        helper.assertFalse(player.hasEffect(net.minecraft.world.effect.MobEffects.SPEED), "no effect before drinking");
+        ItemStack left = player.getMainHandItem().finishUsingItem(helper.getLevel(), player);
+        helper.assertTrue(player.hasEffect(net.minecraft.world.effect.MobEffects.SPEED) && player.hasEffect(net.minecraft.world.effect.MobEffects.HASTE), "drinking should give speed and haste");
+        helper.assertTrue(left.isEmpty(), "the mug should be gone after drinking");
+        helper.succeed();
+    }
+
+    /**
+     * On a cable, a pump gets its FE before a battery bank does; the battery takes only what is left. When nothing
+     * comes in, the cable draws on the battery for the pump, and FE is never made or lost on the way.
+     */
+    private static void aBatteryStoresWhatMachinesLeave(GameTestHelper helper) {
+        var level = helper.getLevel();
+        helper.setBlock(2, 1, 1, SetpointContent.POWER_CABLE.get());
+        helper.setBlock(1, 1, 1, SetpointContent.BATTERY_BANK.get());
+        helper.setBlock(3, 1, 1, SetpointContent.PUMP.get().defaultBlockState().setValue(PumpBlock.FACING, Direction.NORTH));
+        helper.setBlock(3, 2, 1, Blocks.REDSTONE_BLOCK); // stopped: it keeps what it gets
+        var battery = helper.getBlockEntity(new BlockPos(1, 1, 1), io.hookdev.setpoint.block.entity.BatteryBankBlockEntity.class);
+        var pump = helper.getBlockEntity(new BlockPos(3, 1, 1), PumpBlockEntity.class);
+        BlockPos cable = helper.absolutePos(new BlockPos(2, 1, 1));
+        int sent;
+        try (var transaction = net.neoforged.neoforge.transfer.transaction.Transaction.openRoot()) {
+            sent = io.hookdev.setpoint.power.PowerNetwork.handler(level, cable).insert(50_000, transaction); // more than the pump takes in a go
+            transaction.commit();
+        }
+        int pumpGot = pump.energy().getAmountAsInt(), batteryGot = battery.stored();
+        helper.assertTrue(pumpGot > 0 && batteryGot > 0 && pumpGot + batteryGot == sent, "the pump should fill first and the battery take the rest: pump " + pumpGot + ", battery " + batteryGot + ", sent " + sent);
+        pump.energy().set(0);
+        battery.energy().set(5_000);
+        io.hookdev.setpoint.power.PowerNetwork.pull(level, cable);
+        helper.assertTrue(pump.energy().getAmountAsInt() > 0, "with nothing coming in, the battery should feed the pump through the cable");
+        helper.assertTrue(pump.energy().getAmountAsInt() + battery.stored() == 5_000, "FE should come out of the battery, not out of nowhere");
+        helper.succeed();
+    }
+
+    /** A Stirling engine charges a battery bank through a power meter: the meter reads the FE flowing and lights up. */
+    private static void aPowerMeterReadsItsCable(GameTestHelper helper) {
+        helper.setBlock(1, 1, 1, SetpointContent.STIRLING_ENGINE.get());
+        helper.getBlockEntity(new BlockPos(1, 1, 1), StirlingEngineBlockEntity.class).insertFromHand(new ItemStack(Items.COAL, 4));
+        helper.setBlock(2, 1, 1, SetpointContent.POWER_METER.get());
+        helper.setBlock(3, 1, 1, SetpointContent.BATTERY_BANK.get());
+        var meter = helper.getBlockEntity(new BlockPos(2, 1, 1), io.hookdev.setpoint.block.entity.PowerMeterBlockEntity.class);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(meter.reading() > 0, "the meter should read the engine's FE going to the battery");
+            helper.assertTrue(helper.getBlockState(new BlockPos(2, 1, 1)).getValue(io.hookdev.setpoint.block.PowerMeterBlock.LOAD) > 0, "its lights should come on");
+            helper.assertTrue(helper.getBlockEntity(new BlockPos(3, 1, 1), io.hookdev.setpoint.block.entity.BatteryBankBlockEntity.class).stored() > 0, "the battery should charge");
+        });
+    }
+
+    /** A pump runs; STOP on the local control station beside it stops it, START runs it again. */
+    private static void aLocalControlStationStopsAPump(GameTestHelper helper) {
+        buildLine(helper, false);
+        fill(helper, SOURCE, 8_000);
+        BlockPos station = new BlockPos(3, 1, 2);
+        helper.setBlock(station, SetpointContent.LOCAL_CONTROL_STATION.get());
+        var player = helper.makeMockPlayer(net.minecraft.world.level.GameType.SURVIVAL);
+        BlockPos at = helper.absolutePos(station);
+        helper.runAfterDelay(40, () -> {
+            helper.assertTrue(helper.getBlockState(PUMP).getValue(PumpBlock.STATUS) == PumpStatus.RUNNING, "the pump should run while the station says START");
+            helper.getBlockState(station).useWithoutItem(helper.getLevel(), player, new net.minecraft.world.phys.BlockHitResult(
+                    net.minecraft.world.phys.Vec3.atLowerCornerOf(at).add(0.5, 0.2, 0.5), Direction.NORTH, at, false)); // the bottom half: STOP
+            helper.runAfterDelay(20, () -> {
+                helper.assertFalse(helper.getBlockState(PUMP).getValue(PumpBlock.STATUS) == PumpStatus.RUNNING, "STOP should stop the pump");
+                helper.getBlockState(station).useWithoutItem(helper.getLevel(), player, new net.minecraft.world.phys.BlockHitResult(
+                        net.minecraft.world.phys.Vec3.atLowerCornerOf(at).add(0.5, 0.8, 0.5), Direction.NORTH, at, false)); // the top half: START
+                helper.runAfterDelay(20, () -> {
+                    helper.assertTrue(helper.getBlockState(PUMP).getValue(PumpBlock.STATUS) == PumpStatus.RUNNING, "START should run the pump again");
+                    helper.succeed();
+                });
+            });
+        });
+    }
+
+    /** A wall sleeve placed along z joins the pipes in front of and behind it, never one beside it. */
+    private static void aWallSleeveJoinsOnlyThroughTheWall(GameTestHelper helper) {
+        BlockPos sleeve = new BlockPos(2, 1, 2);
+        BlockState state = SetpointContent.WALL_SLEEVE.get().defaultBlockState().setValue(io.hookdev.setpoint.block.WallSleeveBlock.AXIS, Direction.Axis.Z);
+        for (Direction d : Direction.values()) state = state.setValue(io.hookdev.setpoint.block.FluidPipeBlock.CUT.get(d), d.getAxis() != Direction.Axis.Z);
+        helper.setBlock(sleeve, state);
+        helper.setBlock(2, 1, 1, SetpointContent.PIPE.get());
+        helper.setBlock(2, 1, 3, SetpointContent.PIPE.get());
+        helper.setBlock(1, 1, 2, SetpointContent.PIPE.get());
+        BlockState now = helper.getBlockState(sleeve);
+        helper.assertTrue(now.getValue(io.hookdev.setpoint.block.FluidPipeBlock.CONNECTIONS.get(Direction.NORTH)) && now.getValue(io.hookdev.setpoint.block.FluidPipeBlock.CONNECTIONS.get(Direction.SOUTH)),
+                "the sleeve should join the pipes through the wall");
+        helper.assertFalse(now.getValue(io.hookdev.setpoint.block.FluidPipeBlock.CONNECTIONS.get(Direction.WEST)), "the sleeve should not join the pipe beside it");
+        helper.assertFalse(helper.getBlockState(new BlockPos(1, 1, 2)).getValue(io.hookdev.setpoint.block.FluidPipeBlock.CONNECTIONS.get(Direction.EAST)), "the pipe beside it should not join the sleeve");
+        helper.succeed();
+    }
+
+    /** TNT going off right in front of a closed blast door leaves the door standing. */
+    private static void aBlastDoorStandsAnExplosion(GameTestHelper helper) {
+        BlockState lower = SetpointContent.BLAST_DOOR.get().defaultBlockState();
+        helper.setBlock(3, 1, 2, lower);
+        helper.setBlock(3, 2, 2, lower.setValue(net.minecraft.world.level.block.DoorBlock.HALF, net.minecraft.world.level.block.state.properties.DoubleBlockHalf.UPPER));
+        BlockPos blast = helper.absolutePos(new BlockPos(3, 1, 1));
+        helper.getLevel().explode(null, blast.getX() + 0.5, blast.getY() + 0.5, blast.getZ() + 0.5, 4.0f, net.minecraft.world.level.Level.ExplosionInteraction.TNT);
+        helper.runAfterDelay(2, () -> {
+            helper.assertBlockPresent(SetpointContent.BLAST_DOOR.get(), new BlockPos(3, 1, 2));
+            helper.assertBlockPresent(SetpointContent.BLAST_DOOR.get(), new BlockPos(3, 2, 2));
+            helper.succeed();
+        });
+    }
+
+    /** Two walkways side by side, running north: the line between them goes, the outer ones stay. */
+    private static void walkwaysSideBySideMakeOneWideWalkway(GameTestHelper helper) {
+        BlockState walkway = SetpointContent.EPOXY_WALKWAY.get().defaultBlockState().setValue(io.hookdev.setpoint.block.FurnitureBlock.FACING, Direction.NORTH);
+        helper.setBlock(1, 1, 1, walkway);
+        helper.setBlock(2, 1, 1, walkway);
+        BlockState west = helper.getBlockState(new BlockPos(1, 1, 1)), east = helper.getBlockState(new BlockPos(2, 1, 1));
+        helper.assertTrue(west.getValue(io.hookdev.setpoint.block.EpoxyWalkwayBlock.LEFT) && !west.getValue(io.hookdev.setpoint.block.EpoxyWalkwayBlock.RIGHT), "the west one keeps only its outer line");
+        helper.assertTrue(!east.getValue(io.hookdev.setpoint.block.EpoxyWalkwayBlock.LEFT) && east.getValue(io.hookdev.setpoint.block.EpoxyWalkwayBlock.RIGHT), "the east one keeps only its outer line");
+        helper.succeed();
+    }
+
+    /** A coverall and a red dye in the crafting grid make a red coverall, like leather armour. */
+    private static void aCoverallTakesDye(GameTestHelper helper) {
+        var level = helper.getLevel();
+        var input = net.minecraft.world.item.crafting.CraftingInput.of(2, 1, java.util.List.of(new ItemStack(SetpointContent.COVERALL_TOP.get()), new ItemStack(Items.DYE.red())));
+        var recipe = level.recipeAccess().getRecipeFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING, input, level);
+        helper.assertTrue(recipe.isPresent(), "a coverall and a dye should make a recipe");
+        ItemStack dyed = recipe.get().value().assemble(input);
+        helper.assertTrue(dyed.is(SetpointContent.COVERALL_TOP.get()) && dyed.has(net.minecraft.core.component.DataComponents.DYED_COLOR), "the coverall should come out dyed");
+        helper.succeed();
+    }
+
     private static void biogasGeneratorRunsOnSeeds(GameTestHelper helper) {
         helper.setBlock(1, 1, 1, SetpointContent.BIOGAS_GENERATOR.get());
         BiogasGeneratorBlockEntity generator = helper.getBlockEntity(new BlockPos(1, 1, 1), BiogasGeneratorBlockEntity.class);
@@ -530,6 +700,8 @@ public final class SetpointGameTests {
             for (var r : console.readings()) report.append(r.tag()).append('@').append(r.pos().subtract(origin).toShortString()).append(' ').append(r.kind()).append(' ').append(r.status()).append(' ').append(r.value()).append(" | ");
             System.out.println("SHOWCASE " + report);
             helper.assertTrue(console.drawing() != null, "the console should hold the plant's P&ID");
+            helper.assertTrue(console.drawing().cells().stream().anyMatch(c -> c.symbol() == io.hookdev.setpoint.pid.PidDrawing.WIND_TURBINE), "the P&ID should show the wind turbine");
+            helper.assertTrue(console.drawing().cells().stream().anyMatch(c -> c.pipes() >> io.hookdev.setpoint.pid.PidDrawing.CABLE_SHIFT != 0), "the P&ID should show the power cable");
             java.util.List<String> problems = new java.util.ArrayList<>();
             for (var r : console.readings()) {
                 // only the plant itself: the console also sees the machines of other tests next to the bench

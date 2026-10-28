@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "setpoint:block/bollard"
+    },
+    "facing=east": {
+      "model": "setpoint:block/bollard"
+    },
+    "facing=south": {
+      "model": "setpoint:block/bollard"
+    },
+    "facing=west": {
+      "model": "setpoint:block/bollard"
+    }
+  }
+}

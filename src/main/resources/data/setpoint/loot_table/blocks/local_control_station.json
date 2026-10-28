@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:block",
+  "random_sequence": "setpoint:blocks/local_control_station",
+  "pools": [
+    {
+      "rolls": 1,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "setpoint:local_control_station"
+        }
+      ]
+    }
+  ]
+}

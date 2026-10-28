@@ -26,7 +26,7 @@ public record PidDrawing(String name, int width, int height, List<Cell> cells, L
             FLOW_TRANSMITTER = 7, CONTROLLER = 8, BOILER = 9, TURBINE = 10, GENERATOR = 11, INTAKE = 12, CONSOLE = 13,
             SAFETY_VALVE = 14, PRESSURE_TRANSMITTER = 15, DRAIN_VALVE = 16, CHECK_VALVE = 17, DRUM = 18, IBC = 19, FLOATING_ROOF_TANK = 20,
             ELECTROLYSER = 21, NITROGEN_GENERATOR = 22, GAS_CYLINDER = 23, GAS_SPHERE = 24, COMPRESSOR = 25, FUEL_CELL = 26, AMMONIA_REACTOR = 27, FERTILIZER_MIXER = 28, PUMPJACK = 29, COLUMN = 30, FLARE = 31,
-            ESD_BUTTON = 32, ALARM_BEACON = 33, BURNER = 34;
+            ESD_BUTTON = 32, ALARM_BEACON = 33, BURNER = 34, CABLE = 35, WIND_TURBINE = 36, BATTERY = 37, POWER_METER = 38;
     /** Big equipment (a column, a floating roof tank, a gas sphere) covers more cells than one: its rotation holds the footprint. */
     public static final int BIG = 256;
 
@@ -36,12 +36,15 @@ public record PidDrawing(String name, int width, int height, List<Cell> cells, L
     }
     // Pipe connections in the drawing: the four sides, plus a riser going up or down
     public static final int NORTH = 1, EAST = 2, SOUTH = 4, WEST = 8, UP = 16, DOWN = 32;
+    /** Power cables run in the same cells as pipes, drawn their own way: the four sides, these bits higher up. */
+    public static final int CABLE_NORTH = 64, CABLE_EAST = 128, CABLE_SOUTH = 256, CABLE_WEST = 512;
+    public static final int CABLE_SHIFT = 6;
 
     /**
      * One symbol.
      *
      * @param rotation quarter turns clockwise from pointing east (a pump's discharge, a valve's flow)
-     * @param pipes    which sides pipe lines run to (NORTH, EAST, SOUTH, WEST, UP, DOWN bits)
+     * @param pipes    which sides pipe lines run to (NORTH, EAST, SOUTH, WEST, UP, DOWN bits), and power cables (the CABLE_ bits)
      * @param tag      the equipment tag, like P-417, or empty
      * @param at       where the block stands (BlockPos as a long), for a valve that can open and shut; {@link #NOWHERE} otherwise
      */

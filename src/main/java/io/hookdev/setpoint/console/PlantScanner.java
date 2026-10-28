@@ -37,7 +37,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 public final class PlantScanner {
     /** How far a console sees, in blocks, in every direction. */
     public static final int RANGE = 32;
-    private static final List<String> KIND_ORDER = List.of("LIC", "FIC", "PIC", "PUMP", "VALVE", "FT", "PT", "TANK", "IBC", "DRUM", "LT", "BOILER", "PSV", "TURBINE", "GEN", "WIND", "INTAKE", "ELECTROLYSER", "N2 GEN", "COMPRESSOR", "FUEL CELL", "REACTOR", "MIXER", "SPHERE", "CYLINDER", "PUMPJACK", "COLUMN", "FLARE");
+    private static final List<String> KIND_ORDER = List.of("LIC", "FIC", "PIC", "PUMP", "VALVE", "FT", "PT", "TANK", "IBC", "DRUM", "LT", "BOILER", "PSV", "TURBINE", "GEN", "WIND", "BATTERY", "POWER", "INTAKE", "ELECTROLYSER", "N2 GEN", "COMPRESSOR", "FUEL CELL", "REACTOR", "MIXER", "SPHERE", "CYLINDER", "PUMPJACK", "COLUMN", "FLARE");
 
     private PlantScanner() {}
 
@@ -181,6 +181,16 @@ public final class PlantScanner {
             return new Reading(be.getBlockPos(), generator.tag(), "GEN", generator.status(), ok ? Reading.NORMAL : Reading.ATTENTION,
                     generator.status().equals("RUNNING") ? io.hookdev.setpoint.block.entity.DieselGeneratorBlockEntity.POWER + " FE/t" : "0 FE/t",
                     List.of("DIESEL %"), new float[]{(float) level}, List.of());
+        }
+        if (be instanceof io.hookdev.setpoint.block.entity.BatteryBankBlockEntity battery) {
+            boolean ok = !battery.status().equals("EMPTY");
+            return new Reading(be.getBlockPos(), battery.tag(), "BATTERY", battery.status(), ok ? Reading.NORMAL : Reading.ATTENTION,
+                    String.format("%.0f %%  %+d FE/t", battery.fraction() * 100, battery.rate()),
+                    List.of("CHARGE %"), new float[]{(float) (battery.fraction() * 100)}, List.of());
+        }
+        if (be instanceof io.hookdev.setpoint.block.entity.PowerMeterBlockEntity meter) {
+            return new Reading(be.getBlockPos(), meter.tag(), "POWER", meter.reading() > 0 ? "FLOWING" : "NO POWER", Reading.NORMAL,
+                    meter.reading() + " FE/t", List.of("FE/t"), new float[]{meter.reading()}, List.of());
         }
         if (be instanceof io.hookdev.setpoint.block.entity.WindTurbineBlockEntity turbine) {
             boolean ok = !turbine.status().equals("ESD");

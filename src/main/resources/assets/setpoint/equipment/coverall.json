@@ -1,0 +1,26 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "setpoint:coverall",
+        "dyeable": {
+          "color_when_undyed": -13672536
+        }
+      },
+      {
+        "texture": "setpoint:coverall_overlay"
+      }
+    ],
+    "humanoid_leggings": [
+      {
+        "texture": "setpoint:coverall",
+        "dyeable": {
+          "color_when_undyed": -13672536
+        }
+      },
+      {
+        "texture": "setpoint:coverall_overlay"
+      }
+    ]
+  }
+}

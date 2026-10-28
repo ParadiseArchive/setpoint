@@ -34,18 +34,29 @@ function chunk(type, data) {
   const crc = Buffer.alloc(4); crc.writeUInt32BE(crc32(body));
   return Buffer.concat([len, body, crc]);
 }
-function png(pixels) { // pixels: 16 rows of 16 '#rrggbb' (or '#rrggbbaa', see-through) or null (transparent)
-  const raw = Buffer.alloc(16 * (1 + 16 * 4));
+function png(pixels) { // pixels: rows of '#rrggbb' (or '#rrggbbaa', see-through) or null (transparent), 16 x 16 for most
+  const w = pixels[0].length, h = pixels.length;
+  const raw = Buffer.alloc(h * (1 + w * 4));
   pixels.forEach((row, y) => row.forEach((hex, x) => {
-    const o = y * (1 + 64) + 1 + x * 4;
+    const o = y * (1 + w * 4) + 1 + x * 4;
     if (!hex) return;
     raw[o] = parseInt(hex.slice(1, 3), 16); raw[o + 1] = parseInt(hex.slice(3, 5), 16);
     raw[o + 2] = parseInt(hex.slice(5, 7), 16); raw[o + 3] = hex.length > 7 ? parseInt(hex.slice(7, 9), 16) : 255;
   }));
   const ihdr = Buffer.alloc(13);
-  ihdr.writeUInt32BE(16, 0); ihdr.writeUInt32BE(16, 4); ihdr[8] = 8; ihdr[9] = 6;
+  ihdr.writeUInt32BE(w, 0); ihdr.writeUInt32BE(h, 4); ihdr[8] = 8; ihdr[9] = 6;
   return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]), chunk('IHDR', ihdr), chunk('IDAT', deflateSync(raw)), chunk('IEND', Buffer.alloc(0))]);
 }
+// a bigger texture at textures/<path>.png, like the armour layers (64 x 32) or a model's own (64 x 64)
+function bigTexture(path, w, h, draw) {
+  const file = join(ASSETS, 'textures', path + '.png');
+  if (KEEP_TEXTURES && existsSync(file)) return;
+  const px = Array.from({ length: h }, () => Array(w).fill(null));
+  const set = (x, y, c) => { if (x >= 0 && x < w && y >= 0 && y < h) px[y][x] = c; };
+  draw({ set, rect: (x, y, rw, rh, c) => { for (let j = y; j < y + rh; j++) for (let i = x; i < x + rw; i++) set(i, j, c); } });
+  write(file, png(px));
+}
+const COVERALL_BLUE = 0xFF2F5FA8 | 0; // OperatorGear.COVERALL_BLUE, as an ARGB int the way Minecraft writes dye colours
 function texture(name, draw, folder = 'block') {
   const path = join(ASSETS, 'textures', folder, name + '.png');
   if (KEEP_TEXTURES && existsSync(path)) return;
@@ -880,25 +891,37 @@ BS('water_intake', { variants: { '': { model: 'setpoint:block/water_intake' } } 
 item('water_intake', 'setpoint:block/water_intake');
 recipe('water_intake', ['IBI', 'BPB', 'IBI'], { I: 'minecraft:iron_ingot', B: 'minecraft:iron_bars', P: 'setpoint:pipe' }, 'setpoint:water_intake');
 
-// pipe wrench
-texture('pipe_wrench', (p) => pixels(p, [
-  '................',
-  '..........kkk...',
-  '.........k...k..',
-  '.........k.......',
-  '.........k...k..',
-  '..........kkk...',
-  '.........kk.....',
-  '........kk......',
-  '.......kk.......',
-  '......kk........',
-  '.....rr.........',
-  '....rrr.........',
-  '...rrr..........',
-  '..rrr...........',
-  '..rr............',
-  '................',
-], { k: C.steel4, r: '#b8312f' }), 'item');
+// pipe wrench: a Stillson wrench lying corner to corner, its red handle down to the left. At the top the head: the
+// steel back with the hook jaw at its end and the heel jaw below it, the mouth open between them, toothed on both
+// sides, and the brass nut that sets the jaw. Drawn as filled pixels; the outline goes round them by itself, but not
+// into the mouth, which stays open.
+{
+  const fill = {
+    // the handle, two pixels wide, light on its upper side, dark at the end
+    '2,13': 'R', '3,13': 'R', '3,12': 'h', '4,12': 'r', '4,11': 'h', '5,11': 'r', '5,10': 'h', '6,10': 'r', '6,9': 'h', '7,9': 'r',
+    '7,8': 'h', '8,8': 'S', '8,7': 's', '9,7': 'S',
+    // the head, a C opening up and to the left: the back, the hook jaw at its top end, the heel jaw at its bottom end
+    '9,6': 's', '10,5': 'w', '11,4': 's', '12,3': 'w', '13,2': 's',
+    '12,2': 'w', '11,1': 's', '10,0': 'S',
+    '8,5': 'w', '7,4': 's', '6,3': 'S',
+    // teeth along the inside of both jaws
+    '10,2': 't', '8,4': 't',
+    // the knurled brass nut on the back of the head
+    '10,6': 'n', '11,5': 'N', '12,4': 'n', '13,3': 'N',
+  };
+  const colour = { w: '#eef1f4', s: '#c3c9d2', S: '#7b8394', t: '#5c636d', m: '#2b2f36', n: '#c99a3e', N: '#7d5d22', r: '#c0392b', h: '#e0574a', R: '#7e1f17' };
+  const mouth = new Set(['9,5', '10,4', '11,3', '9,4', '10,3', '9,3', '8,3', '9,2', '7,3', '8,2', '7,2', '9,1', '10,1', '11,2']);
+  texture('pipe_wrench', (p) => {
+    for (const key of Object.keys(fill)) {
+      const [x, y] = key.split(',').map(Number);
+      for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+        const n = (x + dx) + ',' + (y + dy);
+        if (!fill[n] && !mouth.has(n) && x + dx >= 0 && y + dy >= 0 && x + dx < 16 && y + dy < 16) p.set(x + dx, y + dy, '#1d1f24');
+      }
+    }
+    for (const [key, c] of Object.entries(fill)) { const [x, y] = key.split(',').map(Number); p.set(x, y, colour[c]); }
+  }, 'item');
+}
 json(join(ASSETS, 'models/item/pipe_wrench.json'), { parent: 'minecraft:item/handheld', textures: { layer0: 'setpoint:item/pipe_wrench' } });
 item('pipe_wrench', 'setpoint:item/pipe_wrench');
 recipe('pipe_wrench', ['I I', ' I ', ' C '], { I: 'minecraft:iron_ingot', C: 'minecraft:copper_ingot' }, 'setpoint:pipe_wrench');
@@ -2773,21 +2796,34 @@ M('ceiling_light', { parent: 'minecraft:block/cube_bottom_top', textures: { top:
 BS('ceiling_light', { variants: { '': { model: 'setpoint:block/ceiling_light' } } });
 item('ceiling_light', 'setpoint:block/ceiling_light');
 
-// ---------- wall clock: a round white face (its corners see-through); the renderer turns the hands ----------
+// ---------- wall clock: a round face built of one-pixel rows, so it is round without see-through corners; the renderer
+// turns the hands. A dark rim, a grey bezel, a white face with marks at every hour and bars at 12, 3, 6 and 9 ----------
+const CLOCK_R = 7;
+const clockIn = (x, y, r) => Math.hypot(x + 0.5 - 8, y + 0.5 - 8) <= r;
 texture('clock_face', (p) => {
-  for (let y = 2; y < 14; y++) for (let x = 2; x < 14; x++) {
-    const d = Math.hypot(x - 7.5, y - 7.5);
-    if (d < 5.2) p.set(x, y, '#f4f6f8'); else if (d < 6.3) p.set(x, y, '#23262e');
+  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
+    if (!clockIn(x, y, CLOCK_R)) continue;
+    p.set(x, y, clockIn(x, y, CLOCK_R - 1) ? (clockIn(x, y, CLOCK_R - 2) ? '#f4f6f8' : '#6b727c') : '#1d1f24');
   }
-  for (const [x, y] of [[7, 3], [8, 3], [12, 7], [12, 8], [7, 12], [8, 12], [3, 7], [3, 8]]) p.set(x, y, '#23262e'); // 12, 3, 6, 9
-  for (const [x, y] of [[10, 4], [11, 5], [11, 10], [10, 11], [5, 11], [4, 10], [4, 5], [5, 4]]) p.set(x, y, '#8a9099');
+  for (let h = 0; h < 12; h++) { // a dot at every hour, a short bar at the quarters
+    const a = h * Math.PI / 6, r = h % 3 ? 4.4 : 4.2;
+    p.set(Math.floor(8 + Math.sin(a) * r), Math.floor(8 - Math.cos(a) * r), h % 3 ? '#9aa1ab' : '#23262e');
+  }
+  for (const [x, y] of [[7, 3], [8, 3], [12, 7], [12, 8], [7, 12], [8, 12], [3, 7], [3, 8]]) p.set(x, y, '#23262e');
 });
-texture('clock_rim', (p) => p.rect(0, 0, 16, 16, '#23262e'));
+texture('clock_rim', (p) => { p.rect(0, 0, 16, 16, '#1d1f24'); p.rect(0, 0, 16, 1, '#3a3f48'); });
 texture('clock_hand', (p) => p.rect(0, 0, 16, 16, '#141519'));
-M('wall_clock', { parent: 'minecraft:block/block', textures: { face: tex('clock_face'), rim: tex('clock_rim'), particle: tex('clock_rim') }, elements: [
-  box([2, 2, 15], [14, 14, 16], { north: { uv: [2, 2, 14, 14], texture: '#face' }, south: { uv: [2, 2, 14, 14], texture: '#rim' } }),
-  box([3.5, 3.5, 15.5], [12.5, 12.5, 16], { east: { uv: [0, 0, 1, 9], texture: '#rim' }, west: { uv: [0, 0, 1, 9], texture: '#rim' }, up: { uv: [0, 0, 9, 1], texture: '#rim' }, down: { uv: [0, 0, 9, 1], texture: '#rim' } }),
-] });
+{
+  const rows = [];
+  for (let y = 0; y < 16; y++) {
+    let x1 = -1, x2 = -1;
+    for (let x = 0; x < 16; x++) if (clockIn(x, y, CLOCK_R)) { if (x1 < 0) x1 = x; x2 = x; }
+    if (x1 < 0) continue;
+    // one row of the face: its front shows that row of the face texture, its edges the rim
+    rows.push(...tiled([16 - x2 - 1, 15 - y, 15], [16 - x1, 16 - y, 16], (face) => face === 'north' ? '#face' : '#rim'));
+  }
+  M('wall_clock', { parent: 'minecraft:block/block', ambientocclusion: false, textures: { face: tex('clock_face'), rim: tex('clock_rim'), particle: tex('clock_rim') }, elements: rows });
+}
 // the hands (parts of the control-room model block), drawn on a face looking south, pointing up from the middle
 const handFaces = crAll('#hand', [0, 0, 1, 1]);
 const hourHand = [box([7.5, 8, 0], [8.5, 11.5, 0.5], handFaces), box([7.25, 7.25, 0], [8.75, 8.75, 0.6], handFaces)];
@@ -2795,15 +2831,20 @@ const minuteHand = [box([7.6, 8, 0], [8.4, 13, 0.5], handFaces)];
 M('control_room_hour_hand', { parent: 'minecraft:block/block', textures: { hand: tex('clock_hand'), particle: tex('clock_hand') }, elements: hourHand });
 M('control_room_minute_hand', { parent: 'minecraft:block/block', textures: { hand: tex('clock_hand'), particle: tex('clock_hand') }, elements: minuteHand });
 BS('control_room_model', { variants: Object.fromEntries(Array.from({ length: 16 }, (_, i) => [`part=${i}`, { model: 'setpoint:block/control_room_' + (i === 1 ? 'minute_hand' : 'hour_hand') }])) });
-// in the inventory: a flat clock at ten past ten, as on every clock in a shop
+// in the inventory: a flat clock at ten past ten, as on every clock in a shop: a dark rim, a grey bezel, a white face
+// shaded to the lower right, bars at 12, 3, 6 and 9, the hands and a red centre
 texture('wall_clock', (p) => {
+  const inside = (x, y) => x >= 0 && y >= 0 && x < 16 && y < 16 && (x - 7) ** 2 + (y - 7) ** 2 <= 53.3;
+  const edge = (x, y) => [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => !inside(x + dx, y + dy));
   for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
-    const d = Math.hypot(x - 7.5, y - 7.5);
-    if (d < 6.4) p.set(x, y, '#f4f6f8'); else if (d < 7.6) p.set(x, y, '#23262e');
+    if (!inside(x, y)) continue;
+    const rim = edge(x, y), bezel = !rim && [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => edge(x + dx, y + dy));
+    p.set(x, y, rim ? '#1d1f24' : bezel ? '#6b727c' : (x - 7) + (y - 7) > 6 ? '#d5dae0' : '#f4f6f8');
   }
-  for (const [x, y] of [[7, 2], [8, 2], [13, 7], [13, 8], [7, 13], [8, 13], [2, 7], [2, 8]]) p.set(x, y, '#23262e');
-  for (const [x, y] of [[7, 7], [6, 6], [5, 5], [8, 7], [9, 6], [10, 5], [11, 4]]) p.set(x, y, '#141519'); // the hands, on 10 and 2
-  p.set(8, 8, '#c7322f');
+  for (const [x, y] of [[7, 2], [7, 3], [11, 7], [12, 7], [7, 11], [7, 12], [2, 7], [3, 7]]) p.set(x, y, '#23262e'); // 12, 3, 6, 9
+  for (const [x, y] of [[8, 6], [9, 6], [10, 5], [11, 5]]) p.set(x, y, '#23262e');                              // minute hand on 2
+  for (const [x, y] of [[6, 6], [5, 6], [4, 5]]) p.set(x, y, '#23262e');                                          // hour hand on 10
+  p.set(7, 7, '#d6262b');
 }, 'item');
 json(join(ASSETS, 'models/item', 'wall_clock.json'), { parent: 'minecraft:item/generated', textures: { layer0: 'setpoint:item/wall_clock' } });
 BS('wall_clock', { variants: Object.fromEntries(Object.entries(yaw).map(([f, y]) => [`facing=${f}`, { model: 'setpoint:block/wall_clock', ...(y ? { y } : {}) }])) });
@@ -2855,6 +2896,27 @@ M('coffee_machine', { parent: 'minecraft:block/block', textures: { front: tex('c
 ] });
 BS('coffee_machine', { variants: Object.fromEntries(Object.entries(yaw).map(([f, y]) => [`facing=${f}`, { model: 'setpoint:block/coffee_machine', ...(y ? { y } : {}) }])) });
 item('coffee_machine', 'setpoint:block/coffee_machine');
+// a mug of coffee: a white mug with a cyan band and the hook, dark coffee to the brim, steam curling up
+texture('mug_of_coffee', (p) => pixels(p, [
+  '................',
+  '.....s...s......',
+  '......s...s.....',
+  '.....s...s......',
+  '................',
+  '...oooooooo.....',
+  '...occCcccoooo..',
+  '...oWwwwwwwo..o.',
+  '...oWkkkkkkoo.o.',
+  '...oWkkhkkko..o.',
+  '...oWwwhwwwoo.o.',
+  '...oWwhhwwwoooo.',
+  '...oWwwwwwlo....',
+  '....oWwwwllo....',
+  '.....oooooo.....',
+  '................',
+], { o: '#1d1f24', W: '#ffffff', w: '#eef1f4', l: '#c9ced5', c: '#3a2416', C: '#5a3a22', k: '#2de2e6', h: '#0f5f61', s: '#d8dde3' }), 'item');
+json(join(ASSETS, 'models/item', 'mug_of_coffee.json'), { parent: 'minecraft:item/generated', textures: { layer0: 'setpoint:item/mug_of_coffee' } });
+item('mug_of_coffee', 'setpoint:item/mug_of_coffee');
 
 // ---------- emergency exit sign (ISO 7010 style): the running man, the door, an arrow ----------
 const RUNNER = ['....#.', '..###.', '.#.#.#', '...##.', '..#..#', '.#....'];
@@ -3034,6 +3096,399 @@ texture('wind_door', (p) => {
 }
 
 // =====================================================================================
+// Operator gear (0.2.2): a white hard hat and a yellow bump cap (their own models, see OperatorGearModels, with 64 x 64
+// textures that follow its boxes), a coverall top and trousers in a dyeable cloth layer (blue undyed) with an overlay
+// that keeps its colours (zip, pocket, reflective bands), and safety boots. Diamond-strong, made with Hookonium.
+// =====================================================================================
+// paints the six faces of a model box laid out the way Minecraft maps a box at texOffs (u, v), w x h x d
+function paintBox(p, u, v, w, h, d, shade) {
+  const faces = { top: [u + d, v, w, d], bottom: [u + d + w, v, w, d], right: [u, v + d, d, h], front: [u + d, v + d, w, h], left: [u + d + w, v + d, d, h], back: [u + 2 * d + w, v + d, w, h] };
+  for (const [face, [x0, y0, fw, fh]] of Object.entries(faces)) for (let y = 0; y < fh; y++) for (let x = 0; x < fw; x++) {
+    const c = shade(face, x, y, fw, fh);
+    if (c) p.set(x0 + x, y0 + y, c);
+  }
+}
+const helmetShell = (tone) => (face, x, y, w, h) => face === 'top' ? tone.top : face === 'bottom' ? tone.inside
+  : y === h - 1 ? tone.rim : face === 'back' ? tone.back : face === 'front' ? tone.front : tone.side;
+const HAT = { top: '#fbfcfd', front: '#f2f4f6', side: '#e3e7ec', back: '#d9dde2', rim: '#c4cad2', inside: '#3a3f48' };
+const CAP = { top: '#f7d35a', front: '#f2c12e', side: '#e2b021', back: '#cf9d16', rim: '#a87f10', inside: '#3a3f48' };
+bigTexture('entity/equipment/humanoid/operator_helmet', 64, 64, (p) => {
+  paintBox(p, 0, 0, 8, 4, 8, helmetShell(HAT));
+  for (const [x, y] of [[13, 9], [13, 10], [12, 10]]) p.set(x, y, '#2de2e6'); // a little hook sticker on the front
+  paintBox(p, 0, 16, 6, 1, 6, (face) => face === 'top' ? HAT.top : HAT.front);
+  paintBox(p, 32, 0, 2, 1, 8, (face) => face === 'top' ? '#ffffff' : HAT.side);
+  paintBox(p, 0, 32, 10, 1, 11, (face) => face === 'top' ? '#e9ecf0' : face === 'bottom' ? '#b3b9c1' : '#d5dae0');
+});
+bigTexture('entity/equipment/humanoid/bump_cap', 64, 64, (p) => {
+  paintBox(p, 0, 0, 8, 4, 8, helmetShell(CAP));
+  for (let x = 25; x < 31; x++) p.set(x, 10, '#d8dde3'); // a reflective strip round the back
+  paintBox(p, 0, 16, 6, 1, 6, (face) => face === 'top' ? CAP.top : CAP.front);
+  paintBox(p, 0, 32, 8, 1, 5, (face) => face === 'top' ? CAP.side : face === 'bottom' ? '#7d5d0c' : CAP.back);
+});
+// the coverall cloth: light grey, so the dye (or the blue it has undyed) colours it; seams a shade darker
+const cloth = (face, x, y, w, h) => face === 'top' || face === 'bottom' ? '#c8c8c8' : (x + 2 * y) % 7 === 0 ? '#cdcdcd' : face === 'left' || face === 'back' ? '#d0d0d0' : '#dadada';
+bigTexture('entity/equipment/humanoid/coverall', 64, 32, (p) => {
+  paintBox(p, 16, 16, 8, 12, 4, cloth); // the body
+  paintBox(p, 40, 16, 4, 12, 4, cloth); // the arms (both use the same place)
+});
+bigTexture('entity/equipment/humanoid_leggings/coverall', 64, 32, (p) => {
+  paintBox(p, 0, 16, 4, 12, 4, cloth);  // the legs
+  paintBox(p, 16, 16, 8, 12, 4, cloth); // and the body: worn alone, the trousers come up as a bib
+});
+// what keeps its colour on the coverall: the zip and a pocket on the front, silver bands edged in yellow round the arms and legs
+const hiVis = (y0) => (face, x, y) => face === 'top' || face === 'bottom' ? null : y === y0 || y === y0 + 2 ? '#f2c12e' : y === y0 + 1 ? '#e3e7ec' : null;
+bigTexture('entity/equipment/humanoid/coverall_overlay', 64, 32, (p) => {
+  paintBox(p, 40, 16, 4, 12, 4, hiVis(6));
+  for (let y = 20; y < 32; y++) p.set(24, y, y % 2 ? '#8a9099' : '#b4bac3'); // the zip
+  for (const [x, y] of [[21, 22], [22, 22], [21, 23], [22, 23]]) p.set(x, y, '#9aa0a8'); // a pen pocket
+  p.set(26, 22, '#e3e7ec'); p.set(27, 22, '#e3e7ec'); // a name badge
+});
+bigTexture('entity/equipment/humanoid_leggings/coverall_overlay', 64, 32, (p) => {
+  paintBox(p, 0, 16, 4, 12, 4, hiVis(7));
+  for (let y = 20; y < 32; y++) p.set(24, y, y % 2 ? '#8a9099' : '#b4bac3'); // the zip of the bib
+});
+// safety boots: black leather to over the ankle, a steel-capped toe, tan laces and a deep sole
+bigTexture('entity/equipment/humanoid/work_boots', 64, 32, (p) => {
+  paintBox(p, 0, 16, 4, 12, 4, (face, x, y) => {
+    if (face === 'top') return null;
+    if (face === 'bottom') return (x + y) % 2 ? '#151515' : '#222222';
+    if (y < 7) return null;
+    if (y === 7) return '#4a3524';
+    if (y === 11) return '#151515';
+    if (face === 'front' && y === 10) return '#5c636d';
+    if (face === 'front' && (y === 8 || y === 9) && (x === 1 || x === 2)) return '#c9a26b';
+    return x === 0 ? '#3d3631' : '#2a2522';
+  });
+});
+for (const [name, layers] of [['operator_helmet', { humanoid: [{ texture: 'setpoint:operator_helmet' }] }], ['bump_cap', { humanoid: [{ texture: 'setpoint:bump_cap' }] }],
+  ['coverall', { humanoid: [{ texture: 'setpoint:coverall', dyeable: { color_when_undyed: COVERALL_BLUE } }, { texture: 'setpoint:coverall_overlay' }],
+    humanoid_leggings: [{ texture: 'setpoint:coverall', dyeable: { color_when_undyed: COVERALL_BLUE } }, { texture: 'setpoint:coverall_overlay' }] }],
+  ['work_boots', { humanoid: [{ texture: 'setpoint:work_boots' }] }]]) json(join(ASSETS, 'equipment', name + '.json'), { layers });
+// the inventory icons
+const GEAR = { o: '#1d1f24', W: '#ffffff', w: '#eef1f4', s: '#c9ced5', S: '#9aa1ab', c: '#2de2e6', Y: '#f7d35a', y: '#f2c12e', d: '#c99a14', D: '#8a6a10',
+  a: '#d8d8d8', A: '#b5b5b5', g: '#3c3c3c', b: '#2f2a27', B: '#4a423c', l: '#c9a26b', t: '#6b727c', k: '#151515', z: '#9aa0a8', v: '#e3e7ec', h: '#f2c12e' };
+const icon = (name, rows) => texture(name, (p) => pixels(p, rows, GEAR), 'item');
+icon('operator_helmet', ['................', '................', '................', '................', '......oooooo....', '....ooWWwwwsoo..',
+  '...oWWwwwwwwsso.', '..oWwwwccwwwwsso', '..oWwwwcwwwwwsso', '..owwwwwwwwwwsso', '..owwwwwwwwwssso', 'oooooooooooooooo', 'oWwwwwwwwwwwwsSo', '.ooooooooooooooo', '................', '................']);
+icon('bump_cap', ['................', '................', '................', '................', '.......ooooo....', '.....ooYYyyyoo..',
+  '....oYYyyyyyyyo.', '...oYyyyyyyyyydo', '...oyyyyyyyyyydo', '...oyyyyyyyyyddo', 'ooooyyyyyyyyyddo', 'oYyyoddddddddddo', '.ooooooooooooooo', '................', '................', '................']);
+// the coverall in two layers: the cloth (tinted) and what keeps its colour
+icon('coverall_top', ['................', '..ooooo..ooooo..', '.oaaaaaggaaaaao.', 'gaaaaaaaaaaaaaAg', 'gaaaaaaaaaaaaaAg', 'gaagaaaaaaaagaAg', 'gaagaaaaaaaagaAg',
+  'gggaaaaaaaaaaggg', '..gaaaaaaaaaAg..', '..gaaaaaaaaaAg..', '..gaaaaaaaaaAg..', '..gaaaaaaaaaAg..', '..gaaaaaaaaaAg..', '..gggggggggggg..', '................', '................']);
+icon('coverall_top_overlay', ['................', '................', '................', '.......z........', '.......z........', 'hh.....z.....hh.', 'vv.....z.....vv.',
+  '.......z........', '.......z........', '.......z........', '.......z........', '.......z........', '................', '................', '................', '................']);
+icon('coverall_trousers', ['................', '...gggggggggg...', '...gaaaaaaaAg...', '...gaaaaaaaAg...', '...gaaaggaaAg...', '...gaaaggaaAg...', '...gaaaggaaAg...',
+  '...gaaaggaaAg...', '...gaaaggaaAg...', '...gaaaggaaAg...', '...gaaaggaaAg...', '...gaaaggaaAg...', '...gaaaggaaAg...', '...gaaaggaaAg...', '...gggggggggg...', '................']);
+icon('coverall_trousers_overlay', ['................', '................', '.......z........', '.......z........', '................', '................', '................',
+  '................', '................', '....hhh..hhh....', '....vvv..vvv....', '....hhh..hhh....', '................', '................', '................', '................']);
+icon('work_boots', ['................', '................', '................', '................', '..oooo....oooo..', '..oBbo....oBbo..', '..oBlo....oBlo..',
+  '..oBbo....oBbo..', '..oBlo....oBlo..', '.oBbbo...oBbbo..', 'oBbbbo..oBbbbo..', 'otbbbo..otbbbo..', 'okkkko..okkkko..', 'oooooo..oooooo..', '................', '................']);
+for (const name of ['operator_helmet', 'bump_cap', 'work_boots']) {
+  json(join(ASSETS, 'models/item', name + '.json'), { parent: 'minecraft:item/generated', textures: { layer0: 'setpoint:item/' + name } });
+  item(name, 'setpoint:item/' + name);
+}
+for (const name of ['coverall_top', 'coverall_trousers']) {
+  json(join(ASSETS, 'models/item', name + '.json'), { parent: 'minecraft:item/generated', textures: { layer0: 'setpoint:item/' + name, layer1: 'setpoint:item/' + name + '_overlay' } });
+  json(join(ASSETS, 'items', name + '.json'), { model: { type: 'minecraft:model', model: 'setpoint:item/' + name, tints: [{ type: 'minecraft:dye', default: COVERALL_BLUE }] } });
+}
+recipe('operator_helmet', ['WHW', 'H H'], { W: 'minecraft:white_concrete', H: 'setpoint:hookonium_ingot' }, 'setpoint:operator_helmet');
+recipe('bump_cap', ['YHY', 'H H'], { Y: 'minecraft:yellow_wool', H: 'setpoint:hookonium_ingot' }, 'setpoint:bump_cap');
+recipe('coverall_top', ['H H', 'BHB', 'BBB'], { B: 'minecraft:blue_wool', H: 'setpoint:hookonium_ingot' }, 'setpoint:coverall_top');
+recipe('coverall_trousers', ['BHB', 'B B', 'H H'], { B: 'minecraft:blue_wool', H: 'setpoint:hookonium_ingot' }, 'setpoint:coverall_trousers');
+recipe('work_boots', ['L L', 'H H'], { L: 'minecraft:leather', H: 'setpoint:hookonium_ingot' }, 'setpoint:work_boots');
+// dyeing: the coverall with any dyes in the crafting grid, like leather armour (Minecraft has one such recipe per item)
+for (const name of ['coverall_top', 'coverall_trousers']) json(join(DATA, 'recipe', name + '_dyed.json'), { type: 'minecraft:crafting_dye', dye: '#minecraft:dyes', group: 'dyed_coverall', result: { id: 'setpoint:' + name }, target: 'setpoint:' + name });
+
+// =====================================================================================
+// Power grid (0.2.2): the battery bank, a cabinet of battery modules with a charge bar on its front, and the power
+// meter, a box in a cable run with a display whose lights count up with the FE its network carries.
+// =====================================================================================
+const batteryFront = (bars) => (p) => {
+  plate(p, C.steel1);
+  for (const [x, y] of [[2, 2], [7, 2], [2, 9], [7, 9]]) { // four battery modules with their terminals
+    p.rect(x, y, 4, 5, '#3a3f48'); p.rect(x, y, 4, 1, '#5c636d');
+    p.set(x + 1, y - 1, '#c0392b'); p.set(x + 2, y - 1, '#1d1f24');
+  }
+  p.rect(12, 2, 2, 12, '#16181d'); // the charge bar, filling from the bottom
+  for (let k = 0; k < 4; k++) p.rect(12, 11 - k * 3, 2, 2, k < bars ? '#3fd06a' : '#1d3a26');
+};
+for (let bars = 0; bars <= 4; bars++) texture('battery_front_' + bars, batteryFront(bars));
+texture('battery_side', (p) => { plate(p, C.steel1); for (let y = 3; y < 13; y += 2) p.rect(3, y, 10, 1, '#2b2f36'); });
+texture('battery_top', (p) => { plate(p, C.steel2); p.rect(5, 5, 6, 6, C.steel1); p.set(7, 7, '#ffb547'); p.set(8, 8, '#ffb547'); });
+for (let bars = 0; bars <= 4; bars++) M('battery_bank_' + bars, { parent: 'minecraft:block/orientable', textures: { front: tex('battery_front_' + bars), side: tex('battery_side'), top: tex('battery_top') } });
+BS('battery_bank', { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => [0, 1, 2, 3, 4].map((bars) =>
+  [`charge=${bars},facing=${f}`, { model: 'setpoint:block/battery_bank_' + bars, ...(y ? { y } : {}) }]))) });
+item('battery_bank', 'setpoint:block/battery_bank_4');
+recipe('battery_bank', ['IRI', 'CRC', 'IRI'], { I: 'minecraft:iron_ingot', R: 'minecraft:redstone_block', C: 'minecraft:copper_block' }, 'setpoint:battery_bank');
+
+// the power meter: a steel box, the display on its front with JI and four lights (green, green, amber, red)
+texture('power_meter_side', (p) => { plate(p, C.steel2); rivets(p, [[1, 1], [13, 1], [1, 13], [13, 13]]); });
+for (let lit = 0; lit <= 4; lit++) texture('power_meter_front_' + lit, (p) => {
+  plate(p, C.steel2);
+  p.rect(2, 2, 12, 12, '#10141c');
+  sprite(p, ['.##.###', '..#..#.', '#.#..#.', '.#..###'], 4, 4, '#2de2e6'); // "JI"
+  ['#3fd06a', '#3fd06a', '#ffb547', '#d6262b'].forEach((on, k) => p.rect(3 + k * 3, 10, 2, 2, k < lit ? on : '#2a2e36'));
+});
+for (let lit = 0; lit <= 4; lit++) M('power_meter_box_' + lit, { parent: 'minecraft:block/block', textures: { front: tex('power_meter_front_' + lit), side: tex('power_meter_side'), particle: tex('power_meter_side') },
+  elements: [box([3, 3, 3], [13, 13, 13], { north: { uv: [3, 3, 13, 13], texture: '#front' }, south: { uv: [3, 3, 13, 13], texture: '#side' },
+    east: { uv: [3, 3, 13, 13], texture: '#side' }, west: { uv: [3, 3, 13, 13], texture: '#side' }, up: { uv: [3, 3, 13, 13], texture: '#side' }, down: { uv: [3, 3, 13, 13], texture: '#side' } })] });
+BS('power_meter', { multipart: [
+  ...Object.entries(yaw).flatMap(([f, y]) => [0, 1, 2, 3, 4].map((lit) => ({ when: { facing: f, load: String(lit) }, apply: { model: 'setpoint:block/power_meter_box_' + lit, ...(y ? { y } : {}) } }))),
+  ...Object.entries(armRotation).map(([dir, rot]) => ({ when: { [dir]: 'true' }, apply: { model: 'setpoint:block/power_cable_arm', ...rot } }))] });
+item('power_meter', 'setpoint:block/power_meter_box_3');
+recipe('power_meter', [' G ', 'CRC'], { G: 'minecraft:glass_pane', C: 'setpoint:power_cable', R: 'minecraft:redstone' }, 'setpoint:power_meter');
+
+// =====================================================================================
+// Building blocks of a plant (0.2.2, round 1): concrete plinths and bund walls, bollards, an epoxy floor with walkway
+// lines, a pipe rack portal, a junction box, safety signs and an MCC cabinet for the electrical room.
+// =====================================================================================
+texture('plant_concrete', (p) => {
+  p.rect(0, 0, 16, 16, '#a3a6a2');
+  let seed = 11;
+  for (let i = 0; i < 46; i++) { seed = (seed * 53 + 17) % 256; p.set(seed % 16, (seed >> 4) % 16, i % 3 ? '#979a96' : '#b2b5b1'); }
+});
+texture('plant_concrete_top', (p) => {
+  p.rect(0, 0, 16, 16, '#afb2ae'); p.rect(0, 0, 16, 1, '#c3c6c2'); p.rect(0, 0, 1, 16, '#c3c6c2');
+  let seed = 7;
+  for (let i = 0; i < 30; i++) { seed = (seed * 53 + 17) % 256; p.set(seed % 16, (seed >> 4) % 16, '#a2a5a1'); }
+});
+// the plinth: a concrete block with a chamfered top, the way a pump stands on its foundation
+M('concrete_plinth', { parent: 'minecraft:block/block', textures: { side: tex('plant_concrete'), top: tex('plant_concrete_top'), particle: tex('plant_concrete') }, elements: [
+  box([0, 0, 0], [16, 14, 16], { north: { uv: [0, 2, 16, 16], texture: '#side' }, south: { uv: [0, 2, 16, 16], texture: '#side' }, east: { uv: [0, 2, 16, 16], texture: '#side' },
+    west: { uv: [0, 2, 16, 16], texture: '#side' }, up: { uv: [0, 0, 16, 16], texture: '#top' }, down: { uv: [0, 0, 16, 16], texture: '#side', cullface: 'down' } }),
+  box([1, 14, 1], [15, 16, 15], { north: { uv: [1, 0, 15, 2], texture: '#side' }, south: { uv: [1, 0, 15, 2], texture: '#side' }, east: { uv: [1, 0, 15, 2], texture: '#side' },
+    west: { uv: [1, 0, 15, 2], texture: '#side' }, up: { uv: [1, 1, 15, 15], texture: '#top' } }),
+] });
+BS('concrete_plinth', { variants: { '': { model: 'setpoint:block/concrete_plinth' } } });
+item('concrete_plinth', 'setpoint:block/concrete_plinth');
+recipe('concrete_plinth', ['CGC', 'GCG', 'CGC'], { C: 'minecraft:light_gray_concrete', G: 'minecraft:gravel' }, 'setpoint:concrete_plinth', 8);
+// the bund wall: a low concrete wall round a tank, joining up like any wall
+M('bund_wall_post', { parent: 'minecraft:block/template_wall_post', textures: { wall: tex('plant_concrete') } });
+M('bund_wall_side', { parent: 'minecraft:block/template_wall_side', textures: { wall: tex('plant_concrete') } });
+M('bund_wall_side_tall', { parent: 'minecraft:block/template_wall_side_tall', textures: { wall: tex('plant_concrete') } });
+M('bund_wall_inventory', { parent: 'minecraft:block/wall_inventory', textures: { wall: tex('plant_concrete') } });
+BS('bund_wall', { multipart: [{ when: { up: 'true' }, apply: { model: 'setpoint:block/bund_wall_post' } },
+  ...Object.entries(yaw).flatMap(([dir, y]) => [
+    { when: { [dir]: 'low' }, apply: { model: 'setpoint:block/bund_wall_side', ...(y ? { y } : {}), uvlock: true } },
+    { when: { [dir]: 'tall' }, apply: { model: 'setpoint:block/bund_wall_side_tall', ...(y ? { y } : {}), uvlock: true } }])] });
+item('bund_wall', 'setpoint:block/bund_wall_inventory');
+recipe('bund_wall', ['PPP', 'PPP'], { P: 'setpoint:concrete_plinth' }, 'setpoint:bund_wall', 6);
+// the bollard: a steel post in yellow and black, a white reflector band, a dark cap
+texture('bollard', (p) => {
+  p.rect(0, 0, 16, 16, '#e8b923');
+  for (const y of [5, 6, 11, 12]) p.rect(0, y, 16, 1, '#1d1f24');
+  p.rect(0, 1, 16, 2, '#eef1f4');
+  p.rect(0, 0, 1, 16, '#f4cc4a');
+});
+M('bollard', { parent: 'minecraft:block/block', textures: { side: tex('bollard'), cap: tex('wind_grey'), particle: tex('bollard') }, elements: [
+  box([5, 0, 5], [11, 14, 11], { north: { uv: [5, 2, 11, 16], texture: '#side' }, south: { uv: [5, 2, 11, 16], texture: '#side' }, east: { uv: [5, 2, 11, 16], texture: '#side' },
+    west: { uv: [5, 2, 11, 16], texture: '#side' }, up: { uv: [5, 5, 11, 11], texture: '#cap' }, down: { uv: [5, 5, 11, 11], texture: '#cap', cullface: 'down' } }),
+  box([5.5, 14, 5.5], [10.5, 15, 10.5], crAll('#cap', [5, 5, 10, 10])),
+] });
+BS('bollard', { variants: Object.fromEntries(Object.keys(yaw).map((f) => [`facing=${f}`, { model: 'setpoint:block/bollard' }])) });
+item('bollard', 'setpoint:block/bollard');
+recipe('bollard', ['Y', 'I', 'I'], { Y: 'minecraft:yellow_dye', I: 'minecraft:iron_ingot' }, 'setpoint:bollard', 2);
+// epoxy floor: the smooth green-grey floor of a plant building; the walkway has a yellow line along each side
+const epoxy = (p) => {
+  p.rect(0, 0, 16, 16, '#58745f');
+  let seed = 3;
+  for (let i = 0; i < 18; i++) { seed = (seed * 53 + 17) % 256; p.set(seed % 16, (seed >> 4) % 16, '#5f7c66'); }
+};
+texture('epoxy_floor', epoxy);
+// the walkway's lines: on the left (west, as the model stands) and the right; side by side walkways drop the lines between them
+for (const [l, r] of [[true, true], [true, false], [false, true], [false, false]]) {
+  texture('epoxy_walkway_' + (l ? 'l' : '') + (r ? 'r' : '') + (l || r ? '' : 'none'), (p) => { epoxy(p); if (l) p.rect(1, 0, 2, 16, '#e8b923'); if (r) p.rect(13, 0, 2, 16, '#e8b923'); });
+}
+texture('epoxy_side', (p) => { p.rect(0, 0, 16, 16, '#a3a6a2'); p.rect(0, 0, 16, 2, '#58745f'); });
+M('epoxy_floor', { parent: 'minecraft:block/cube_bottom_top', textures: { top: tex('epoxy_floor'), side: tex('epoxy_side'), bottom: tex('plant_concrete') } });
+for (const lines of ['lr', 'l', 'r', 'none']) M('epoxy_walkway_' + lines, { parent: 'minecraft:block/cube_bottom_top', textures: { top: tex('epoxy_walkway_' + lines), side: tex('epoxy_side'), bottom: tex('plant_concrete') } });
+BS('epoxy_floor', { variants: { '': { model: 'setpoint:block/epoxy_floor' } } });
+BS('epoxy_walkway', { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => [true, false].flatMap((l) => [true, false].map((r) =>
+  [`facing=${f},left=${l},right=${r}`, { model: 'setpoint:block/epoxy_walkway_' + ((l ? 'l' : '') + (r ? 'r' : '') || 'none'), ...(y ? { y } : {}) }])))) });
+item('epoxy_floor', 'setpoint:block/epoxy_floor');
+item('epoxy_walkway', 'setpoint:block/epoxy_walkway_lr');
+recipe('epoxy_floor', ['SSS', 'SGS', 'SSS'], { S: 'minecraft:smooth_stone', G: 'minecraft:green_dye' }, 'setpoint:epoxy_floor', 8);
+recipe('epoxy_walkway', ['FYF'], { F: 'setpoint:epoxy_floor', Y: 'minecraft:yellow_dye' }, 'setpoint:epoxy_walkway', 2);
+// the pipe rack portal: two posts and a beam across the top, on base plates; place them in a row and lay pipes on top
+texture('pipe_rack', (p) => { p.rect(0, 0, 16, 16, '#7d838c'); p.rect(0, 0, 16, 1, '#9aa1ab'); p.rect(0, 0, 1, 16, '#9aa1ab'); p.rect(15, 0, 1, 16, '#5c636d'); });
+M('pipe_rack', { parent: 'minecraft:block/block', textures: { steel: tex('pipe_rack'), particle: tex('pipe_rack') }, elements: [
+  ...tiled([0, 0, 6], [3, 16, 10], () => '#steel'), ...tiled([13, 0, 6], [16, 16, 10], () => '#steel'), ...tiled([3, 12, 6], [13, 16, 10], () => '#steel'),
+  ...tiled([0, 0, 5], [4, 1, 11], () => '#steel'), ...tiled([12, 0, 5], [16, 1, 11], () => '#steel'),
+  ...tiled([3, 10, 7], [5, 12, 9], () => '#steel'), ...tiled([11, 10, 7], [13, 12, 9], () => '#steel'), // knee braces under the beam
+] });
+BS('pipe_rack', { variants: Object.fromEntries(Object.entries(yaw).map(([f, y]) => [`facing=${f}`, { model: 'setpoint:block/pipe_rack', ...(y ? { y } : {}) }])) });
+item('pipe_rack', 'setpoint:block/pipe_rack');
+recipe('pipe_rack', ['BBB', 'B B'], { B: 'setpoint:steel_beam' }, 'setpoint:pipe_rack', 4);
+// the junction box: a grey box on the wall, its lid held by four screws, two cable glands underneath
+texture('junction_box', (p) => {
+  p.rect(0, 0, 16, 16, '#8d939c'); p.rect(4, 4, 8, 8, '#9aa1ab'); p.rect(4, 4, 8, 1, '#b4bac3');
+  for (const [x, y] of [[5, 5], [10, 5], [5, 10], [10, 10]]) p.set(x, y, '#3a3f48');
+  p.rect(6, 7, 4, 2, '#e8b923'); // a yellow label
+});
+M('junction_box', { parent: 'minecraft:block/block', textures: { box: tex('junction_box'), gland: tex('wind_grey'), particle: tex('junction_box') }, elements: [
+  box([4, 4, 13], [12, 12, 16], { north: { uv: [4, 4, 12, 12], texture: '#box' }, east: { uv: [0, 0, 3, 8], texture: '#box' }, west: { uv: [0, 0, 3, 8], texture: '#box' },
+    up: { uv: [0, 0, 8, 3], texture: '#box' }, down: { uv: [0, 0, 8, 3], texture: '#box' }, south: { uv: [4, 4, 12, 12], texture: '#box', cullface: 'south' } }),
+  box([5, 2.5, 14], [6.5, 4, 15.5], crAll('#gland', [0, 0, 2, 2])), box([9.5, 2.5, 14], [11, 4, 15.5], crAll('#gland', [0, 0, 2, 2])),
+] });
+BS('junction_box', { variants: Object.fromEntries(Object.entries(yaw).map(([f, y]) => [`facing=${f}`, { model: 'setpoint:block/junction_box', ...(y ? { y } : {}) }])) });
+item('junction_box', 'setpoint:block/junction_box');
+recipe('junction_box', ['NIN', 'NRN'], { N: 'minecraft:iron_nugget', I: 'minecraft:iron_ingot', R: 'minecraft:redstone' }, 'setpoint:junction_box', 2);
+// safety signs: three yellow warning triangles (flame, skull, lightning), two blue mandatory circles (hard hat, ear
+// defenders) and a green assembly point, on a white plate (the plate shows the texture from x 1 to 15, y 2 to 14)
+const SIGN = { k: '#1d1f24', y: '#f2c12e', b: '#1f5fae', g: '#1f8a4c', w: '#ffffff', r: '#c0392b' };
+// a warning triangle: a black edge, yellow inside, the pictogram in black (5 x 5, low in the triangle where it is widest)
+const warning = (symbol) => (p) => {
+  p.rect(0, 0, 16, 16, SIGN.w);
+  for (let row = 0; row < 11; row++) {
+    const half = Math.floor(row * 0.6), y = 3 + row;
+    p.rect(8 - half - 1, y, 2 * half + 2, 1, SIGN.k);
+    if (row > 0 && row < 10) p.rect(8 - half, y, 2 * half, 1, SIGN.y);
+  }
+  sprite(p, symbol, 6, 7, SIGN.k);
+};
+const mandatory = (symbol) => (p) => {
+  p.rect(0, 0, 16, 16, SIGN.w);
+  for (let y = 2; y < 14; y++) for (let x = 2; x < 14; x++) if (Math.hypot(x + 0.5 - 8, y + 0.5 - 8) <= 5.6) p.set(x, y, SIGN.b);
+  sprite(p, symbol, 5, 5, SIGN.w);
+};
+texture('safety_sign_0', warning(['..#..', '.##..', '.###.', '#####', '.###.']));          // flammable: a flame
+texture('safety_sign_1', warning(['.###.', '#.#.#', '#####', '.###.', '#.#.#']));          // toxic: a skull over crossed bones
+texture('safety_sign_2', warning(['...##', '..##.', '.####', '.##..', '##...']));          // high voltage: a lightning bolt
+texture('safety_sign_3', mandatory(['......', '..##..', '.####.', '######', '......', '......'])); // hard hat
+texture('safety_sign_4', mandatory(['.####.', '#....#', '#....#', '##..##', '##..##', '......'])); // ear defenders
+texture('safety_sign_5', (p) => { // assembly point: people round a meeting point, arrows in from the corners
+  p.rect(0, 0, 16, 16, SIGN.w); p.rect(2, 3, 12, 10, SIGN.g);
+  sprite(p, ['#....#', '.#..#.', '......', '.#..#.', '#....#'], 5, 5, SIGN.w);
+  p.rect(7, 7, 2, 2, SIGN.w);
+});
+texture('safety_sign_back', (p) => p.rect(0, 0, 16, 16, '#c9ced5'));
+for (let n = 0; n < 6; n++) M('safety_sign_' + n, { parent: 'minecraft:block/block', textures: { face: tex('safety_sign_' + n), back: tex('safety_sign_back'), particle: tex('safety_sign_back') }, elements: [
+  box([1, 2, 15], [15, 14, 16], { north: { uv: [1, 2, 15, 14], texture: '#face' }, south: { uv: [1, 2, 15, 14], texture: '#back', cullface: 'south' },
+    east: { uv: [0, 0, 1, 12], texture: '#back' }, west: { uv: [0, 0, 1, 12], texture: '#back' }, up: { uv: [0, 0, 14, 1], texture: '#back' }, down: { uv: [0, 0, 14, 1], texture: '#back' } }),
+] });
+BS('safety_sign', { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => [0, 1, 2, 3, 4, 5].map((n) => [`facing=${f},sign=${n}`, { model: 'setpoint:block/safety_sign_' + n, ...(y ? { y } : {}) }]))) });
+item('safety_sign', 'setpoint:block/safety_sign_0');
+recipe('safety_sign', ['YIK'], { Y: 'minecraft:yellow_dye', I: 'minecraft:iron_ingot', K: 'minecraft:black_dye' }, 'setpoint:safety_sign', 3);
+// the MCC cabinet: a row of motor starters behind grey doors, each with a run lamp, a fault lamp, a switch handle and a label
+texture('mcc_front', (p) => {
+  p.rect(0, 0, 16, 16, '#8d939c'); p.rect(0, 0, 16, 1, '#a6acb5');
+  for (const y of [1, 6, 11]) {
+    p.rect(1, y, 14, 4, '#9aa1ab'); p.rect(1, y + 4, 14, 1, '#6b717a');
+    p.set(3, y + 1, '#3fd06a'); p.set(5, y + 1, '#d6262b');                      // run and fault lamps
+    p.rect(10, y + 1, 3, 2, '#1d1f24'); p.set(11, y, '#1d1f24');                  // the rotary switch handle
+    p.rect(3, y + 3, 4, 1, '#eef1f4');                                            // the label
+  }
+});
+texture('mcc_side', (p) => { p.rect(0, 0, 16, 16, '#8d939c'); for (let y = 2; y < 15; y += 3) p.rect(4, y, 8, 1, '#6b717a'); });
+M('mcc_cabinet', { parent: 'minecraft:block/block', textures: { front: tex('mcc_front'), side: tex('mcc_side'), particle: tex('mcc_side') }, elements: [
+  box([0, 0, 2], [16, 16, 16], { north: { uv: [0, 0, 16, 16], texture: '#front' }, south: { uv: [0, 0, 16, 16], texture: '#side', cullface: 'south' },
+    east: { uv: [2, 0, 16, 16], texture: '#side', cullface: 'east' }, west: { uv: [0, 0, 14, 16], texture: '#side', cullface: 'west' },
+    up: { uv: [0, 2, 16, 16], texture: '#side', cullface: 'up' }, down: { uv: [0, 2, 16, 16], texture: '#side', cullface: 'down' } }),
+] });
+BS('mcc_cabinet', { variants: Object.fromEntries(Object.entries(yaw).map(([f, y]) => [`facing=${f}`, { model: 'setpoint:block/mcc_cabinet', ...(y ? { y } : {}) }])) });
+item('mcc_cabinet', 'setpoint:block/mcc_cabinet');
+recipe('mcc_cabinet', ['ILI', 'IRI', 'ILI'], { I: 'minecraft:iron_ingot', L: 'minecraft:redstone_lamp', R: 'minecraft:redstone_block' }, 'setpoint:mcc_cabinet');
+
+// =====================================================================================
+// Building blocks of a plant (0.2.2, round 2): blocks that work on the line. Insulated pipes (liquid and gas) in an
+// aluminium jacket, a wall sleeve for a pipe through a wall, a cable tray and a transformer that carry power like a
+// cable, and a local control station whose stop button stops the machine beside it.
+// =====================================================================================
+// the aluminium jacket: bright sheet with a lapped seam along it and a joint band where two sheets meet
+const cladding = (band) => (p) => {
+  const shade = ['#9aa1ab', '#b4bac3', '#cdd2d9', '#e1e5ea', '#eef1f4', '#e1e5ea', '#d5dae0', '#cdd2d9', '#c3c9d2', '#b9bfc7', '#b0b6bf', '#a6acb5', '#9aa1ab', '#8d939c', '#8d939c', '#7d838c'];
+  for (let y = 0; y < 16; y++) p.rect(0, y, 16, 1, shade[y]);
+  p.rect(0, 0, 1, 16, '#7d838c'); p.rect(8, 0, 1, 16, '#8d939c'); // where the sheets overlap
+  if (band) { p.rect(3, 0, 2, 16, band); p.rect(11, 0, 2, 16, band); }
+};
+texture('insulated_pipe', cladding(null));
+texture('insulated_gas_pipe', cladding(GAS.yellow));
+for (const name of ['insulated_pipe', 'insulated_gas_pipe']) {
+  const t = { pipe: tex(name), particle: tex(name) };
+  M(name + '_core', { parent: 'minecraft:block/block', textures: t, elements: [box([4, 4, 4], [12, 12, 12], Object.fromEntries(['north', 'south', 'east', 'west', 'up', 'down'].map((f) => [f, face([4, 4, 12, 12])])))] });
+  M(name + '_arm', { textures: t, elements: [box([4, 4, 0], [12, 12, 4], { north: { uv: [4, 4, 12, 12], texture: '#pipe', cullface: 'north' },
+    east: face([0, 4, 4, 12]), west: face([12, 4, 16, 12]), up: face([4, 0, 12, 4]), down: face([4, 12, 12, 16]) })] });
+  M(name + '_item', { parent: 'minecraft:block/block', textures: t, elements: [box([4, 4, 0], [12, 12, 16], { north: face([4, 4, 12, 12]), south: face([4, 4, 12, 12]),
+    east: face([0, 4, 16, 12]), west: face([0, 4, 16, 12]), up: face([4, 0, 12, 16]), down: face([4, 0, 12, 16]) })] });
+  BS(name, { multipart: [{ apply: { model: 'setpoint:block/' + name + '_core' } },
+    ...Object.entries(armRotation).map(([dir, rot]) => ({ when: { [dir]: 'true' }, apply: { model: 'setpoint:block/' + name + '_arm', ...rot } }))] });
+  item(name, 'setpoint:block/' + name + '_item');
+}
+recipe('insulated_pipe', ['IWI', 'PPP', 'IWI'], { I: 'minecraft:iron_nugget', W: 'minecraft:white_wool', P: 'setpoint:pipe' }, 'setpoint:insulated_pipe', 3);
+recipe('insulated_gas_pipe', ['IWI', 'PPP', 'IWI'], { I: 'minecraft:iron_nugget', W: 'minecraft:white_wool', P: 'setpoint:gas_pipe' }, 'setpoint:insulated_gas_pipe', 3);
+// the wall sleeve: concrete, the pipe coming out of both faces through a steel flange
+texture('wall_sleeve_face', (p) => {
+  p.rect(0, 0, 16, 16, '#a3a6a2');
+  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
+    const d = Math.hypot(x + 0.5 - 8, y + 0.5 - 8);
+    if (d < 6) p.set(x, y, d < 4 ? '#3a3f48' : '#8d939c');
+  }
+  for (const [x, y] of [[8, 3], [12, 8], [8, 12], [3, 8], [5, 5], [11, 5], [11, 11], [5, 11]]) p.set(x, y, '#5c636d'); // the flange bolts
+});
+M('wall_sleeve', { parent: 'minecraft:block/cube', textures: { north: tex('wall_sleeve_face'), south: tex('wall_sleeve_face'), east: tex('plant_concrete'), west: tex('plant_concrete'),
+  up: tex('plant_concrete_top'), down: tex('plant_concrete'), particle: tex('plant_concrete') } });
+const axisTurn = { x: { y: 90 }, y: { x: 90 }, z: {} };
+BS('wall_sleeve', { variants: Object.fromEntries(['x', 'y', 'z'].map((axis) => [`axis=${axis}`, { model: 'setpoint:block/wall_sleeve', ...axisTurn[axis] }])) });
+item('wall_sleeve', 'setpoint:block/wall_sleeve');
+recipe('wall_sleeve', ['CPC'], { C: 'setpoint:concrete_plinth', P: 'setpoint:pipe' }, 'setpoint:wall_sleeve', 2);
+// the cable tray: a perforated galvanised tray with side rails, the black cables lying in it
+texture('cable_tray', (p) => {
+  p.rect(0, 0, 16, 16, '#b4bac3'); p.rect(0, 0, 16, 1, '#cdd2d9');
+  for (let y = 2; y < 16; y += 4) for (let x = 2; x < 16; x += 4) p.rect(x, y, 2, 1, '#6b717a'); // the slots
+});
+const trayTex = { tray: tex('cable_tray'), cable: tex('power_cable'), particle: tex('cable_tray') };
+M('cable_tray_core', { parent: 'minecraft:block/block', textures: trayTex, elements: [
+  ...tiled([2, 4, 2], [14, 5, 14], () => '#tray'),
+] });
+M('cable_tray_arm', { textures: trayTex, elements: [
+  ...tiled([2, 4, 0], [14, 5, 2], () => '#tray'),
+  ...tiled([2, 5, 0], [3, 8, 2], () => '#tray'), ...tiled([13, 5, 0], [14, 8, 2], () => '#tray'),
+  // two cables, out to the middle where they cross those of the other sides
+  ...[[5, 7], [9, 11]].map(([a, b]) => box([a, 5, 0], [b, 6.5, 11], { north: { uv: [0, 0, 2, 2], texture: '#cable', cullface: 'north' }, up: { uv: [a, 0, b, 11], texture: '#cable' },
+    east: { uv: [0, 6, 11, 8], texture: '#cable' }, west: { uv: [0, 6, 11, 8], texture: '#cable' } })),
+] });
+M('cable_tray_item', { parent: 'minecraft:block/block', textures: trayTex, elements: [
+  ...tiled([2, 4, 0], [14, 5, 16], () => '#tray'), ...tiled([2, 5, 0], [3, 8, 16], () => '#tray'), ...tiled([13, 5, 0], [14, 8, 16], () => '#tray'),
+  box([5, 5, 0], [7, 6.5, 16], crAll('#cable', [0, 6, 16, 8])), box([9, 5, 0], [11, 6.5, 16], crAll('#cable', [0, 6, 16, 8])),
+] });
+BS('cable_tray', { multipart: [{ apply: { model: 'setpoint:block/cable_tray_core' } },
+  ...Object.entries(armRotation).map(([dir, rot]) => ({ when: { [dir]: 'true' }, apply: { model: 'setpoint:block/cable_tray_arm', ...rot } }))] });
+item('cable_tray', 'setpoint:block/cable_tray_item');
+recipe('cable_tray', ['I I', 'ICI'], { I: 'minecraft:iron_ingot', C: 'setpoint:power_cable' }, 'setpoint:cable_tray', 4);
+// the transformer: a grey oil-filled tank with cooling fins on every side and three brown porcelain bushings on top
+texture('transformer', (p) => { p.rect(0, 0, 16, 16, '#6e7a72'); p.rect(0, 0, 16, 1, '#86928a'); p.rect(0, 15, 16, 1, '#56605a'); });
+texture('transformer_fin', (p) => { p.rect(0, 0, 16, 16, '#7a867e'); for (let y = 0; y < 16; y += 2) p.rect(0, y, 16, 1, '#5e6a62'); });
+texture('bushing', (p) => { p.rect(0, 0, 16, 16, '#8a4a2a'); for (let y = 1; y < 16; y += 3) p.rect(0, y, 16, 1, '#5e3019'); });
+M('transformer', { parent: 'minecraft:block/block', textures: { tank: tex('transformer'), fin: tex('transformer_fin'), bushing: tex('bushing'), particle: tex('transformer') }, elements: [
+  ...tiled([3, 0, 3], [13, 12, 13], () => '#tank'),
+  ...[[1, 3], [6, 8], [11, 13]].flatMap(([a, b]) => [ // three fins on each side
+    ...tiled([a + 0.5, 1, 1], [b - 0.5, 11, 3], () => '#fin'), ...tiled([a + 0.5, 1, 13], [b - 0.5, 11, 15], () => '#fin'),
+    ...tiled([1, 1, a + 0.5], [3, 11, b - 0.5], () => '#fin'), ...tiled([13, 1, a + 0.5], [15, 11, b - 0.5], () => '#fin')]),
+  ...[4.5, 7.25, 10].flatMap((x) => tiled([x, 12, 7.25], [x + 1.5, 15, 8.75], () => '#bushing')),
+] });
+BS('transformer', { multipart: [{ apply: { model: 'setpoint:block/transformer' } }] });
+item('transformer', 'setpoint:block/transformer');
+recipe('transformer', ['I I', 'CRC', 'III'], { I: 'minecraft:iron_ingot', C: 'minecraft:copper_block', R: 'minecraft:redstone_block' }, 'setpoint:transformer');
+// the local control station: a grey box with a green START button above a red mushroom STOP, a run lamp on top
+texture('lcs_box', (p) => { p.rect(0, 0, 16, 16, '#8d939c'); p.rect(0, 0, 16, 1, '#a6acb5'); p.rect(5, 7, 6, 1, '#eef1f4'); p.rect(5, 15, 6, 1, '#eef1f4'); });
+texture('lcs_start', (p) => { p.rect(0, 0, 16, 16, '#2e9d4f'); p.rect(0, 0, 16, 2, '#4fc06f'); });
+texture('lcs_stop', (p) => { p.rect(0, 0, 16, 16, '#c0392b'); p.rect(0, 0, 16, 2, '#e0574a'); });
+for (const run of [false, true]) {
+  texture('lcs_lamp_' + (run ? 'on' : 'off'), (p) => p.rect(0, 0, 16, 16, run ? '#3fd06a' : '#2a3a2e'));
+  M('local_control_station_' + (run ? 'on' : 'off'), { parent: 'minecraft:block/block', textures: { box: tex('lcs_box'), start: tex('lcs_start'), stop: tex('lcs_stop'), lamp: tex('lcs_lamp_' + (run ? 'on' : 'off')), particle: tex('lcs_box') }, elements: [
+    box([4, 2, 12], [12, 14, 16], { north: { uv: [4, 2, 12, 14], texture: '#box' }, south: { uv: [4, 2, 12, 14], texture: '#box', cullface: 'south' }, east: { uv: [0, 2, 4, 14], texture: '#box' },
+      west: { uv: [0, 2, 4, 14], texture: '#box' }, up: { uv: [4, 0, 12, 4], texture: '#box' }, down: { uv: [4, 0, 12, 4], texture: '#box' } }),
+    box([6, 9, 11], [10, 12, 12], crAll('#start', [0, 0, 4, 3])),
+    box([5.5, 3.5, 10.5], [10.5, 7.5, 12], crAll('#stop', [0, 0, 5, 4])),
+    box([7, 14, 13], [9, 15.5, 15], crAll('#lamp', [0, 0, 2, 2])),
+  ] });
+}
+BS('local_control_station', { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => [false, true].map((run) =>
+  [`facing=${f},running=${run}`, { model: 'setpoint:block/local_control_station_' + (run ? 'on' : 'off'), ...(y ? { y } : {}) }]))) });
+item('local_control_station', 'setpoint:block/local_control_station_on');
+recipe('local_control_station', ['ISI', 'IRI'], { I: 'minecraft:iron_nugget', S: 'minecraft:stone_button', R: 'minecraft:redstone_torch' }, 'setpoint:local_control_station');
+
+// =====================================================================================
 // Loot tables and tool tags for every block
 // =====================================================================================
 const lootSelf = (name) => json(join(DATA, 'loot_table/blocks', name + '.json'), {
@@ -3050,10 +3505,12 @@ const lootOre = (name, drop) => json(join(DATA, 'loot_table/blocks', name + '.js
 });
 const MACHINES = ['pipe', 'tank', 'centrifugal_pump', 'creative_generator', 'level_transmitter', 'control_valve', 'controller',
   'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine', 'dcs_console', 'hand_valve', 'water_intake', 'flow_transmitter',
-  'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve', 'pid_board', 'pallet', 'gas_pipe', 'electrolyser', 'nitrogen_generator', 'compressor', 'fuel_cell', 'ammonia_reactor', 'fertilizer_mixer', 'pumpjack', 'distillation_column', 'diesel_generator', 'gas_valve', 'gas_control_valve', 'burner', 'power_cable', 'wind_turbine'];
+  'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve', 'pid_board', 'pallet', 'gas_pipe', 'electrolyser', 'nitrogen_generator', 'compressor', 'fuel_cell', 'ammonia_reactor', 'fertilizer_mixer', 'pumpjack', 'distillation_column', 'diesel_generator', 'gas_valve', 'gas_control_valve', 'burner', 'power_cable', 'wind_turbine', 'power_meter'];
 for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) lootSelf(name);
 // factory blocks: each drops itself; a handrail drops one for every side it rails
-const FACTORY = ['rack_upright', 'rack_beam', 'grating', 'grating_stairs', 'caged_ladder', 'steel_beam', 'checker_plate', 'hazard_stripes', 'corrugated_steel', 'industrial_lamp'];
+const FACTORY = ['rack_upright', 'rack_beam', 'grating', 'grating_stairs', 'caged_ladder', 'steel_beam', 'checker_plate', 'hazard_stripes', 'corrugated_steel', 'industrial_lamp',
+  'concrete_plinth', 'bund_wall', 'bollard', 'epoxy_floor', 'epoxy_walkway', 'pipe_rack', 'junction_box', 'safety_sign', 'mcc_cabinet',
+  'cable_tray', 'transformer', 'insulated_pipe', 'insulated_gas_pipe', 'wall_sleeve', 'local_control_station'];
 for (const name of FACTORY) lootSelf(name);
 lootSelf('flare_stack');
 // control room: each drops itself (the filing cabinet also what it holds); the blast door only from its lower half
@@ -3067,6 +3524,9 @@ json(join(DATA, 'loot_table/blocks', 'handrail.json'), { type: 'minecraft:block'
   pools: ['north', 'east', 'south', 'west'].map((edge) => ({ rolls: 1, entries: [{ type: 'minecraft:item', name: 'setpoint:handrail',
     condition: { type: 'minecraft:match_block', blocks: 'setpoint:handrail', state: { [edge]: 'true' } } }] })).concat([{ rolls: 1,
     entries: [{ type: 'minecraft:item', name: 'setpoint:grating', condition: { type: 'minecraft:match_block', blocks: 'setpoint:handrail', state: { floor: 'true' } } }] }]) });
+json(join(DATA, 'loot_table/blocks', 'battery_bank.json'), { type: 'minecraft:block', random_sequence: 'setpoint:blocks/battery_bank',
+  pools: [{ rolls: 1, conditions: [{ condition: 'minecraft:survives_explosion' }], entries: [{ type: 'minecraft:item', name: 'setpoint:battery_bank',
+    modifier: { type: 'minecraft:copy_components', source: 'block_entity', include: ['minecraft:custom_name', 'setpoint:stored_energy'] } }] }] });
 for (const name of ['drum', 'ibc', 'floating_roof_tank', 'gas_cylinder', 'gas_sphere']) json(join(DATA, 'loot_table/blocks', name + '.json'), {
   type: 'minecraft:block', random_sequence: 'setpoint:blocks/' + name,
   pools: [{ rolls: 1, conditions: [{ condition: 'minecraft:survives_explosion' }], entries: [{ type: 'minecraft:item', name: 'setpoint:' + name,
@@ -3076,8 +3536,16 @@ lootOre('hookonium_ore', 'setpoint:raw_hookonium');
 lootOre('deepslate_hookonium_ore', 'setpoint:raw_hookonium');
 const HOOKONIUM_BLOCKS = ['hookonium_ore', 'deepslate_hookonium_ore', 'hookonium_block', 'raw_hookonium_block'].map((n) => 'setpoint:' + n);
 const tag = (path, values) => json(join(ROOT, 'data', path + '.json'), { values });
+tag('minecraft/tags/block/walls', ['setpoint:bund_wall']);
+tag('minecraft/tags/item/walls', ['setpoint:bund_wall']);
+// operator gear: repaired with Hookonium, the coverall dyeable, each piece in its armour slot tag
+tag('setpoint/tags/item/repairs_operator_gear', ['setpoint:hookonium_ingot']);
+tag('minecraft/tags/item/dyeable', ['setpoint:coverall_top', 'setpoint:coverall_trousers']);
+for (const [slot, names] of [['head_armor', ['operator_helmet', 'bump_cap']], ['chest_armor', ['coverall_top']], ['leg_armor', ['coverall_trousers']], ['foot_armor', ['work_boots']]]) {
+  tag('minecraft/tags/item/' + slot, names.map((n) => 'setpoint:' + n));
+}
 tag('c/tags/fluid/steam', ['setpoint:steam']); // other mods find our steam by the common tag
-tag('minecraft/tags/block/mineable/pickaxe', [...MACHINES.map((n) => 'setpoint:' + n), 'setpoint:drum', 'setpoint:ibc', 'setpoint:floating_roof_tank', 'setpoint:roof_tank_part', 'setpoint:gas_cylinder', 'setpoint:gas_sphere', 'setpoint:gas_sphere_part', 'setpoint:pumpjack_part', 'setpoint:column_part', 'setpoint:flare_stack', 'setpoint:flare_stack_part', 'setpoint:wind_turbine_part', ...FACTORY.map((n) => 'setpoint:' + n), 'setpoint:handrail', ...CONTROL_ROOM.filter((n) => n !== 'office_chair').map((n) => 'setpoint:' + n), 'setpoint:blast_door', ...HOOKONIUM_BLOCKS]);
+tag('minecraft/tags/block/mineable/pickaxe', [...MACHINES.map((n) => 'setpoint:' + n), 'setpoint:drum', 'setpoint:ibc', 'setpoint:floating_roof_tank', 'setpoint:roof_tank_part', 'setpoint:gas_cylinder', 'setpoint:gas_sphere', 'setpoint:gas_sphere_part', 'setpoint:pumpjack_part', 'setpoint:column_part', 'setpoint:flare_stack', 'setpoint:flare_stack_part', 'setpoint:wind_turbine_part', 'setpoint:battery_bank', ...FACTORY.map((n) => 'setpoint:' + n), 'setpoint:handrail', ...CONTROL_ROOM.filter((n) => n !== 'office_chair').map((n) => 'setpoint:' + n), 'setpoint:blast_door', ...HOOKONIUM_BLOCKS]);
 tag('minecraft/tags/block/doors', ['setpoint:blast_door']);
 tag('minecraft/tags/item/doors', ['setpoint:blast_door']);
 tag('minecraft/tags/block/climbable', ['setpoint:caged_ladder']);

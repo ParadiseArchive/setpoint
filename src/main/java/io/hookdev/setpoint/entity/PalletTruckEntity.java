@@ -136,6 +136,18 @@ public class PalletTruckEntity extends VehicleEntity implements HornVehicle {
     public void tick() {
         super.tick();
         if (level() instanceof ServerLevel server) drive(server);
+        else if (isLocalClientAuthoritative()) follow(driver()); // the driver's own game moves it too, in step with them
+    }
+
+    /**
+     * The player holding the tiller moves the truck in their own game, the way a boat moves for whoever steers it:
+     * it follows their every step instead of catching up with the server now and then, which made it stutter. The
+     * server works out the same and stays in charge of picking up pallets and of what other players see.
+     */
+    @Override
+    protected boolean isLocalClientAuthoritative() {
+        Player driver = driver();
+        return driver != null && driver.isLocalPlayer();
     }
 
     private void drive(ServerLevel level) {
@@ -146,9 +158,14 @@ public class PalletTruckEntity extends VehicleEntity implements HornVehicle {
             driver = null;
         }
         if (driver == null && hornOn()) setHorn(false);
+        Vec3 step = follow(driver);
+        if (driver != null && !hasPallet) couple(level, step);
+    }
+
+    /** A trailer: the tiller points at the driver, and the handle stays a step behind them. Returns the step it took. */
+    private Vec3 follow(@Nullable Player driver) {
         Vec3 step = Vec3.ZERO;
         if (driver != null) {
-            // a trailer: the tiller points at you, and the handle stays a step behind you
             Vec3 toDriver = new Vec3(driver.getX() - getX(), 0, driver.getZ() - getZ());
             double distance = toDriver.horizontalDistance();
             if (distance > 0.05) {
@@ -156,11 +173,11 @@ public class PalletTruckEntity extends VehicleEntity implements HornVehicle {
                 setYRot((float) (Mth.atan2(-forward.x, forward.z) * Mth.RAD_TO_DEG));
                 step = forward.scale(Mth.clamp(distance - (HANDLE + 0.6), -0.5, 0.6));
             }
-            if (!hasPallet) couple(level, step);
         }
         double fall = onGround() ? 0 : Math.max(-2, getDeltaMovement().y - 0.08);
         setDeltaMovement(step.x, fall, step.z);
         move(MoverType.SELF, getDeltaMovement());
+        return step;
     }
 
     /** Picks up a pallet the forks are in, if there is one (the truck does this by itself while you drive it). */

@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": "setpoint:concrete_plinth",
+    "P": "setpoint:pipe"
+  },
+  "pattern": [
+    "CPC"
+  ],
+  "result": {
+    "count": 2,
+    "id": "setpoint:wall_sleeve"
+  }
+}

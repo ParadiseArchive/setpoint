@@ -108,9 +108,11 @@ public class FlareRenderer implements BlockEntityRenderer<FlareBlockEntity, Flar
                 rod(state, ROD, b[0] * w0, y0, b[1] * w0, a[0] * w1, y1, a[1] * w1, 1, pose, collector);
                 rod(state, ROD, a[0] * w1, y1, a[1] * w1, b[0] * w1, y1, b[1] * w1, 1.5f, pose, collector); // the girt on top of the panel
             }
-            // guides hold the stack in the middle at every panel point
+            // guides hold the stack in the middle at every panel point; on the east, where the ladder climbs, the guide
+            // stops at the ladder's rail and holds that instead of running through the cage
             for (int[] d : new int[][]{ {1, 0}, {-1, 0}, {0, 1}, {0, -1} }) {
-                rod(state, ROD, d[0] * STACK_RADIUS, y1, d[1] * STACK_RADIUS, d[0] * w1, y1, d[1] * w1, 1, pose, collector);
+                float reach = d[0] == 1 ? LADDER_RAIL : w1;
+                rod(state, ROD, d[0] * STACK_RADIUS, y1, d[1] * STACK_RADIUS, d[0] * reach, y1, d[1] * reach, 1, pose, collector);
             }
         }
 
@@ -203,6 +205,9 @@ public class FlareRenderer implements BlockEntityRenderer<FlareBlockEntity, Flar
         part(state, model, 0, 0, 0, pose, collector);
         pose.popPose();
     }
+
+    /** The ladder's rails stand this far east of the stack's middle (pixels); its cage reaches out to 19. */
+    private static final float LADDER_RAIL = 9;
 
     /** One part model, put this far out and up (pixels) in the current frame. */
     private static void part(State state, int part, float x, float y, float z, PoseStack pose, SubmitNodeCollector collector) {

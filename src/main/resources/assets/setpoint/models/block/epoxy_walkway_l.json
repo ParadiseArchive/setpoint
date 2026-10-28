@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "setpoint:block/epoxy_walkway_l",
+    "side": "setpoint:block/epoxy_side",
+    "bottom": "setpoint:block/plant_concrete"
+  }
+}

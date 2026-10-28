@@ -38,13 +38,13 @@ It is easy by default: machines link up and configure themselves, and plain-lang
 
 ## The control room
 
-- **Video wall.** Overview screens side by side make one wall of up to 8 by 6 blocks, showing the plant overview, the alarm list, the trends or your P&ID live.
+- **Video wall.** Overview screens side by side make one wall of up to 8 by 6 blocks, showing the plant overview, the alarm list, the trends, your P&ID live or the power page.
 - **Alarm beacon.** An amber light that turns and sounds while an alarm waits for an ACK.
 - **Emergency stop.** A red mushroom button that shuts the whole plant down at once.
 - **Radios.** Pick one up and the field operator calls in what needs a look, worst first.
 - **Console desk.** The DCS console built into a desk, with its three screens on top.
 - **Printer.** Feed it paper and it prints the alarm log of the nearest console as a book, for the shift handover.
-- **Furniture.** Control desks, operator screens, a 24-hour chair you can sit in, a raised floor, ceiling lights, a wall clock with the time of day, filing cabinets, a coffee machine, an exit sign, a blast door and wired glass.
+- **Furniture.** Control desks, operator screens, a 24-hour chair you can sit in, a raised floor, ceiling lights, a wall clock with the time of day, filing cabinets, a coffee machine that pours you a mug of coffee, an exit sign, a blast door and wired glass.
 
 ![The DCS console overview](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/console.png)
 
@@ -58,7 +58,8 @@ It is easy by default: machines link up and configure themselves, and plain-lang
 - **Diesel generator** at the top of the power ladder, on diesel from your own refinery.
 - **Fuel cell.** Hydrogen and oxygen back into power: with an electrolyser and a gas sphere it makes a battery.
 - **Wind turbine.** A white tower thirty blocks high whose three blades turn in the wind: up to 100 FE/t, more in rain, and a storm stop when the wind gets too strong.
-- **Power cables** carry FE from any generator to the machines along them, shared out evenly. They work with other mods' generators and machines too.
+- **Power cables** carry FE from any generator to the machines along them, shared out evenly. They work with other mods' generators and machines too, and pull from generators that wait to be drained. Cable trays and transformers carry power the same way.
+- **Battery bank.** A million FE: it keeps what the machines leave over and gives it back when the wind drops. A **power meter** in the cable shows what flows.
 
 ![Stirling engine, biogas generator, boiler, safety valve, steam turbine, diesel generator, fuel cell, power cable and wind turbine](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/shelf-power.png)
 
@@ -94,11 +95,11 @@ The tallest thing in the mod: a flare forty blocks high in a red and white derri
 
 ## Factory blocks
 
-Build round your plant with steel grating, grating stairs, handrails, caged ladders, steel I-beams, checker plate, hazard stripes, corrugated steel and industrial lamps.
+Build round your plant with steel grating, grating stairs, handrails, caged ladders, steel I-beams, checker plate, hazard stripes, corrugated steel and industrial lamps. And for a real plant: concrete plinths, bund walls, bollards, an epoxy floor with walkways that join up, pipe racks, insulated pipes for hot lines and steam, wall sleeves, a junction box, safety signs, an MCC cabinet and a local control station with START and STOP buttons.
 
 ## Hookonium
 
-A purple endgame ore, as rare as diamond, for the big machines.
+A purple endgame ore, as rare as diamond, for the big machines and for **operator gear** as strong as diamond armour: a white hard hat, a yellow bump cap, a blue coverall you can dye, and safety boots.
 
 ## Help in the game
 

@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:block",
+  "random_sequence": "setpoint:blocks/battery_bank",
+  "pools": [
+    {
+      "rolls": 1,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "setpoint:battery_bank",
+          "modifier": {
+            "type": "minecraft:copy_components",
+            "source": "block_entity",
+            "include": [
+              "minecraft:custom_name",
+              "setpoint:stored_energy"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

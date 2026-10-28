@@ -27,10 +27,13 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 /**
  * A power cable: black rubber round copper. It joins other cables and every block that takes or gives FE, from this mod
  * or another. Like a pipe it holds nothing itself: FE that a generator pushes into it goes straight on to the machines
- * along the cable, shared out evenly (see {@link PowerNetwork}).
+ * along the cable, shared out evenly (see {@link PowerNetwork}). A cable beside a generator also pulls from it, for the
+ * generators of other mods that wait to be drained instead of pushing.
  */
 public class PowerCableBlock extends Block {
     public static final Map<Direction, BooleanProperty> CONNECTIONS = PipeBlock.PROPERTY_BY_DIRECTION;
+    /** Next to a block with FE (not a cable): the cable ticks to pull FE out of it, in case it does not push. */
+    public static final BooleanProperty PULL = BooleanProperty.create("pull");
 
     private static final VoxelShape CORE = Block.box(6, 6, 6, 10, 10, 10);
     private static final Map<Direction, VoxelShape> ARMS = Map.of(
@@ -47,7 +50,7 @@ public class PowerCableBlock extends Block {
         super(properties);
         BlockState state = this.stateDefinition.any();
         for (Direction direction : Direction.values()) state = state.setValue(CONNECTIONS.get(direction), false);
-        this.registerDefaultState(state);
+        this.registerDefaultState(state.setValue(PULL, false));
         this.shapes = this.getShapeForEachState(PowerCableBlock::makeShape);
     }
 
@@ -70,7 +73,16 @@ public class PowerCableBlock extends Block {
         for (Direction direction : Direction.values()) {
             state = state.setValue(CONNECTIONS.get(direction), connectsTo(level, pos, direction));
         }
-        return state;
+        return withPull(state, level, pos);
+    }
+
+    /** Does it touch anything with FE besides cables? */
+    private static BlockState withPull(BlockState state, BlockGetter level, BlockPos pos) {
+        boolean pull = false;
+        for (Direction direction : Direction.values()) {
+            if (state.getValue(CONNECTIONS.get(direction)) && !(level.getBlockState(pos.relative(direction)).getBlock() instanceof PowerCableBlock)) pull = true;
+        }
+        return state.setValue(PULL, pull);
     }
 
     @Override
@@ -82,7 +94,9 @@ public class PowerCableBlock extends Block {
     protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos pos,
                                      Direction directionToNeighbour, BlockPos neighbourPos, BlockState neighbourState, RandomSource random) {
         PowerNetwork.forget(level);
-        return state.setValue(CONNECTIONS.get(directionToNeighbour), connectsTo(level, pos, directionToNeighbour));
+        BlockState updated = withPull(state.setValue(CONNECTIONS.get(directionToNeighbour), connectsTo(level, pos, directionToNeighbour)), level, pos);
+        if (updated.getValue(PULL) && !state.getValue(PULL)) ticks.scheduleTick(pos, this, 1);
+        return updated;
     }
 
     /** Cables placed by commands or structures work out their connections too. */
@@ -92,6 +106,15 @@ public class PowerCableBlock extends Block {
         PowerNetwork.forget(level);
         BlockState connected = refresh(state, level, pos);
         if (connected != state) level.setBlock(pos, connected, Block.UPDATE_CLIENTS);
+        if (connected.getValue(PULL)) level.scheduleTick(pos, this, 1);
+    }
+
+    /** Every tick while it touches a machine: pull FE from it, for generators that do not push. Scheduled ticks are saved with the world. */
+    @Override
+    protected void tick(BlockState state, net.minecraft.server.level.ServerLevel level, BlockPos pos, RandomSource random) {
+        if (!state.getValue(PULL)) return;
+        PowerNetwork.pull(level, pos);
+        level.scheduleTick(pos, this, 1);
     }
 
     @Override
@@ -114,5 +137,6 @@ public class PowerCableBlock extends Block {
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         CONNECTIONS.values().forEach(builder::add);
+        builder.add(PULL);
     }
 }

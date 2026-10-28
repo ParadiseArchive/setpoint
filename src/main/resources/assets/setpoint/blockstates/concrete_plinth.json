@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "setpoint:block/concrete_plinth"
+    }
+  }
+}

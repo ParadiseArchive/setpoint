@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "setpoint:item/coverall_top",
+    "layer1": "setpoint:item/coverall_top_overlay"
+  }
+}

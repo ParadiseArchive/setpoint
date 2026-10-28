@@ -1,0 +1,252 @@
+{
+  "multipart": [
+    {
+      "when": {
+        "facing": "north",
+        "load": "0"
+      },
+      "apply": {
+        "model": "setpoint:block/power_meter_box_0"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "load": "1"
+      },
+      "apply": {
+        "model": "setpoint:block/power_meter_box_1"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "load": "2"
+      },
+      "apply": {
+        "model": "setpoint:block/power_meter_box_2"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "load": "3"
+      },
+      "apply": {
+        "model": "setpoint:block/power_meter_box_3"
+      }
+    },
+    {
+      "when": {
+        "facing": "north",
+        "load": "4"
+      },
+      "apply": {
+        "model": "setpoint:block/power_meter_box_4"
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "load": "0"
+      },
+      "apply": {
+        "model": "setpoint:block/power_meter_box_0",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "load": "1"
+      },
+      "apply": {
+        "model": "setpoint:block/power_meter_box_1",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "load": "2"
+      },
+      "apply": {
+        "model": "setpoint:block/power_meter_box_2",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "load": "3"
+      },
+      "apply": {
+        "model": "setpoint:block/power_meter_box_3",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "east",
+        "load": "4"
+      },
+      "apply": {
+        "model": "setpoint:block/power_meter_box_4",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "load": "0"
+      },
+      "apply": {
+        "model": "setpoint:block/power_meter_box_0",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "load": "1"
+      },
+      "apply": {
+        "model": "setpoint:block/power_meter_box_1",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "load": "2"
+      },
+      "apply": {
+        "model": "setpoint:block/power_meter_box_2",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "load": "3"
+      },
+      "apply": {
+        "model": "setpoint:block/power_meter_box_3",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "south",
+        "load": "4"
+      },
+      "apply": {
+        "model": "setpoint:block/power_meter_box_4",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "load": "0"
+      },
+      "apply": {
+        "model": "setpoint:block/power_meter_box_0",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "load": "1"
+      },
+      "apply": {
+        "model": "setpoint:block/power_meter_box_1",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "load": "2"
+      },
+      "apply": {
+        "model": "setpoint:block/power_meter_box_2",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "load": "3"
+      },
+      "apply": {
+        "model": "setpoint:block/power_meter_box_3",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "facing": "west",
+        "load": "4"
+      },
+      "apply": {
+        "model": "setpoint:block/power_meter_box_4",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "north": "true"
+      },
+      "apply": {
+        "model": "setpoint:block/power_cable_arm"
+      }
+    },
+    {
+      "when": {
+        "east": "true"
+      },
+      "apply": {
+        "model": "setpoint:block/power_cable_arm",
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "south": "true"
+      },
+      "apply": {
+        "model": "setpoint:block/power_cable_arm",
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "west": "true"
+      },
+      "apply": {
+        "model": "setpoint:block/power_cable_arm",
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "up": "true"
+      },
+      "apply": {
+        "model": "setpoint:block/power_cable_arm",
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "down": "true"
+      },
+      "apply": {
+        "model": "setpoint:block/power_cable_arm",
+        "x": 90
+      }
+    }
+  ]
+}

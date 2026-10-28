@@ -34,8 +34,8 @@ import net.minecraft.world.level.storage.ValueOutput;
  * players around it to draw. The other screens of the wall only show their part of it.
  */
 public class OverviewScreenBlockEntity extends BlockEntity {
-    public static final int OVERVIEW = 0, ALARMS = 1, TRENDS = 2, PID = 3, PAGES = 4;
-    public static final String[] PAGE_NAMES = {"PLANT OVERVIEW", "ALARMS", "TRENDS", "P&ID"};
+    public static final int OVERVIEW = 0, ALARMS = 1, TRENDS = 2, PID = 3, POWER = 4, PAGES = 5;
+    public static final String[] PAGE_NAMES = {"PLANT OVERVIEW", "ALARMS", "TRENDS", "P&ID", "POWER"};
     public static final int SCAN_TICKS = 20;
 
     private int page = OVERVIEW;

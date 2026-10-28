@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "setpoint:item/coverall_trousers",
+    "layer1": "setpoint:item/coverall_trousers_overlay"
+  }
+}

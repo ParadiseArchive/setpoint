@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "B": "minecraft:blue_wool",
+    "H": "setpoint:hookonium_ingot"
+  },
+  "pattern": [
+    "H H",
+    "BHB",
+    "BBB"
+  ],
+  "result": {
+    "id": "setpoint:coverall_top"
+  }
+}

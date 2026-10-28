@@ -1,0 +1,64 @@
+{
+  "variants": {
+    "facing=north,left=true,right=true": {
+      "model": "setpoint:block/epoxy_walkway_lr"
+    },
+    "facing=north,left=true,right=false": {
+      "model": "setpoint:block/epoxy_walkway_l"
+    },
+    "facing=north,left=false,right=true": {
+      "model": "setpoint:block/epoxy_walkway_r"
+    },
+    "facing=north,left=false,right=false": {
+      "model": "setpoint:block/epoxy_walkway_none"
+    },
+    "facing=east,left=true,right=true": {
+      "model": "setpoint:block/epoxy_walkway_lr",
+      "y": 90
+    },
+    "facing=east,left=true,right=false": {
+      "model": "setpoint:block/epoxy_walkway_l",
+      "y": 90
+    },
+    "facing=east,left=false,right=true": {
+      "model": "setpoint:block/epoxy_walkway_r",
+      "y": 90
+    },
+    "facing=east,left=false,right=false": {
+      "model": "setpoint:block/epoxy_walkway_none",
+      "y": 90
+    },
+    "facing=south,left=true,right=true": {
+      "model": "setpoint:block/epoxy_walkway_lr",
+      "y": 180
+    },
+    "facing=south,left=true,right=false": {
+      "model": "setpoint:block/epoxy_walkway_l",
+      "y": 180
+    },
+    "facing=south,left=false,right=true": {
+      "model": "setpoint:block/epoxy_walkway_r",
+      "y": 180
+    },
+    "facing=south,left=false,right=false": {
+      "model": "setpoint:block/epoxy_walkway_none",
+      "y": 180
+    },
+    "facing=west,left=true,right=true": {
+      "model": "setpoint:block/epoxy_walkway_lr",
+      "y": 270
+    },
+    "facing=west,left=true,right=false": {
+      "model": "setpoint:block/epoxy_walkway_l",
+      "y": 270
+    },
+    "facing=west,left=false,right=true": {
+      "model": "setpoint:block/epoxy_walkway_r",
+      "y": 270
+    },
+    "facing=west,left=false,right=false": {
+      "model": "setpoint:block/epoxy_walkway_none",
+      "y": 270
+    }
+  }
+}

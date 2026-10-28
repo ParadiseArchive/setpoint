@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "Y": "minecraft:yellow_wool",
+    "H": "setpoint:hookonium_ingot"
+  },
+  "pattern": [
+    "YHY",
+    "H H"
+  ],
+  "result": {
+    "id": "setpoint:bump_cap"
+  }
+}

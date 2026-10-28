@@ -45,7 +45,7 @@ import net.minecraft.world.level.block.state.BlockState;
 /**
  * Draws a P&ID of the Setpoint equipment in a box: a plan view where every column of blocks becomes one cell
  * showing its most important piece: process equipment, then controllers, power and consoles, then valves,
- * then instruments, then pipe. Between equals the top one wins, as seen from above. A tagged instrument hidden under
+ * then instruments, then pipe, then power cable. Between equals the top one wins, as seen from above. A tagged instrument hidden under
  * something bigger (a safety valve on a boiler, a transmitter on a tank) is drawn in a free cell next to it instead.
  * A box deeper than it is wide is turned a quarter, so the drawing always fits the screen.
  */
@@ -90,6 +90,7 @@ public final class PidCapture {
 
         Found[][] found = new Found[w][d];
         int[][] pipes = new int[w][d];
+        int[][] cables = new int[w][d]; // power cables, apart from the pipes: a cable under a pipe does not join it
         List<int[]> hiddenAt = new ArrayList<>(); // x, z of tagged pieces that lost their column
         List<Found> hidden = new ArrayList<>();
         Map<Long, int[]> footprints = new HashMap<>(); // big equipment, by the cell of its base: the cells it covers (min x, max x, min z, max z)
@@ -111,6 +112,14 @@ public final class PidCapture {
                 found[x][z] = here;
             }
             if (loser != null && !loser.tag.isEmpty()) { hidden.add(loser); hiddenAt.add(new int[]{x, z}); }
+            if (state.getBlock() instanceof io.hookdev.setpoint.block.PowerCableBlock) {
+                for (Direction dir : Direction.Plane.HORIZONTAL) {
+                    if (!state.getValue(io.hookdev.setpoint.block.PowerCableBlock.CONNECTIONS.get(dir))) continue;
+                    cables[x][z] |= bit(dir);
+                    int nx = x + dir.getStepX(), nz = z + dir.getStepZ();
+                    if (nx >= 0 && nz >= 0 && nx < w && nz < d) cables[nx][nz] |= bit(dir.getOpposite());
+                }
+            }
             if (state.getBlock() instanceof FluidPipeBlock) {
                 for (Direction dir : Direction.values()) {
                     if (!state.getValue(FluidPipeBlock.CONNECTIONS.get(dir))) continue;
@@ -144,7 +153,7 @@ public final class PidCapture {
             if (f == null) continue;
             int cx = turn ? d - 1 - z : x, cy = turn ? x : z;
             int rotation = (f.rotation + (turn ? 1 : 0)) % 4;
-            int mask = turn ? turnClockwise(pipes[x][z]) : pipes[x][z];
+            int mask = (turn ? turnClockwise(pipes[x][z]) : pipes[x][z]) | (turn ? turnClockwise(cables[x][z]) : cables[x][z]) << PidDrawing.CABLE_SHIFT;
             int[] box = BIG.contains(f.symbol) ? footprints.get(x * 65536L + z) : null;
             if (box != null && (box[1] > box[0] || box[3] > box[2])) { // drawn over its whole footprint, from the top-left cell
                 int ax = turn ? d - 1 - box[2] : box[0], ay = turn ? box[0] : box[2], bx = turn ? d - 1 - box[3] : box[1], by = turn ? box[1] : box[3];
@@ -208,6 +217,8 @@ public final class PidCapture {
             return new Found(PidDrawing.COMPRESSOR, quarter(state.getValue(io.hookdev.setpoint.block.CompressorBlock.FACING)), compressor.tag(), 5);
         }
         if (block instanceof io.hookdev.setpoint.block.FlarePartBlock) return null; // the rest of a flare: drawn once, at its ignition panel
+        if (block instanceof io.hookdev.setpoint.block.WindTurbinePartBlock) return null; // the tower and nacelle: drawn once, at the foot
+        if (be instanceof io.hookdev.setpoint.block.entity.WindTurbineBlockEntity turbine) return new Found(PidDrawing.WIND_TURBINE, 0, turbine.tag(), 4);
         if (be instanceof io.hookdev.setpoint.block.entity.FlareBlockEntity flare) return new Found(PidDrawing.FLARE, 0, flare.tag(), 5);
         if (block instanceof io.hookdev.setpoint.block.GasSpherePartBlock) return null; // the rest of a gas sphere: drawn once, at its valve station
         if (be instanceof io.hookdev.setpoint.block.entity.GasSphereBlockEntity sphere) return new Found(PidDrawing.GAS_SPHERE, 0, sphere.tag(), 5);
@@ -240,7 +251,10 @@ public final class PidCapture {
         if (block instanceof PressureTransmitterBlock) return new Found(PidDrawing.PRESSURE_TRANSMITTER, 0, tag, 2);
         if (block instanceof FlowTransmitterBlock) return new Found(PidDrawing.FLOW_TRANSMITTER, axisQuarter(state.getValue(FlowTransmitterBlock.AXIS)), tag, 2);
         if (block instanceof LevelTransmitterBlock) return new Found(PidDrawing.LEVEL_TRANSMITTER, 0, tag, 2);
+        if (be instanceof io.hookdev.setpoint.block.entity.BatteryBankBlockEntity battery) return new Found(PidDrawing.BATTERY, 0, battery.tag(), 4);
+        if (be instanceof io.hookdev.setpoint.block.entity.PowerMeterBlockEntity meter) return new Found(PidDrawing.POWER_METER, 0, meter.tag(), 2);
         if (block instanceof FluidPipeBlock) return new Found(PidDrawing.PIPE, 0, "", 1);
+        if (block instanceof io.hookdev.setpoint.block.PowerCableBlock) return new Found(PidDrawing.CABLE, 0, "", 0);
         return null;
     }
 
