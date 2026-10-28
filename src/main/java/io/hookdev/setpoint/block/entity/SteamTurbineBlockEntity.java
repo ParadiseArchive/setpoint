@@ -52,6 +52,11 @@ public class SteamTurbineBlockEntity extends BlockEntity implements NamedEquipme
     public SimpleEnergyHandler energy() { return energy; }
     public double speed() { return speed; }
     public int output() { return output; }
+
+    /** The config can set the turbine bigger or smaller than built; the steam it takes stays the same. */
+    private static double scale() {
+        return io.hookdev.setpoint.SetpointConfig.steamTurbine() / (double) io.hookdev.setpoint.SetpointConfig.STEAM_TURBINE_RATED;
+    }
     @Override public String tag() { return name.tag(worldPosition); }
 
     @Override
@@ -69,7 +74,7 @@ public class SteamTurbineBlockEntity extends BlockEntity implements NamedEquipme
     private void tick(ServerLevel level, BlockPos pos, BlockState state) {
         int room = ENERGY_CAPACITY - energy.getAmountAsInt();
         // Only take as much steam as the buffer can turn into power.
-        int wanted = io.hookdev.setpoint.control.Esd.tripped(level, pos) ? 0 : (int) Math.min(TurbineModel.MAX_STEAM, Math.floor(room / TurbineModel.FE_PER_MB)); // an ESD shuts the trip valve
+        int wanted = io.hookdev.setpoint.control.Esd.tripped(level, pos) ? 0 : (int) Math.min(TurbineModel.MAX_STEAM, Math.floor(room / (TurbineModel.FE_PER_MB * scale()))); // an ESD shuts the trip valve
         steamUsed = 0;
         for (Direction direction : Direction.values()) {
             if (steamUsed >= wanted) break;
@@ -90,7 +95,7 @@ public class SteamTurbineBlockEntity extends BlockEntity implements NamedEquipme
             steamUsed += vessel.extract(Math.min(wanted - steamUsed, TurbineModel.inletFlow(vessel.pressure())));
         }
         speed = TurbineModel.nextSpeed(speed, steamUsed);
-        output = TurbineModel.power(speed, steamUsed);
+        output = (int) Math.round(TurbineModel.power(speed, steamUsed) * scale());
         if (output > 0) energy.set(Math.min(ENERGY_CAPACITY, energy.getAmountAsInt() + output));
         EnergyPush.push(level, pos, energy);
 

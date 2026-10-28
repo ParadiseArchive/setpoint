@@ -693,7 +693,7 @@ for (const [vein, v] of Object.entries(VEINS)) {
   });
 }
 json(join(DATA, 'neoforge/biome_modifier', 'hookonium_ore.json'), {
-  type: 'neoforge:add_features', biomes: '#minecraft:is_overworld',
+  type: 'setpoint:hookonium_ore', biomes: '#minecraft:is_overworld', // like neoforge:add_features, with a switch in the startup config
   features: Object.keys(VEINS).map((vein) => 'setpoint:ore_hookonium_' + vein), step: 'underground_ores',
 });
 
@@ -3545,6 +3545,10 @@ for (const [slot, names] of [['head_armor', ['operator_helmet', 'bump_cap']], ['
   tag('minecraft/tags/item/' + slot, names.map((n) => 'setpoint:' + n));
 }
 tag('c/tags/fluid/steam', ['setpoint:steam']); // other mods find our steam by the common tag
+// our oils in the common tags (the names PneumaticCraft and others use), so other mods take them and we take theirs
+for (const oil of ['crude_oil', 'diesel', 'kerosene', 'naphtha']) tag('c/tags/fluid/' + oil, ['setpoint:' + oil]);
+tag('c/tags/fluid/lpg', ['setpoint:lpg']);
+tag('c/tags/fluid/gaseous', ['hydrogen', 'oxygen', 'nitrogen', 'steam', 'ammonia', 'lpg'].map((g) => 'setpoint:' + g));
 tag('minecraft/tags/block/mineable/pickaxe', [...MACHINES.map((n) => 'setpoint:' + n), 'setpoint:drum', 'setpoint:ibc', 'setpoint:floating_roof_tank', 'setpoint:roof_tank_part', 'setpoint:gas_cylinder', 'setpoint:gas_sphere', 'setpoint:gas_sphere_part', 'setpoint:pumpjack_part', 'setpoint:column_part', 'setpoint:flare_stack', 'setpoint:flare_stack_part', 'setpoint:wind_turbine_part', 'setpoint:battery_bank', ...FACTORY.map((n) => 'setpoint:' + n), 'setpoint:handrail', ...CONTROL_ROOM.filter((n) => n !== 'office_chair').map((n) => 'setpoint:' + n), 'setpoint:blast_door', ...HOOKONIUM_BLOCKS]);
 tag('minecraft/tags/block/doors', ['setpoint:blast_door']);
 tag('minecraft/tags/item/doors', ['setpoint:blast_door']);

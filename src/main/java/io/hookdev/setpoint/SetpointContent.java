@@ -110,6 +110,9 @@ public final class SetpointContent {
     public static final DeferredRegister<?> TRIGGERS = io.hookdev.setpoint.advancement.PlantEventTriggerBase.TRIGGERS;
     public static final java.util.function.Supplier<PlantEventTrigger> PLANT_EVENT = io.hookdev.setpoint.advancement.PlantEventTriggerBase.PLANT_EVENT;
     public static final DeferredRegister<DataComponentType<?>> COMPONENTS = DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, Setpoint.MODID);
+    public static final DeferredRegister<com.mojang.serialization.MapCodec<? extends net.neoforged.neoforge.common.world.BiomeModifier>> BIOME_MODIFIERS = DeferredRegister.create(net.neoforged.neoforge.registries.NeoForgeRegistries.Keys.BIOME_MODIFIER_SERIALIZERS, Setpoint.MODID);
+    /** The Hookonium veins, unless switched off in the startup config. */
+    public static final DeferredHolder<com.mojang.serialization.MapCodec<? extends net.neoforged.neoforge.common.world.BiomeModifier>, com.mojang.serialization.MapCodec<io.hookdev.setpoint.world.HookoniumOreModifier>> HOOKONIUM_ORE_MODIFIER = BIOME_MODIFIERS.register("hookonium_ore", () -> io.hookdev.setpoint.world.HookoniumOreModifier.CODEC);
     /** The drawing on a P&ID. */
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<PidDrawing>> PID_DRAWING = COMPONENTS.register("pid_drawing",
             () -> DataComponentType.<PidDrawing>builder().persistent(PidDrawing.CODEC).networkSynchronized(PidDrawing.STREAM_CODEC).build());
@@ -798,6 +801,7 @@ public final class SetpointContent {
         ATTACHMENTS.register(modEventBus);
         COMPONENTS.register(modEventBus);
         TRIGGERS.register(modEventBus);
+        BIOME_MODIFIERS.register(modEventBus);
         io.hookdev.setpoint.gas.Gases.register(modEventBus);
     }
 }

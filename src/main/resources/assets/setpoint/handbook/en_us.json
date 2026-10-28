@@ -964,6 +964,10 @@
           "text": "The **diesel generator** burns your own diesel: 80 FE/t for 4 mB a tick, the strongest power in the mod."
         },
         {
+          "type": "p",
+          "text": "Oil from other mods works too: the column takes any crude oil, the diesel generator any diesel, and the burner burns their fuels like yours. And their machines take yours."
+        },
+        {
           "type": "craft",
           "result": "setpoint:diesel_generator",
           "grid": [

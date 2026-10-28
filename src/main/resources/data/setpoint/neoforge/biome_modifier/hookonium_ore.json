@@ -1,5 +1,5 @@
 {
-  "type": "neoforge:add_features",
+  "type": "setpoint:hookonium_ore",
   "biomes": "#minecraft:is_overworld",
   "features": [
     "setpoint:ore_hookonium_small",

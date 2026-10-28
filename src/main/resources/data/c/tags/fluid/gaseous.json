@@ -1,0 +1,10 @@
+{
+  "values": [
+    "setpoint:hydrogen",
+    "setpoint:oxygen",
+    "setpoint:nitrogen",
+    "setpoint:steam",
+    "setpoint:ammonia",
+    "setpoint:lpg"
+  ]
+}

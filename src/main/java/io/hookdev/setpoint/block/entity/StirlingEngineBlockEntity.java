@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * of a Stirling engine. One engine is enough for a small pump.
  */
 public class StirlingEngineBlockEntity extends GeneratorBlockEntity {
+    /** FE/t as built; SetpointConfig can change it. */
     public static final int OUTPUT = 20;
 
     public StirlingEngineBlockEntity(BlockPos pos, BlockState state) {
@@ -25,7 +26,7 @@ public class StirlingEngineBlockEntity extends GeneratorBlockEntity {
 
     @Override
     public int output() {
-        return OUTPUT;
+        return io.hookdev.setpoint.SetpointConfig.stirlingEngine();
     }
 
     @Override

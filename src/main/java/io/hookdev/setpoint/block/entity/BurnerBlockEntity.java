@@ -46,7 +46,7 @@ public class BurnerBlockEntity extends BlockEntity implements Vessel, NamedEquip
     private final FluidStacksResourceHandler fuel = new FluidStacksResourceHandler(1, CAPACITY) {
         @Override
         public boolean isValid(int index, FluidResource resource) {
-            return resource.isEmpty() || LIQUIDS.containsKey(resource.getFluid());
+            return resource.isEmpty() || liquidPerTick(resource.getFluid()) > 0;
         }
 
         @Override
@@ -66,7 +66,13 @@ public class BurnerBlockEntity extends BlockEntity implements Vessel, NamedEquip
 
     /** What a liquid fuel takes a tick at full fire, or 0 when it does not burn here. */
     public static int liquidPerTick(Fluid fluid) {
-        return LIQUIDS.getOrDefault(fluid, 0);
+        Integer ours = LIQUIDS.get(fluid);
+        if (ours != null) return ours;
+        // another mod's oil, by its common tag: crude like crude, the light fuels like diesel
+        var holder = fluid.builtInRegistryHolder();
+        if (holder.is(Liquids.CRUDE_OIL_TAG)) return 5;
+        if (holder.is(Liquids.DIESEL_TAG) || holder.is(Liquids.KEROSENE_TAG) || holder.is(Liquids.NAPHTHA_TAG) || holder.is(Liquids.GASOLINE_TAG)) return 3;
+        return 0;
     }
 
     /** BURNING, NO FUEL, IDLE (nothing asks for fire), NO BOILER. */

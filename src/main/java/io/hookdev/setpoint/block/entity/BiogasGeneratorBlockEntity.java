@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.state.BlockState;
  * composter takes, plus rotten flesh. Richer waste runs it longer: a cake beats a handful of seeds.
  */
 public class BiogasGeneratorBlockEntity extends GeneratorBlockEntity {
+    /** FE/t as built; SetpointConfig can change it. */
     public static final int OUTPUT = 30;
     /** Run time for waste that always composts (chance 1.0), like cake or a pumpkin pie. */
     public static final int TICKS_PER_FULL_ITEM = 200;
@@ -27,7 +28,7 @@ public class BiogasGeneratorBlockEntity extends GeneratorBlockEntity {
 
     @Override
     public int output() {
-        return OUTPUT;
+        return io.hookdev.setpoint.SetpointConfig.biogasGenerator();
     }
 
     @Override

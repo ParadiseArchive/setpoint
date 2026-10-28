@@ -179,7 +179,7 @@ public final class PlantScanner {
             boolean ok = generator.status().equals("RUNNING") || generator.status().equals("FULL");
             double level = generator.fillFraction() * 100;
             return new Reading(be.getBlockPos(), generator.tag(), "GEN", generator.status(), ok ? Reading.NORMAL : Reading.ATTENTION,
-                    generator.status().equals("RUNNING") ? io.hookdev.setpoint.block.entity.DieselGeneratorBlockEntity.POWER + " FE/t" : "0 FE/t",
+                    generator.status().equals("RUNNING") ? io.hookdev.setpoint.SetpointConfig.dieselGenerator() + " FE/t" : "0 FE/t",
                     List.of("DIESEL %"), new float[]{(float) level}, List.of());
         }
         if (be instanceof io.hookdev.setpoint.block.entity.BatteryBankBlockEntity battery) {
@@ -219,7 +219,7 @@ public final class PlantScanner {
         if (be instanceof io.hookdev.setpoint.block.entity.FuelCellBlockEntity cell) {
             boolean ok = cell.status().equals("RUNNING") || cell.status().equals("FULL");
             return new Reading(be.getBlockPos(), cell.tag(), "FUEL CELL", cell.status(), ok ? Reading.NORMAL : Reading.ATTENTION,
-                    cell.status().equals("RUNNING") ? io.hookdev.setpoint.block.entity.FuelCellBlockEntity.POWER + " FE/t" : "0 FE/t", List.of(), new float[0], List.of());
+                    cell.status().equals("RUNNING") ? io.hookdev.setpoint.SetpointConfig.fuelCell() + " FE/t" : "0 FE/t", List.of(), new float[0], List.of());
         }
         if (be instanceof io.hookdev.setpoint.block.entity.AmmoniaReactorBlockEntity reactor) {
             boolean ok = reactor.status().equals("RUNNING") || reactor.status().equals("FULL");

@@ -41,7 +41,7 @@ public class DieselGeneratorBlockEntity extends BlockEntity implements Vessel, N
     private final FluidStacksResourceHandler diesel = new FluidStacksResourceHandler(1, DIESEL_CAPACITY) {
         @Override
         public boolean isValid(int index, FluidResource resource) {
-            return resource.isEmpty() || resource.getFluid() == Liquids.DIESEL.fluid().get();
+            return resource.isEmpty() || Liquids.isDiesel(resource);
         }
 
         @Override
@@ -73,12 +73,12 @@ public class DieselGeneratorBlockEntity extends BlockEntity implements Vessel, N
         ServerLevel server = (ServerLevel) level;
         boolean running = false;
         if (io.hookdev.setpoint.control.Esd.tripped(level, pos)) generator.status = "ESD";
-        else if (generator.energy.getAmountAsInt() + POWER > ENERGY_CAPACITY) generator.status = "FULL";
+        else if (generator.energy.getAmountAsInt() + io.hookdev.setpoint.SetpointConfig.dieselGenerator() > ENERGY_CAPACITY) generator.status = "FULL";
         else if (generator.amount() < DIESEL_PER_TICK) generator.status = "NO DIESEL";
         else {
             int left = generator.amount() - DIESEL_PER_TICK;
-            generator.diesel.set(0, left > 0 ? Liquids.DIESEL.resource() : FluidResource.EMPTY, left);
-            generator.energy.set(generator.energy.getAmountAsInt() + POWER);
+            generator.diesel.set(0, left > 0 ? generator.resource() : FluidResource.EMPTY, left);
+            generator.energy.set(generator.energy.getAmountAsInt() + io.hookdev.setpoint.SetpointConfig.dieselGenerator());
             generator.status = "RUNNING";
             running = true;
         }
@@ -108,7 +108,7 @@ public class DieselGeneratorBlockEntity extends BlockEntity implements Vessel, N
 
     @Override
     public boolean canAccept(FluidResource incoming) {
-        return incoming.getFluid() == Liquids.DIESEL.fluid().get() && amount() < DIESEL_CAPACITY;
+        return Liquids.isDiesel(incoming) && (amount() == 0 || incoming.equals(resource())) && amount() < DIESEL_CAPACITY;
     }
 
     @Override

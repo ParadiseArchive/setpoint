@@ -18,6 +18,7 @@ Setpoint is built for **Minecraft 26.3** and **26.1.2** (the version of All the 
   - `block/SetpointEntityBlock`: the base of every block with a block entity (26.1 wants a codec).
   - `entity/InterpolatedVehicle`: a vehicle that glides for other players (the forklift).
   - `advancement/PlantEventTriggerBase`: the advancement trigger (`PlantEventTrigger` keeps the events).
+  - `world/SetpointBiomeModifier`: the base of a biome modifier (`HookoniumOreModifier` does the work).
   - 26.1 only: `mixin/FlowingFluidMixin`, so water and lava flow round Setpoint blocks as on 26.3.
 - `versions/26.1/resources`: data files that 26.1 reads differently (loot tables, ore veins). **Generated** by
   `node tools/port-26.1.mjs` (gen-assets.mjs runs it at the end) from the 26.3 files; never edit them by hand.

@@ -52,6 +52,8 @@ import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.client.network.event.RegisterClientPayloadHandlersEvent;
+import net.neoforged.neoforge.client.settings.IKeyConflictContext;
+import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import net.neoforged.neoforge.fluids.FluidStack;
@@ -61,13 +63,34 @@ import net.neoforged.neoforge.fluids.SimpleFluidContent;
 @Mod(value = Setpoint.MODID, dist = Dist.CLIENT)
 public class SetpointClient {
     private static final KeyMapping.Category CATEGORY = new KeyMapping.Category(Setpoint.id("setpoint"));
+    /**
+     * The vehicle keys only count while you drive a pallet truck or forklift, so they can share a key with vanilla
+     * (left CTRL is also sprint) or with other mods in a modpack without the controls screen showing a clash.
+     */
+    private static final IKeyConflictContext DRIVING = new IKeyConflictContext() {
+        @Override
+        public boolean isActive() {
+            Minecraft mc = Minecraft.getInstance();
+            return KeyConflictContext.IN_GAME.isActive() && mc.player != null && mc.level != null && driving(mc);
+        }
+
+        @Override
+        public boolean conflicts(IKeyConflictContext other) {
+            return this == other;
+        }
+    };
+    private static KeyMapping withContext(KeyMapping key) {
+        key.setKeyConflictContext(DRIVING);
+        return key;
+    }
+
     /** H: the horn of the pallet truck or forklift you are driving, for as long as you hold it. */
-    public static final KeyMapping HORN = new KeyMapping("key.setpoint.horn", InputConstants.KEY_H, CATEGORY);
+    public static final KeyMapping HORN = withContext(new KeyMapping("key.setpoint.horn", InputConstants.KEY_H, CATEGORY));
     /** Left CTRL: set the pallet down from the pallet truck you are driving. */
-    public static final KeyMapping LOWER = new KeyMapping("key.setpoint.lower", InputConstants.KEY_LCONTROL, CATEGORY);
+    public static final KeyMapping LOWER = withContext(new KeyMapping("key.setpoint.lower", InputConstants.KEY_LCONTROL, CATEGORY));
     /** The arrow keys: the forks of the forklift you drive, up and down. */
-    public static final KeyMapping FORKS_UP = new KeyMapping("key.setpoint.forks_up", InputConstants.KEY_UP, CATEGORY);
-    public static final KeyMapping FORKS_DOWN = new KeyMapping("key.setpoint.forks_down", InputConstants.KEY_DOWN, CATEGORY);
+    public static final KeyMapping FORKS_UP = withContext(new KeyMapping("key.setpoint.forks_up", InputConstants.KEY_UP, CATEGORY));
+    public static final KeyMapping FORKS_DOWN = withContext(new KeyMapping("key.setpoint.forks_down", InputConstants.KEY_DOWN, CATEGORY));
     /** What the arrow keys and the horn key last told the server. */
     private static int forksSent;
     private static boolean hornSent;

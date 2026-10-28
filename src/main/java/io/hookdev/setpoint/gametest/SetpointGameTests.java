@@ -115,6 +115,7 @@ public final class SetpointGameTests {
         test("a_coverall_takes_dye", SetpointGameTests::aCoverallTakesDye, 20);
         test("walkways_side_by_side_make_one_wide_walkway", SetpointGameTests::walkwaysSideBySideMakeOneWideWalkway, 20);
         test("water_flows_round_pipes_and_cables", SetpointGameTests::waterFlowsRoundPipesAndCables, 60);
+        test("setpoint_oils_are_in_the_common_tags", SetpointGameTests::setpointOilsAreInTheCommonTags, 20);
         test("a_blast_door_stands_an_explosion", SetpointGameTests::aBlastDoorStandsAnExplosion, 40);
         test("a_local_control_station_stops_a_pump", SetpointGameTests::aLocalControlStationStopsAPump, 200);
         test("a_wall_sleeve_joins_only_through_the_wall", SetpointGameTests::aWallSleeveJoinsOnlyThroughTheWall, 20);
@@ -592,6 +593,18 @@ public final class SetpointGameTests {
             helper.assertBlockPresent(SetpointContent.BLAST_DOOR.get(), new BlockPos(3, 2, 2));
             helper.succeed();
         });
+    }
+
+    /** Other mods find Setpoint's oils and gases by the common c: tags, and Setpoint's machines take what is in them. */
+    private static void setpointOilsAreInTheCommonTags(GameTestHelper helper) {
+        helper.assertTrue(io.hookdev.setpoint.gas.Liquids.CRUDE_OIL.fluid().get().builtInRegistryHolder().is(io.hookdev.setpoint.gas.Liquids.CRUDE_OIL_TAG), "crude oil should be in c:crude_oil");
+        helper.assertTrue(io.hookdev.setpoint.gas.Liquids.DIESEL.fluid().get().builtInRegistryHolder().is(io.hookdev.setpoint.gas.Liquids.DIESEL_TAG), "diesel should be in c:diesel");
+        helper.assertTrue(io.hookdev.setpoint.gas.Liquids.KEROSENE.fluid().get().builtInRegistryHolder().is(io.hookdev.setpoint.gas.Liquids.KEROSENE_TAG), "kerosene should be in c:kerosene");
+        helper.assertTrue(io.hookdev.setpoint.gas.Liquids.NAPHTHA.fluid().get().builtInRegistryHolder().is(io.hookdev.setpoint.gas.Liquids.NAPHTHA_TAG), "naphtha should be in c:naphtha");
+        var gaseous = net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.FLUID, net.minecraft.resources.Identifier.fromNamespaceAndPath("c", "gaseous"));
+        for (var gas : io.hookdev.setpoint.gas.Gases.ALL) helper.assertTrue(gas.fluid().get().builtInRegistryHolder().is(gaseous), gas.id() + " should be in c:gaseous");
+        helper.assertTrue(io.hookdev.setpoint.block.entity.BurnerBlockEntity.liquidPerTick(io.hookdev.setpoint.gas.Liquids.DIESEL.fluid().get()) > 0, "the burner should burn diesel");
+        helper.succeed();
     }
 
     /** Water poured beside a pipe, a cable, a check valve and a handrail flows round them, on every Minecraft version. */

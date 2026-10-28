@@ -83,9 +83,10 @@ public class WindTurbineBlockEntity extends BlockEntity implements NamedEquipmen
     /** FE a tick at this wind: nothing below cut-in, growing with the cube of the wind, full from rated, nothing in a storm. */
     public static int power(double wind) {
         if (wind < CUT_IN || wind > CUT_OUT) return 0;
-        if (wind >= RATED_WIND) return RATED;
+        int rated = io.hookdev.setpoint.SetpointConfig.windTurbine();
+        if (wind >= RATED_WIND) return rated;
         double cube = (wind * wind * wind - CUT_IN * CUT_IN * CUT_IN) / (RATED_WIND * RATED_WIND * RATED_WIND - CUT_IN * CUT_IN * CUT_IN);
-        return (int) Math.round(RATED * cube);
+        return (int) Math.round(rated * cube);
     }
 
     public static void serverTick(Level level, BlockPos pos, BlockState state, WindTurbineBlockEntity turbine) {

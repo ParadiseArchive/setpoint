@@ -40,6 +40,7 @@ public class Setpoint {
     public Setpoint(IEventBus modEventBus, ModContainer modContainer) {
         SetpointContent.register(modEventBus);
         modContainer.registerConfig(McVersion.WORLD_CONFIG, SetpointConfig.SPEC);
+        modContainer.registerConfig(net.neoforged.fml.config.ModConfig.Type.STARTUP, SetpointConfig.STARTUP_SPEC);
         SetpointGameTests.register(modEventBus);
         modEventBus.addListener(Setpoint::registerCapabilities);
         modEventBus.addListener(Setpoint::registerPayloads);

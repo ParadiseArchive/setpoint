@@ -81,13 +81,13 @@ public class FuelCellBlockEntity extends BlockEntity implements NamedEquipment, 
         var h2 = hydrogen.fullest(level, pos, GasMakerBlock.left(state), Gases.HYDROGEN.resource());
         var o2 = oxygen.fullest(level, pos, GasMakerBlock.right(state), Gases.OXYGEN.resource());
         if (io.hookdev.setpoint.control.Esd.tripped(level, pos)) status = "ESD";
-        else if (energy.getAmountAsInt() + POWER > ENERGY_CAPACITY) status = "FULL";
+        else if (energy.getAmountAsInt() + io.hookdev.setpoint.SetpointConfig.fuelCell() > ENERGY_CAPACITY) status = "FULL";
         else if (h2 == null || h2.amount() < HYDROGEN_PER_TICK) status = "NO HYDROGEN";
         else if (o2 == null || o2.amount() < OXYGEN_PER_TICK) status = "NO OXYGEN";
         else {
             h2.extract(HYDROGEN_PER_TICK);
             o2.extract(OXYGEN_PER_TICK);
-            energy.set(energy.getAmountAsInt() + POWER);
+            energy.set(energy.getAmountAsInt() + io.hookdev.setpoint.SetpointConfig.fuelCell());
             int room = WATER_CAPACITY - amount();
             if (room >= WATER_PER_TICK) water.set(0, FluidResource.of(Fluids.WATER), amount() + WATER_PER_TICK);
             else if (level.getGameTime() % 6 == 0) { // full of water: it goes up as vapour
@@ -105,7 +105,7 @@ public class FuelCellBlockEntity extends BlockEntity implements NamedEquipment, 
         ChatFormatting colour = status.equals("RUNNING") ? ChatFormatting.WHITE : ChatFormatting.GOLD;
         player.sendSystemMessage(Component.literal(tag() + "  ").withStyle(ChatFormatting.AQUA)
                 .append(Component.literal(status + "  ").withStyle(colour))
-                .append(Component.literal(String.format("%d FE/t, %,d FE stored", status.equals("RUNNING") ? POWER : 0, energy.getAmountAsInt())).withStyle(ChatFormatting.GRAY)));
+                .append(Component.literal(String.format("%d FE/t, %,d FE stored", status.equals("RUNNING") ? io.hookdev.setpoint.SetpointConfig.fuelCell() : 0, energy.getAmountAsInt())).withStyle(ChatFormatting.GRAY)));
     }
 
     // ---------- the water it makes: a vessel a pump can empty ----------

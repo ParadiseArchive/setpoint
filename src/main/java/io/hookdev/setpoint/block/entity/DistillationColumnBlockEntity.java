@@ -68,7 +68,17 @@ public class DistillationColumnBlockEntity extends BlockEntity implements Vessel
         }
     }
 
-    private final FluidStacksResourceHandler feed = tank(FEED_CAPACITY, Liquids.CRUDE_OIL.resource());
+    private final FluidStacksResourceHandler feed = new FluidStacksResourceHandler(1, FEED_CAPACITY) {
+        @Override
+        public boolean isValid(int index, FluidResource resource) {
+            return resource.isEmpty() || Liquids.isCrude(resource); // ours or another mod's
+        }
+
+        @Override
+        protected void onContentsChanged(int index, FluidStack previousContents) {
+            setChanged();
+        }
+    };
     private final FluidStacksResourceHandler water = tank(WATER_CAPACITY, FluidResource.of(Fluids.WATER));
     private final Map<Product, FluidStacksResourceHandler> products = new EnumMap<>(Product.class);
     private final Map<Product, Double> owed = new EnumMap<>(Product.class);
@@ -157,7 +167,7 @@ public class DistillationColumnBlockEntity extends BlockEntity implements Vessel
         else if (full != null) status = "FULL " + full;
         else {
             rate = want;
-            set(feed, Liquids.CRUDE_OIL.resource(), crude - want);
+            set(feed, feed.getResource(0), crude - want);
             steamOwed += want * STEAM_PER_CRUDE;
             steamSource.extract((int) steamOwed);
             steamOwed -= (int) steamOwed;
@@ -200,7 +210,7 @@ public class DistillationColumnBlockEntity extends BlockEntity implements Vessel
 
     @Override
     public boolean canAccept(FluidResource incoming) {
-        return incoming.equals(Liquids.CRUDE_OIL.resource()) && amount() < FEED_CAPACITY;
+        return Liquids.isCrude(incoming) && (amount() == 0 || incoming.equals(resource())) && amount() < FEED_CAPACITY;
     }
 
     @Override

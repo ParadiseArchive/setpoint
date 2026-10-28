@@ -84,7 +84,7 @@ public final class SetpointJeiPlugin implements IModPlugin {
                 List.of(Stuff.fluid(n2, NitrogenGeneratorBlockEntity.NITROGEN_PER_TICK)), NitrogenGeneratorBlockEntity.ENERGY_PER_TICK + " FE/t in · out of the air"));
         add("fuel_cell", SetpointContent.FUEL_CELL_ITEM.get(), new Process(
                 List.of(Stuff.fluid(h2, FuelCellBlockEntity.HYDROGEN_PER_TICK), Stuff.fluid(o2, FuelCellBlockEntity.OXYGEN_PER_TICK)),
-                List.of(Stuff.fluid(water, FuelCellBlockEntity.WATER_PER_TICK)), FuelCellBlockEntity.POWER + " FE/t out"));
+                List.of(Stuff.fluid(water, FuelCellBlockEntity.WATER_PER_TICK)), io.hookdev.setpoint.SetpointConfig.fuelCell() + " FE/t out"));
         int n = AmmoniaReactorBlockEntity.NITROGEN_PER_TICK;
         add("ammonia_reactor", SetpointContent.AMMONIA_REACTOR_ITEM.get(), new Process(List.of(Stuff.fluid(n2, n), Stuff.fluid(h2, 3L * n)),
                 List.of(Stuff.fluid(nh3, 2L * n)), (5 + 2 * n) + " FE/t in · full speed at 100 bar feed"));
@@ -103,7 +103,7 @@ public final class SetpointJeiPlugin implements IModPlugin {
                         Stuff.fluid(residue, Math.round(feed * DistillationColumnBlockEntity.RESIDUE_SHARE))),
                 "steam and cooling water in, each cut out of its own nozzle"));
         add("diesel_generator", SetpointContent.DIESEL_GENERATOR_ITEM.get(), new Process(
-                List.of(Stuff.fluid(diesel, DieselGeneratorBlockEntity.DIESEL_PER_TICK)), List.of(), DieselGeneratorBlockEntity.POWER + " FE/t out"));
+                List.of(Stuff.fluid(diesel, DieselGeneratorBlockEntity.DIESEL_PER_TICK)), List.of(), io.hookdev.setpoint.SetpointConfig.dieselGenerator() + " FE/t out"));
         add("boiler", SetpointContent.BOILER_ITEM.get(), new Process(List.of(Stuff.items(Items.COAL, Items.CHARCOAL, Items.COAL_BLOCK), Stuff.fluid(water, steamRate)),
                 List.of(Stuff.fluid(steam, steamRate)), "any furnace fuel, or a burner underneath"));
         List<Process> burner = new ArrayList<>();
@@ -115,11 +115,11 @@ public final class SetpointJeiPlugin implements IModPlugin {
         burner.add(new Process(List.of(Stuff.fluid(h2, BurnerBlockEntity.HYDROGEN_PER_TICK), Stuff.fluid(water, steamRate)), List.of(Stuff.fluid(steam, steamRate)), "hydrogen from a gas line"));
         add("burner", SetpointContent.BURNER_ITEM.get(), burner.toArray(Process[]::new));
         add("steam_turbine", SetpointContent.STEAM_TURBINE_ITEM.get(), new Process(List.of(Stuff.fluid(steam, TurbineModel.MAX_STEAM)), List.of(),
-                Math.round(TurbineModel.MAX_STEAM * TurbineModel.FE_PER_MB) + " FE/t out at 3000 rpm"));
+                io.hookdev.setpoint.SetpointConfig.steamTurbine() + " FE/t out at 3000 rpm"));
         add("stirling_engine", SetpointContent.STIRLING_ENGINE_ITEM.get(), new Process(List.of(Stuff.items(Items.COAL, Items.CHARCOAL, Items.OAK_LOG)), List.of(),
-                io.hookdev.setpoint.block.entity.StirlingEngineBlockEntity.OUTPUT + " FE/t out · any furnace fuel"));
+                io.hookdev.setpoint.SetpointConfig.stirlingEngine() + " FE/t out · any furnace fuel"));
         add("biogas_generator", SetpointContent.BIOGAS_GENERATOR_ITEM.get(), new Process(List.of(Stuff.items(Items.WHEAT_SEEDS, Items.ROTTEN_FLESH, Items.APPLE, Items.KELP)), List.of(),
-                io.hookdev.setpoint.block.entity.BiogasGeneratorBlockEntity.OUTPUT + " FE/t out · anything compostable"));
+                io.hookdev.setpoint.SetpointConfig.biogasGenerator() + " FE/t out · anything compostable"));
         return MACHINES;
     }
 

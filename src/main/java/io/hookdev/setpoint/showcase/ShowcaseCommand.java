@@ -35,6 +35,10 @@ public final class ShowcaseCommand {
     }
 
     private static int build(CommandSourceStack source) {
+        if (!io.hookdev.setpoint.SetpointConfig.showcaseAllowed()) {
+            source.sendFailure(Component.literal("The showcase is switched off on this server (showcase.allowCommand in the Setpoint config)."));
+            return 0;
+        }
         ServerLevel level = source.getLevel();
         BlockPos origin = BlockPos.containing(source.getPosition()).offset(2, 0, 2);
         Showcase.build(level, origin);

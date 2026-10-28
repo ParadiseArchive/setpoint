@@ -144,6 +144,7 @@ export const HANDBOOK = {
         ['craft', 'setpoint:distillation_column'],
         ['p', 'Crude oil and naphtha give off **vapour**: in an ordinary tank they slowly get less. Put a gas pipe with **nitrogen** on top of the tank to blanket them, or keep them in a floating roof tank, whose roof floats right on the liquid.'],
         ['p', 'The **diesel generator** burns your own diesel: 80 FE/t for 4 mB a tick, the strongest power in the mod.'],
+        ['p', 'Oil from other mods works too: the column takes any crude oil, the diesel generator any diesel, and the burner burns their fuels like yours. And their machines take yours.'],
         ['craft', 'setpoint:diesel_generator'],
         ['h', 'Flare stack'],
         ['p', 'Where a plant burns the gas it cannot keep: a stack **forty blocks high** in a red and white derrick, the tallest thing in the mod. Place it with one block: that is the **ignition panel**, with the knock-out drum behind it and the tower behind that. It is seven blocks wide and reaches ten blocks away from you, so clear the space first.'],

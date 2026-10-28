@@ -6,6 +6,9 @@ import org.jspecify.annotations.Nullable;
 
 import io.hookdev.setpoint.Setpoint;
 
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.material.Fluid;
 import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.registries.DeferredHolder;
@@ -31,7 +34,28 @@ public final class Liquids {
     public static final Liquid RESIDUE = liquid("residue", 0xFF141212, 1_050, 60_000, false);
     public static final List<Liquid> ALL = List.of(CRUDE_OIL, NAPHTHA, KEROSENE, DIESEL, RESIDUE);
 
+    /**
+     * The common tags other mods put their oils in (PneumaticCraft, Immersive Petroleum and others use these names).
+     * Setpoint's liquids are in them too, and Setpoint's machines take any liquid in them: oil is oil.
+     */
+    public static final TagKey<Fluid> CRUDE_OIL_TAG = common("crude_oil"), DIESEL_TAG = common("diesel"),
+            KEROSENE_TAG = common("kerosene"), NAPHTHA_TAG = common("naphtha"), GASOLINE_TAG = common("gasoline");
+
     private Liquids() {}
+
+    private static TagKey<Fluid> common(String name) {
+        return TagKey.create(Registries.FLUID, Identifier.fromNamespaceAndPath("c", name));
+    }
+
+    /** Crude oil, ours or another mod's. */
+    public static boolean isCrude(FluidResource resource) {
+        return !resource.isEmpty() && (resource.getFluid() == CRUDE_OIL.fluid().get() || resource.getFluid().builtInRegistryHolder().is(CRUDE_OIL_TAG));
+    }
+
+    /** Diesel, ours or another mod's. */
+    public static boolean isDiesel(FluidResource resource) {
+        return !resource.isEmpty() && (resource.getFluid() == DIESEL.fluid().get() || resource.getFluid().builtInRegistryHolder().is(DIESEL_TAG));
+    }
 
     /** density in kg/m³ and viscosity with water at 1000, like NeoForge's own. */
     private static Liquid liquid(String id, int colour, int density, int viscosity, boolean volatile_) {

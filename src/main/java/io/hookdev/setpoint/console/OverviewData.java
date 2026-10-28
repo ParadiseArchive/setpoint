@@ -115,8 +115,8 @@ public record OverviewData(boolean linked, String clock, List<Tile> tiles, List<
             var be = console.getLevel().getBlockEntity(r.pos());
             int fe;
             if (be instanceof io.hookdev.setpoint.block.entity.GeneratorBlockEntity generator) fe = generator.running() ? generator.output() : 0;
-            else if (be instanceof io.hookdev.setpoint.block.entity.DieselGeneratorBlockEntity diesel) fe = diesel.status().equals("RUNNING") ? io.hookdev.setpoint.block.entity.DieselGeneratorBlockEntity.POWER : 0;
-            else if (be instanceof io.hookdev.setpoint.block.entity.FuelCellBlockEntity cell) fe = cell.status().equals("RUNNING") ? io.hookdev.setpoint.block.entity.FuelCellBlockEntity.POWER : 0;
+            else if (be instanceof io.hookdev.setpoint.block.entity.DieselGeneratorBlockEntity diesel) fe = diesel.status().equals("RUNNING") ? io.hookdev.setpoint.SetpointConfig.dieselGenerator() : 0;
+            else if (be instanceof io.hookdev.setpoint.block.entity.FuelCellBlockEntity cell) fe = cell.status().equals("RUNNING") ? io.hookdev.setpoint.SetpointConfig.fuelCell() : 0;
             else if (be instanceof io.hookdev.setpoint.block.entity.SteamTurbineBlockEntity turbine) fe = turbine.output();
             else if (be instanceof io.hookdev.setpoint.block.entity.WindTurbineBlockEntity wind) fe = wind.output();
             else if (be instanceof io.hookdev.setpoint.block.entity.BatteryBankBlockEntity battery) {
