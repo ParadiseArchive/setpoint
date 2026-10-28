@@ -60,7 +60,7 @@ It is easy by default: machines link up and configure themselves, and plain-lang
 - **Wind turbine.** A white tower thirty blocks high whose three blades turn in the wind: up to 100 FE/t, more in rain, and a storm stop when the wind gets too strong.
 - **Power cables** carry FE from any generator to the machines along them, shared out evenly. They work with other mods' generators and machines too.
 
-![Stirling engine, biogas generator, boiler, safety valve, steam turbine, diesel generator and fuel cell](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/shelf-power.png)
+![Stirling engine, biogas generator, boiler, safety valve, steam turbine, diesel generator, fuel cell, power cable and wind turbine](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/shelf-power.png)
 
 ## Gases
 

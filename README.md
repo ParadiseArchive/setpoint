@@ -75,7 +75,7 @@ From a Stirling engine on coal up to diesel: a biogas generator, a boiler with r
 valve, an oil and gas burner that fires it on what your refinery makes, a steam turbine, a diesel generator, a fuel cell
 and a wind turbine thirty blocks high. Power cables bring the FE to machines that do not touch a generator.
 
-<img src=".github/readme/shelf-power.png" width="100%" alt="Stirling engine, biogas generator, boiler, safety valve, steam turbine, diesel generator, fuel cell and a small steam plant.">
+<img src=".github/readme/shelf-power.png" width="100%" alt="Stirling engine, biogas generator, boiler, safety valve, steam turbine, diesel generator, fuel cell, power cable, wind turbine and a small steam plant.">
 
 ### Gases and oil
 Hydrogen, oxygen, nitrogen, ammonia and LPG with real pressure. An electrolyser, a compressor up to 200 bar, gas

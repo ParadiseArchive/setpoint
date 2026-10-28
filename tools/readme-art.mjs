@@ -4,7 +4,7 @@
 // headless Chrome. Re-run it after the renders change:
 //   node tools/readme-art.mjs ../hook-development
 import { spawn } from 'node:child_process';
-import { createReadStream, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { createReadStream, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -13,6 +13,8 @@ const SITE = resolve(process.argv[2] || '../hook-development');
 const OUT = '.github/readme';
 const CHROME = process.env.CHROME || 'C:/Program Files/Google/Chrome/Application/chrome.exe';
 const PORT = 8131, DEBUG = 9341;
+// the version on the banner comes from the build, so it can never fall behind a release
+const VERSION = readFileSync('gradle.properties', 'utf8').match(/^mod_version=(.+)$/m)[1].trim();
 mkdirSync(OUT, { recursive: true });
 
 // ---------- the pictures ----------
@@ -45,7 +47,7 @@ p{margin:0;font-size:18px;color:#aeb6c9;max-width:440px}
     <img class="logo" src="${IMG}setpoint-logo.png">
     <h1>Process engineering<br>you can play</h1>
     <p>Build a plant that behaves like the real thing, then draw it as a live P&amp;ID.</p>
-    <div class="chips"><span class="chip" style="color:#2de2e6">Minecraft 26.3</span><span class="chip" style="color:#2de2e6">NeoForge</span><span class="chip" style="color:#ffb547">Version 0.2</span><span class="chip" style="color:#ff4f8b">Open source</span></div>
+    <div class="chips"><span class="chip" style="color:#2de2e6">Minecraft 26.3</span><span class="chip" style="color:#2de2e6">NeoForge</span><span class="chip" style="color:#ffb547">Version ${VERSION}</span><span class="chip" style="color:#ff4f8b">Open source</span></div>
   </div>
   <div class="sky">
     <img src="${IMG}gas_sphere.png" style="height:212px;margin-bottom:12px">
@@ -71,7 +73,7 @@ const S = 110, M = 160, L = 230;
 const SHELVES = {
   liquids: shelf('liquids.render', [['water_intake', 'Water intake', S], ['pump', 'Centrifugal pump', S], ['hand_valve', 'Hand valve', S], ['control_valve', 'Control valve', S], ['check_valve', 'Check valve', S], ['tank', 'Tank', S], ['tall_tank', 'Tall tank', M], ['drum', 'Drum', M], ['ibc', 'IBC', M], ['floating_roof_tank_full', 'Floating roof tank', L]]),
   control: shelf('control.render', [['level_transmitter', 'Level transmitter', S], ['flow_transmitter', 'Flow transmitter', S], ['pressure_transmitter', 'Pressure transmitter', S], ['controller', 'DCS controller', S], ['field_communicator', 'Field communicator', S], ['dcs_console', 'DCS console', S], ['console_desk', 'Console desk', S], ['pid_board', 'P&amp;ID board', S], ['alarm_beacon', 'Alarm beacon', S], ['esd_button', 'Emergency stop', S], ['control_room', 'Control room', L + 20]]),
-  power: shelf('power.render', [['stirling_engine', 'Stirling engine', S], ['biogas_generator', 'Biogas generator', S], ['boiler', 'Boiler', S], ['burner', 'Oil and gas burner', S], ['safety_valve', 'Safety valve', S], ['steam_turbine', 'Steam turbine', S], ['diesel_generator', 'Diesel generator', S], ['fuel_cell', 'Fuel cell', S], ['steam_plant', 'A steam plant', M]]),
+  power: shelf('power.render', [['stirling_engine', 'Stirling engine', S], ['biogas_generator', 'Biogas generator', S], ['boiler', 'Boiler', S], ['burner', 'Oil and gas burner', S], ['safety_valve', 'Safety valve', S], ['steam_turbine', 'Steam turbine', S], ['diesel_generator', 'Diesel generator', S], ['fuel_cell', 'Fuel cell', S], ['power_cable', 'Power cable', 70], ['wind_turbine', 'Wind turbine', L], ['steam_plant', 'A steam plant', M]]),
   gases: shelf('gases-and-oil.render', [['electrolyser', 'Electrolyser', S], ['nitrogen_generator', 'Nitrogen generator', S], ['compressor', 'Compressor', S], ['gas_control_valve', 'Gas control valve', S], ['gas_cylinders', 'Gas cylinders', 70], ['ammonia_reactor', 'Ammonia reactor', S], ['fertilizer_mixer', 'Fertilizer mixer', S], ['gas_sphere', 'Gas sphere', L], ['pumpjack', 'Pumpjack', M], ['distillation_column', 'Distillation column', L + 40], ['flare_stack', 'Flare stack', L + 110]]),
   logistics: shelf('logistics.render', [['pallet_4', 'Pallet', M - 30], ['pallet_truck_loaded', 'Pallet truck', M - 20], ['forklift_lifted', 'Forklift', M], ['pallet_rack', 'Pallet racking', L]]),
 };
