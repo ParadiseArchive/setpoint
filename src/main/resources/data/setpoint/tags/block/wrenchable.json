@@ -33,6 +33,8 @@
     "setpoint:diesel_generator",
     "setpoint:gas_valve",
     "setpoint:gas_control_valve",
-    "setpoint:burner"
+    "setpoint:burner",
+    "setpoint:power_cable",
+    "setpoint:wind_turbine"
   ]
 }

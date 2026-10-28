@@ -25,7 +25,13 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.Block;
+import snownee.jade.api.Accessor;
 import snownee.jade.api.BlockAccessor;
+import snownee.jade.api.view.ClientViewGroup;
+import snownee.jade.api.view.EnergyView;
+import snownee.jade.api.view.IClientExtensionProvider;
+import snownee.jade.api.view.IServerExtensionProvider;
+import snownee.jade.api.view.ViewGroup;
 import snownee.jade.api.IBlockComponentProvider;
 import snownee.jade.api.IServerDataProvider;
 import snownee.jade.api.ITooltip;
@@ -41,7 +47,7 @@ import snownee.jade.api.config.IPluginConfig;
  */
 @WailaPlugin(Setpoint.MODID)
 public class SetpointJadePlugin implements IWailaPlugin {
-    private static final Identifier UID = Setpoint.id("status");
+    private static final Identifier UID = Setpoint.id("status"), CABLE = Setpoint.id("cable");
 
     private static final Class<?>[] ENTITIES = {PumpBlockEntity.class, TankBlockEntity.class, ControlValveBlockEntity.class,
             ControllerBlockEntity.class, LevelTransmitterBlockEntity.class, BoilerBlockEntity.class, SteamTurbineBlockEntity.class,
@@ -55,7 +61,7 @@ public class SetpointJadePlugin implements IWailaPlugin {
             io.hookdev.setpoint.block.entity.FertilizerMixerBlockEntity.class, io.hookdev.setpoint.block.entity.PumpjackBlockEntity.class,
             io.hookdev.setpoint.block.entity.DistillationColumnBlockEntity.class, io.hookdev.setpoint.block.entity.DieselGeneratorBlockEntity.class,
             io.hookdev.setpoint.block.entity.FlareBlockEntity.class, io.hookdev.setpoint.block.entity.MultiblockPartBlockEntity.class,
-            io.hookdev.setpoint.block.entity.BurnerBlockEntity.class};
+            io.hookdev.setpoint.block.entity.BurnerBlockEntity.class, io.hookdev.setpoint.block.entity.WindTurbineBlockEntity.class};
     @SuppressWarnings("unchecked")
     private static final Class<? extends Block>[] BLOCKS = new Class[]{PumpBlock.class, TankBlock.class, ControlValveBlock.class,
             ControllerBlock.class, LevelTransmitterBlock.class, BoilerBlock.class, SteamTurbineBlock.class, GeneratorBlock.class,
@@ -64,16 +70,80 @@ public class SetpointJadePlugin implements IWailaPlugin {
             io.hookdev.setpoint.block.TankPartBlock.class, io.hookdev.setpoint.block.GasMakerBlock.class, io.hookdev.setpoint.block.GasCylinderBlock.class,
             io.hookdev.setpoint.block.GasSphereBlock.class, io.hookdev.setpoint.block.GasSpherePartBlock.class,
             io.hookdev.setpoint.block.CompressorBlock.class, io.hookdev.setpoint.block.PumpjackBlock.class, io.hookdev.setpoint.block.DistillationColumnBlock.class,
-            io.hookdev.setpoint.block.FlareBlock.class, io.hookdev.setpoint.block.FlarePartBlock.class};
+            io.hookdev.setpoint.block.FlareBlock.class, io.hookdev.setpoint.block.FlarePartBlock.class,
+            io.hookdev.setpoint.block.WindTurbineBlock.class, io.hookdev.setpoint.block.WindTurbinePartBlock.class};
 
     @Override
     public void register(IWailaCommonRegistration registration) {
         for (Class<?> entity : ENTITIES) registration.registerBlockDataProvider(StatusData.INSTANCE, entity);
+        registration.registerBlockDataProvider(CableData.INSTANCE, io.hookdev.setpoint.block.PowerCableBlock.class);
+        registration.registerEnergyStorage(TurbineEnergy.INSTANCE, io.hookdev.setpoint.block.entity.MultiblockPartBlockEntity.class);
     }
 
     @Override
     public void registerClient(IWailaClientRegistration registration) {
         for (Class<? extends Block> block : BLOCKS) registration.registerBlockComponent(StatusLine.INSTANCE, block);
+        registration.registerBlockComponent(CableLine.INSTANCE, io.hookdev.setpoint.block.PowerCableBlock.class);
+        registration.registerEnergyStorageClient(TurbineEnergy.INSTANCE);
+    }
+
+    /** The wind turbine's FE on every block of it, not only on its foot (which shows it the usual way, from its FE storage). */
+    enum TurbineEnergy implements IServerExtensionProvider<EnergyView.Data>, IClientExtensionProvider<EnergyView.Data, EnergyView> {
+        INSTANCE;
+
+        @Override
+        public java.util.List<ViewGroup<EnergyView.Data>> getGroups(Accessor<?> accessor) {
+            if (!(accessor instanceof BlockAccessor block) || !(block.getBlockEntity() instanceof io.hookdev.setpoint.block.entity.MultiblockPartBlockEntity part)
+                    || part.base() == null || !(block.getLevel().getBlockEntity(part.base()) instanceof io.hookdev.setpoint.block.entity.WindTurbineBlockEntity turbine)) return null;
+            var energy = turbine.energy();
+            return java.util.List.of(new ViewGroup<>(java.util.List.of(new EnergyView.Data(energy.getAmountAsLong(), energy.getCapacityAsLong()))));
+        }
+
+        @Override
+        public java.util.List<ClientViewGroup<EnergyView>> getClientGroups(Accessor<?> accessor, java.util.List<ViewGroup<EnergyView.Data>> groups) {
+            return ClientViewGroup.map(groups, data -> EnergyView.read(data, "FE"), null);
+        }
+
+        @Override
+        public Identifier getUid() {
+            return Setpoint.id("turbine_energy");
+        }
+    }
+
+    /** A cable holds no FE, so it tells what its network is and carries instead. Only worked out while someone looks at it. */
+    enum CableData implements IServerDataProvider<BlockAccessor> {
+        INSTANCE;
+
+        @Override
+        public void appendServerData(CompoundTag data, BlockAccessor accessor) {
+            var network = io.hookdev.setpoint.power.PowerNetwork.of(accessor.getLevel(), accessor.getPosition());
+            data.putInt("setpoint_cables", network.cables());
+            data.putInt("setpoint_machines", network.machines());
+            data.putInt("setpoint_carried", network.carried(accessor.getLevel()));
+        }
+
+        @Override
+        public Identifier getUid() {
+            return CABLE;
+        }
+    }
+
+    enum CableLine implements IBlockComponentProvider {
+        INSTANCE;
+
+        @Override
+        public void appendTooltip(ITooltip tooltip, BlockAccessor accessor, IPluginConfig config) {
+            CompoundTag data = accessor.getServerData();
+            if (!data.contains("setpoint_cables")) return;
+            int cables = data.getIntOr("setpoint_cables", 0), machines = data.getIntOr("setpoint_machines", 0);
+            tooltip.add(Component.literal(String.format("%d cable%s, %d machine%s", cables, cables == 1 ? "" : "s", machines, machines == 1 ? "" : "s")).withStyle(ChatFormatting.GRAY));
+            tooltip.add(Component.literal("carries " + data.getIntOr("setpoint_carried", 0) + " FE/t").withStyle(ChatFormatting.WHITE));
+        }
+
+        @Override
+        public Identifier getUid() {
+            return CABLE;
+        }
     }
 
     /** Server side: read the machine like the console does. */

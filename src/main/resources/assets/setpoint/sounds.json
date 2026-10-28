@@ -125,7 +125,7 @@
       {
         "name": "setpoint:block/flare_roar",
         "volume": 1,
-        "attenuation_distance": 48
+        "attenuation_distance": 32
       }
     ]
   },

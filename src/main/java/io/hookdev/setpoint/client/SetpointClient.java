@@ -234,6 +234,7 @@ public class SetpointClient {
         event.registerBlockEntityRenderer(SetpointContent.GAS_SPHERE_ENTITY.get(), GasSphereRenderer::new);
         event.registerBlockEntityRenderer(SetpointContent.FLARE_ENTITY.get(), FlareRenderer::new);
         event.registerBlockEntityRenderer(SetpointContent.PUMPJACK_ENTITY.get(), PumpjackRenderer::new);
+        event.registerBlockEntityRenderer(SetpointContent.WIND_TURBINE_ENTITY.get(), WindTurbineRenderer::new);
         event.registerBlockEntityRenderer(SetpointContent.DISTILLATION_COLUMN_ENTITY.get(), DistillationColumnRenderer::new);
     }
 

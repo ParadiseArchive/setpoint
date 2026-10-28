@@ -770,7 +770,7 @@ json(join(ASSETS, 'sounds.json'), {
     sounds: [{ name: 'setpoint:vehicle/horn_low', volume: 1.0 }], // the same, lower (tools/make-horn.mjs low)
   },
   'block.alarm_beacon.horn': { subtitle: 'subtitles.setpoint.block.alarm_beacon.horn', sounds: [{ name: 'setpoint:block/alarm_horn', volume: 1.0 }] }, // tools/make-alarm.mjs
-  'block.flare_stack.roar': { subtitle: 'subtitles.setpoint.block.flare_stack.roar', sounds: [{ name: 'setpoint:block/flare_roar', volume: 1.0, attenuation_distance: 48 }] }, // tools/make-flare.mjs
+  'block.flare_stack.roar': { subtitle: 'subtitles.setpoint.block.flare_stack.roar', sounds: [{ name: 'setpoint:block/flare_roar', volume: 1.0, attenuation_distance: 32 }] }, // tools/make-flare.mjs
   'block.safety_valve.lift': {
     subtitle: 'subtitles.setpoint.block.safety_valve.lift',
     sounds: [{ name: 'minecraft:random/fizz', pitch: 0.6, volume: 0.6 }, { name: 'minecraft:random/fizz', pitch: 0.5, volume: 0.6 }],
@@ -1589,6 +1589,28 @@ M('gas_pipe_item', { parent: 'minecraft:block/block', textures: { pipe: tex('gas
 BS('gas_pipe', { multipart: [{ apply: { model: 'setpoint:block/gas_pipe_core' } },
   ...Object.entries(armRotation).map(([dir, rot]) => ({ when: { [dir]: 'true' }, apply: { model: 'setpoint:block/gas_pipe_arm', ...rot } }))] });
 item('gas_pipe', 'setpoint:block/gas_pipe_item');
+
+// the power cable (0.2.1): black rubber, thinner than a pipe; the top-left corner of the texture is its cut end, copper in the middle
+texture('power_cable', (p) => {
+  p.rect(0, 0, 16, 16, '#202127');
+  let seed = 7;
+  for (let i = 0; i < 40; i++) { seed = (seed * 37 + 11) % 256; p.set(seed % 16, (seed >> 4) % 16, i % 2 ? '#2a2b32' : '#18191d'); }
+  for (let x = 4; x < 16; x += 3) p.set(x, 7, '#4a4c55'); // the print along the side
+  p.rect(0, 0, 4, 4, '#15161a'); p.rect(1, 1, 2, 2, '#d0864a'); p.set(1, 1, '#f0a868');
+});
+const cableFace = (uv) => ({ uv, texture: '#pipe' });
+M('power_cable_core', { parent: 'minecraft:block/block', textures: { pipe: tex('power_cable'), particle: tex('power_cable') },
+  elements: [box([6, 6, 6], [10, 10, 10], Object.fromEntries(['north', 'south', 'east', 'west', 'up', 'down'].map((f) => [f, cableFace([6, 6, 10, 10])])))] });
+M('power_cable_arm', { textures: { pipe: tex('power_cable'), particle: tex('power_cable') },
+  elements: [box([6, 6, 0], [10, 10, 6], { north: { uv: [0, 0, 4, 4], texture: '#pipe', cullface: 'north' },
+    east: cableFace([0, 6, 6, 10]), west: cableFace([10, 6, 16, 10]), up: cableFace([6, 0, 10, 6]), down: cableFace([6, 10, 10, 16]) })] });
+M('power_cable_item', { parent: 'minecraft:block/block', textures: { pipe: tex('power_cable'), particle: tex('power_cable') },
+  elements: [box([6, 6, 0], [10, 10, 16], { north: cableFace([0, 0, 4, 4]), south: cableFace([0, 0, 4, 4]),
+    east: cableFace([0, 6, 16, 10]), west: cableFace([0, 6, 16, 10]), up: cableFace([6, 0, 10, 16]), down: cableFace([6, 0, 10, 16]) })] });
+BS('power_cable', { multipart: [{ apply: { model: 'setpoint:block/power_cable_core' } },
+  ...Object.entries(armRotation).map(([dir, rot]) => ({ when: { [dir]: 'true' }, apply: { model: 'setpoint:block/power_cable_arm', ...rot } }))] });
+item('power_cable', 'setpoint:block/power_cable_item');
+recipe('power_cable', [' K ', 'CCC', ' K '], { K: 'minecraft:dried_kelp', C: 'minecraft:copper_ingot' }, 'setpoint:power_cable', 8);
 
 // the gas cylinder: a round steel bottle, its shoulder in the colour of its gas (tintindex 0), a valve on top
 texture('gas_cylinder_body', (p) => {
@@ -2695,7 +2717,7 @@ item('desk_screens', 'setpoint:block/desk_screens');
   M('console_desk', { parent: 'minecraft:block/block', ambientocclusion: false, textures: { ...desk.textures, ...screens.textures, particle: desk.textures.particle },
     elements: [...desk.elements, ...screens.elements.map(up)] });
   BS('console_desk', { variants: Object.fromEntries(Object.entries(yaw).flatMap(([f, y]) => [false, true].map((alarm) =>
-    [, { model: 'setpoint:block/console_desk', ...(y ? { y } : {}) }]))) });
+    [`alarm=${alarm},facing=${f}`, { model: 'setpoint:block/console_desk', ...(y ? { y } : {}) }]))) });
   item('console_desk', 'setpoint:block/console_desk');
   shapeless('console_desk', ['setpoint:dcs_console', 'setpoint:control_desk'], 'setpoint:console_desk', 1);
 }
@@ -2941,6 +2963,77 @@ recipe('wired_glass', ['GGG', 'GBG', 'GGG'], { G: 'minecraft:glass', B: 'minecra
 recipe('wired_glass_pane', ['GGG', 'GGG'], { G: 'setpoint:wired_glass' }, 'setpoint:wired_glass_pane', 16);
 
 // =====================================================================================
+// Wind turbine (0.2.1): a slender white tower, the nacelle on top, three long blades. Like the pumpjack, the parts are
+// drawn in pixels from a pivot, each in its own model; the renderer tapers the tower, stretches the blades to their
+// full length and turns the rotor.
+// =====================================================================================
+texture('wind_white', (p) => { p.rect(0, 0, 16, 16, '#e9edf1'); p.rect(0, 0, 16, 1, '#f5f7f9'); p.rect(0, 15, 16, 1, '#d3d9df'); p.rect(0, 0, 1, 16, '#dde2e7'); });
+texture('wind_blade', (p) => { p.rect(0, 0, 16, 16, '#f1f3f5'); p.rect(0, 0, 1, 16, '#ffffff'); p.rect(15, 0, 1, 16, '#cfd5dc'); });
+texture('wind_grey', (p) => { p.rect(0, 0, 16, 16, '#8d939c'); p.rect(0, 0, 16, 1, '#a6acb5'); p.rect(0, 15, 16, 1, '#6b717a'); for (let x = 0; x < 16; x += 4) p.rect(x, 1, 1, 14, '#7d838c'); });
+texture('wind_door', (p) => {
+  p.rect(0, 0, 16, 16, '#5c636d'); p.rect(1, 1, 14, 15, '#9aa1ab'); p.rect(1, 1, 14, 1, '#b4bac3');
+  p.rect(4, 3, 8, 3, '#3a4048'); for (let x = 5; x < 12; x += 2) p.rect(x, 4, 1, 1, '#6b727c'); // a vent
+  p.rect(11, 9, 2, 1, '#2b2f36'); p.rect(12, 8, 1, 3, '#2b2f36');                                   // the handle
+});
+{
+  const WIND_PARTS = ['foot', 'tower', 'nacelle', 'hub', 'blade', 'gland'];
+  const P = Object.fromEntries(WIND_PARTS.map((k) => [k, []]));
+  const add = (part, from, to, t, plain = false) => P[part].push({ from, to, t, plain });
+  const octagon = (part, y1, y2, t) => { add(part, [-6, y1, -4], [6, y2, 4], t); add(part, [-4, y1, -6], [4, y2, 6], t); };
+  // the foot: a concrete ring, the tower's bottom with its door to the front, two steel steps up to the door
+  add('foot', [-7, 0, -7], [7, 2, 7], 'grey');
+  octagon('foot', 2, 16, 'white');
+  add('foot', [-2, 2, 6], [2, 13, 6.5], 'door', true);
+  add('foot', [-3, 0, 7], [3, 1, 12], 'grey'); add('foot', [-3, 1, 7], [3, 2, 9.5], 'grey');
+  // where a power cable comes in: a junction box on the tower wall and a sleeve out to the cable (drawn facing +z)
+  add('gland', [-3, 4.5, 5.5], [3, 11.5, 7], 'grey', true);
+  add('gland', [-2.25, 5.75, 7], [2.25, 10.25, 8], 'grey', true);
+  // one block of tower; the renderer narrows it towards the top
+  octagon('tower', 0, 16, 'white');
+  // the nacelle on top of the tower: a long housing, its rounded tail, a cooler on the roof
+  add('nacelle', [-5, 0, -14], [5, 10, 14], 'white');
+  add('nacelle', [-4, 10, -12], [4, 11, 12], 'white');
+  add('nacelle', [-4, 1, -17], [4, 9, -14], 'white');
+  add('nacelle', [-3, 11, -10], [3, 13, -5], 'grey');
+  // the hub, from the rotor's centre: the spinner and its nose
+  add('hub', [-4, -4, -1], [4, 4, 4], 'white', true);
+  add('hub', [-3, -3, 4], [3, 3, 6], 'white', true);
+  add('hub', [-1.5, -1.5, 6], [1.5, 1.5, 7], 'white', true);
+  // one blade from its root, one block long: the renderer stretches it; widest a little way out, thin at the tip
+  add('blade', [-1.25, 0, -0.75], [1.25, 2, 0.75], 'blade', true);
+  add('blade', [-2, 2, -0.75], [3, 5, 0.75], 'blade', true);
+  add('blade', [-1.75, 5, -0.6], [2.5, 9, 0.6], 'blade', true);
+  add('blade', [-1.5, 9, -0.5], [1.75, 13, 0.5], 'blade', true);
+  add('blade', [-1, 13, -0.4], [1, 16, 0.4], 'blade', true);
+
+  const plainFaces = (t) => Object.fromEntries(['north', 'south', 'east', 'west', 'up', 'down'].map((f) => [f, { uv: [1, 1, 15, 15], texture: '#' + t }]));
+  const BUILD = (list) => list.flatMap(({ from, to, t, plain }) => {
+    const m = (p) => p.map((v, k) => +(v + 8 * (k !== 1)).toFixed(4));
+    return plain ? [box(m(from), m(to), plainFaces(t))] : tiled(m(from), m(to), () => '#' + t);
+  });
+  const textures = { white: tex('wind_white'), blade: tex('wind_blade'), grey: tex('wind_grey'), door: tex('wind_door'), particle: tex('wind_white') };
+  for (const part of WIND_PARTS) M('wind_turbine_' + part, { parent: 'minecraft:block/block', ambientocclusion: false, textures, elements: BUILD(P[part]) });
+  BS('wind_turbine_model', { variants: Object.fromEntries(Array.from({ length: 16 }, (_, i) => [`part=${i}`, { model: 'setpoint:block/wind_turbine_' + (WIND_PARTS[i] ?? 'tower') }])) });
+  M('wind_turbine', { textures: { particle: tex('wind_white') } });
+  BS('wind_turbine', { variants: Object.fromEntries(['north', 'east', 'south', 'west'].flatMap((f) => ['false', 'true'].map((st) => [`facing=${f},stopped=${st}`, { model: 'setpoint:block/wind_turbine' }]))) });
+  BS('wind_turbine_part', { variants: Object.fromEntries([0, 1].map((k) => [`kind=${k}`, { model: 'setpoint:block/wind_turbine' }])) });
+  // the item: a little turbine, the rotor facing you; the two lower blades as steps of pixels
+  const els = [];
+  const cube = (from, to, t) => els.push(box(from, to, plainFaces(t)));
+  cube([7.25, 0, 7.25], [8.75, 10.5, 8.75], 'white');
+  cube([6.75, 10.5, 5], [9.25, 12.5, 10], 'white');
+  cube([7.4, 10.9, 10], [8.6, 12.1, 11], 'white');
+  cube([7.6, 12.1, 10.3], [8.4, 16, 10.7], 'blade');
+  for (const sign of [-1, 1]) for (let k = 1; k <= 5; k++) {
+    const x = 8 + sign * k * 0.87, y = 11.5 - k * 0.5;
+    cube([+(x - 0.45).toFixed(3), +(y - 0.4).toFixed(3), 10.3], [+(x + 0.45).toFixed(3), +(y + 0.4).toFixed(3), 10.7], 'blade');
+  }
+  M('wind_turbine_item', { parent: 'minecraft:block/block', ambientocclusion: false, textures, elements: els });
+  item('wind_turbine', 'setpoint:block/wind_turbine_item');
+  recipe('wind_turbine', ['QCQ', ' I ', ' I '], { Q: 'minecraft:quartz_block', C: 'minecraft:copper_block', I: 'minecraft:iron_block' }, 'setpoint:wind_turbine');
+}
+
+// =====================================================================================
 // Loot tables and tool tags for every block
 // =====================================================================================
 const lootSelf = (name) => json(join(DATA, 'loot_table/blocks', name + '.json'), {
@@ -2957,7 +3050,7 @@ const lootOre = (name, drop) => json(join(DATA, 'loot_table/blocks', name + '.js
 });
 const MACHINES = ['pipe', 'tank', 'centrifugal_pump', 'creative_generator', 'level_transmitter', 'control_valve', 'controller',
   'stirling_engine', 'biogas_generator', 'boiler', 'steam_turbine', 'dcs_console', 'hand_valve', 'water_intake', 'flow_transmitter',
-  'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve', 'pid_board', 'pallet', 'gas_pipe', 'electrolyser', 'nitrogen_generator', 'compressor', 'fuel_cell', 'ammonia_reactor', 'fertilizer_mixer', 'pumpjack', 'distillation_column', 'diesel_generator', 'gas_valve', 'gas_control_valve', 'burner'];
+  'pressure_transmitter', 'safety_valve', 'drain_valve', 'check_valve', 'pid_board', 'pallet', 'gas_pipe', 'electrolyser', 'nitrogen_generator', 'compressor', 'fuel_cell', 'ammonia_reactor', 'fertilizer_mixer', 'pumpjack', 'distillation_column', 'diesel_generator', 'gas_valve', 'gas_control_valve', 'burner', 'power_cable', 'wind_turbine'];
 for (const name of [...MACHINES, 'hookonium_block', 'raw_hookonium_block']) lootSelf(name);
 // factory blocks: each drops itself; a handrail drops one for every side it rails
 const FACTORY = ['rack_upright', 'rack_beam', 'grating', 'grating_stairs', 'caged_ladder', 'steel_beam', 'checker_plate', 'hazard_stripes', 'corrugated_steel', 'industrial_lamp'];
@@ -2984,7 +3077,7 @@ lootOre('deepslate_hookonium_ore', 'setpoint:raw_hookonium');
 const HOOKONIUM_BLOCKS = ['hookonium_ore', 'deepslate_hookonium_ore', 'hookonium_block', 'raw_hookonium_block'].map((n) => 'setpoint:' + n);
 const tag = (path, values) => json(join(ROOT, 'data', path + '.json'), { values });
 tag('c/tags/fluid/steam', ['setpoint:steam']); // other mods find our steam by the common tag
-tag('minecraft/tags/block/mineable/pickaxe', [...MACHINES.map((n) => 'setpoint:' + n), 'setpoint:drum', 'setpoint:ibc', 'setpoint:floating_roof_tank', 'setpoint:roof_tank_part', 'setpoint:gas_cylinder', 'setpoint:gas_sphere', 'setpoint:gas_sphere_part', 'setpoint:pumpjack_part', 'setpoint:column_part', 'setpoint:flare_stack', 'setpoint:flare_stack_part', ...FACTORY.map((n) => 'setpoint:' + n), 'setpoint:handrail', ...CONTROL_ROOM.filter((n) => n !== 'office_chair').map((n) => 'setpoint:' + n), 'setpoint:blast_door', ...HOOKONIUM_BLOCKS]);
+tag('minecraft/tags/block/mineable/pickaxe', [...MACHINES.map((n) => 'setpoint:' + n), 'setpoint:drum', 'setpoint:ibc', 'setpoint:floating_roof_tank', 'setpoint:roof_tank_part', 'setpoint:gas_cylinder', 'setpoint:gas_sphere', 'setpoint:gas_sphere_part', 'setpoint:pumpjack_part', 'setpoint:column_part', 'setpoint:flare_stack', 'setpoint:flare_stack_part', 'setpoint:wind_turbine_part', ...FACTORY.map((n) => 'setpoint:' + n), 'setpoint:handrail', ...CONTROL_ROOM.filter((n) => n !== 'office_chair').map((n) => 'setpoint:' + n), 'setpoint:blast_door', ...HOOKONIUM_BLOCKS]);
 tag('minecraft/tags/block/doors', ['setpoint:blast_door']);
 tag('minecraft/tags/item/doors', ['setpoint:blast_door']);
 tag('minecraft/tags/block/climbable', ['setpoint:caged_ladder']);

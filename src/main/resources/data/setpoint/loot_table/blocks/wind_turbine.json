@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:block",
+  "random_sequence": "setpoint:blocks/wind_turbine",
+  "pools": [
+    {
+      "rolls": 1,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "setpoint:wind_turbine"
+        }
+      ]
+    }
+  ]
+}

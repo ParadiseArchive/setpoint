@@ -57,6 +57,8 @@ It is easy by default: machines link up and configure themselves, and plain-lang
 - **Oil and gas burner.** Set it under a boiler and it fires it on naphtha, kerosene, diesel, residue, LPG or hydrogen. Other mods' pipes on top of a boiler take its steam.
 - **Diesel generator** at the top of the power ladder, on diesel from your own refinery.
 - **Fuel cell.** Hydrogen and oxygen back into power: with an electrolyser and a gas sphere it makes a battery.
+- **Wind turbine.** A white tower thirty blocks high whose three blades turn in the wind: up to 100 FE/t, more in rain, and a storm stop when the wind gets too strong.
+- **Power cables** carry FE from any generator to the machines along them, shared out evenly. They work with other mods' generators and machines too.
 
 ![Stirling engine, biogas generator, boiler, safety valve, steam turbine, diesel generator and fuel cell](https://raw.githubusercontent.com/ParadiseArchive/setpoint/main/.github/readme/shelf-power.png)
 

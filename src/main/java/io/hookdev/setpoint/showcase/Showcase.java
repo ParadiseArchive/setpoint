@@ -42,7 +42,7 @@ import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 /**
- * Builds a working example plant, the way the mod is meant to be played: water and steam, a refinery whose column
+ * Builds a working example plant, the way the mod is meant to be played: water and steam, a wind turbine, a refinery whose column
  * stands on a steel frame so every cut runs down to its tank by itself, gases with a sphere and a flare, three control
  * loops, and a control room with the plant's own P&ID. Every product tank overflows into an export tank that a drain
  * valve empties, the way a real plant ships what it makes, so nothing ever fills up and the plant keeps running.
@@ -142,6 +142,7 @@ public final class Showcase {
         refinery();
         products();
         gases();
+        wind();
         for (BlockPos pos : pipes) level.setBlock(pos, FluidPipeBlock.refresh(level.getBlockState(pos), level, pos), Block.UPDATE_ALL);
         controlRoom();
     }
@@ -194,6 +195,24 @@ public final class Showcase {
         set(4, 0, 3, SetpointContent.STEAM_TURBINE.get());
         for (int x = 8; x <= 11; x++) gasPipe(x, 2, 2);
         for (int z = 3; z <= 15; z++) gasPipe(11, 2, z);
+    }
+
+    /**
+     * A wind turbine on the west side, its rotor turned away from the plant, and a cable buried under the floor to the
+     * two water pumps: it helps the steam turbine, which shares its power with them over the same cable.
+     */
+    private void wind() {
+        multiblock(0, 0, 20, SetpointContent.WIND_TURBINE.get().defaultBlockState().setValue(io.hookdev.setpoint.block.WindTurbineBlock.FACING, Direction.WEST),
+                new ItemStack(SetpointContent.WIND_TURBINE_ITEM.get()));
+        cable(1, 0, 20);
+        cable(1, -1, 20);
+        for (int x = 2; x <= 5; x++) cable(x, -1, 20);
+        for (int z = 19; z >= 4; z--) cable(5, -1, z);
+        for (int z = 4; z >= 2; z--) cable(4, -1, z); // under P-102, the steam turbine and P-101
+    }
+
+    private void cable(int x, int y, int z) {
+        set(x, y, z, SetpointContent.POWER_CABLE.get());
     }
 
     /** The pumpjack with its crude pump, both run by a diesel generator, and the column on its steel frame. */

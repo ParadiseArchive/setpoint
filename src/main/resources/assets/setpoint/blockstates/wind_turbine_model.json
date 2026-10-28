@@ -1,0 +1,52 @@
+{
+  "variants": {
+    "part=0": {
+      "model": "setpoint:block/wind_turbine_foot"
+    },
+    "part=1": {
+      "model": "setpoint:block/wind_turbine_tower"
+    },
+    "part=2": {
+      "model": "setpoint:block/wind_turbine_nacelle"
+    },
+    "part=3": {
+      "model": "setpoint:block/wind_turbine_hub"
+    },
+    "part=4": {
+      "model": "setpoint:block/wind_turbine_blade"
+    },
+    "part=5": {
+      "model": "setpoint:block/wind_turbine_gland"
+    },
+    "part=6": {
+      "model": "setpoint:block/wind_turbine_tower"
+    },
+    "part=7": {
+      "model": "setpoint:block/wind_turbine_tower"
+    },
+    "part=8": {
+      "model": "setpoint:block/wind_turbine_tower"
+    },
+    "part=9": {
+      "model": "setpoint:block/wind_turbine_tower"
+    },
+    "part=10": {
+      "model": "setpoint:block/wind_turbine_tower"
+    },
+    "part=11": {
+      "model": "setpoint:block/wind_turbine_tower"
+    },
+    "part=12": {
+      "model": "setpoint:block/wind_turbine_tower"
+    },
+    "part=13": {
+      "model": "setpoint:block/wind_turbine_tower"
+    },
+    "part=14": {
+      "model": "setpoint:block/wind_turbine_tower"
+    },
+    "part=15": {
+      "model": "setpoint:block/wind_turbine_tower"
+    }
+  }
+}

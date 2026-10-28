@@ -319,6 +319,15 @@ public final class SetpointContent {
     public static final DeferredBlock<ControllerBlock> CONTROLLER = BLOCKS.registerBlock("controller", ControllerBlock::new,
             p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL));
 
+    public static final DeferredBlock<io.hookdev.setpoint.block.PowerCableBlock> POWER_CABLE = BLOCKS.registerBlock("power_cable", io.hookdev.setpoint.block.PowerCableBlock::new,
+            p -> p.mapColor(MapColor.COLOR_BLACK).strength(0.5f).sound(SoundType.WOOL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.WindTurbineBlock> WIND_TURBINE = BLOCKS.registerBlock("wind_turbine", io.hookdev.setpoint.block.WindTurbineBlock::new,
+            p -> p.mapColor(MapColor.SNOW).strength(4.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
+    public static final DeferredBlock<io.hookdev.setpoint.block.WindTurbinePartBlock> WIND_TURBINE_PART = BLOCKS.registerBlock("wind_turbine_part", io.hookdev.setpoint.block.WindTurbinePartBlock::new,
+            p -> p.mapColor(MapColor.SNOW).strength(4.0f, 6.0f).sound(SoundType.METAL).noOcclusion().noLootTable());
+    /** Holds the wind turbine's models (foot, tower, nacelle, hub, blade), for its renderer; never placed. */
+    public static final DeferredBlock<VehicleModelBlock> WIND_TURBINE_MODEL = BLOCKS.registerBlock("wind_turbine_model", VehicleModelBlock::new,
+            p -> p.noCollision().noOcclusion().noLootTable());
     public static final DeferredBlock<GeneratorBlock> STIRLING_ENGINE = BLOCKS.registerBlock("stirling_engine",
             p -> new GeneratorBlock(p, StirlingEngineBlockEntity::new, () -> SetpointContent.STIRLING_ENGINE_ENTITY.get()),
             p -> p.mapColor(MapColor.METAL).strength(3.0f, 6.0f).sound(SoundType.METAL).noOcclusion());
@@ -409,6 +418,8 @@ public final class SetpointContent {
     public static final DeferredItem<BlockItem> PUMP_ITEM = ITEMS.registerSimpleBlockItem(PUMP);
     public static final DeferredItem<BlockItem> CREATIVE_GENERATOR_ITEM = ITEMS.registerSimpleBlockItem(CREATIVE_GENERATOR);
     public static final DeferredItem<BlockItem> STIRLING_ENGINE_ITEM = ITEMS.registerSimpleBlockItem(STIRLING_ENGINE);
+    public static final DeferredItem<BlockItem> POWER_CABLE_ITEM = ITEMS.registerSimpleBlockItem(POWER_CABLE);
+    public static final DeferredItem<BlockItem> WIND_TURBINE_ITEM = ITEMS.registerSimpleBlockItem(WIND_TURBINE, p -> p.stacksTo(1));
     public static final DeferredItem<BlockItem> BIOGAS_GENERATOR_ITEM = ITEMS.registerSimpleBlockItem(BIOGAS_GENERATOR);
     public static final DeferredItem<BlockItem> BOILER_ITEM = ITEMS.registerSimpleBlockItem(BOILER);
     public static final DeferredItem<BlockItem> STEAM_TURBINE_ITEM = ITEMS.registerSimpleBlockItem(STEAM_TURBINE);
@@ -514,6 +525,10 @@ public final class SetpointContent {
             () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.BurnerBlockEntity::new, BURNER.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.DieselGeneratorBlockEntity>> DIESEL_GENERATOR_ENTITY = BLOCK_ENTITIES.register("diesel_generator",
             () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.DieselGeneratorBlockEntity::new, DIESEL_GENERATOR.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.WindTurbineBlockEntity>> WIND_TURBINE_ENTITY = BLOCK_ENTITIES.register("wind_turbine",
+            () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.WindTurbineBlockEntity::new, WIND_TURBINE.get()));
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MultiblockPartBlockEntity>> WIND_TURBINE_PART_ENTITY = BLOCK_ENTITIES.register("wind_turbine_part",
+            () -> new BlockEntityType<>((pos, state) -> new MultiblockPartBlockEntity(SetpointContent.WIND_TURBINE_PART_ENTITY.get(), pos, state), WIND_TURBINE_PART.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<io.hookdev.setpoint.block.entity.PumpjackBlockEntity>> PUMPJACK_ENTITY = BLOCK_ENTITIES.register("pumpjack",
             () -> new BlockEntityType<>(io.hookdev.setpoint.block.entity.PumpjackBlockEntity::new, PUMPJACK.get()));
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<MultiblockPartBlockEntity>> PUMPJACK_PART_ENTITY = BLOCK_ENTITIES.register("pumpjack_part",
@@ -625,6 +640,8 @@ public final class SetpointContent {
                 output.accept(CORRUGATED_STEEL_ITEM.get());
                 output.accept(INDUSTRIAL_LAMP_ITEM.get());
                 output.accept(PUMP_ITEM.get());
+                output.accept(POWER_CABLE_ITEM.get());
+                output.accept(WIND_TURBINE_ITEM.get());
                 output.accept(STIRLING_ENGINE_ITEM.get());
                 output.accept(BIOGAS_GENERATOR_ITEM.get());
                 output.accept(BOILER_ITEM.get());

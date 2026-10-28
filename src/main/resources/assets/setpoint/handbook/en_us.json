@@ -1418,6 +1418,62 @@
         },
         {
           "type": "h",
+          "text": "Power cable"
+        },
+        {
+          "type": "p",
+          "text": "To power a machine that does not touch the generator, run a **power cable** from one to the other. It joins other cables and every block that gives or takes FE, from this mod or another, and turns corners by itself."
+        },
+        {
+          "type": "p",
+          "text": "A cable holds nothing: what a generator pushes into it goes straight on to the machines along it, **shared out evenly**. Water flows round it, so you can bury it under a pond."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:power_cable",
+          "grid": [
+            "",
+            "minecraft:dried_kelp",
+            "",
+            "minecraft:copper_ingot",
+            "minecraft:copper_ingot",
+            "minecraft:copper_ingot",
+            "",
+            "minecraft:dried_kelp",
+            ""
+          ],
+          "count": 8
+        },
+        {
+          "type": "h",
+          "text": "Wind turbine"
+        },
+        {
+          "type": "p",
+          "text": "Free power from the wind: a white tower **thirty blocks high** with three blades eleven blocks long. Place it with one block, the **foot**, where the FE comes out; the rotor faces you. The whole circle the blades sweep must be clear."
+        },
+        {
+          "type": "p",
+          "text": "The wind is never steady. On a clear day it gives some 25 to 40 FE/t, in rain its full **100 FE/t**, and a little more the higher it stands. In a thunderstorm above 25 m/s it turns its blades out of the wind and stops (**STORM STOP**) until the gust is past."
+        },
+        {
+          "type": "craft",
+          "result": "setpoint:wind_turbine",
+          "grid": [
+            "minecraft:quartz_block",
+            "minecraft:copper_block",
+            "minecraft:quartz_block",
+            "",
+            "minecraft:iron_block",
+            "",
+            "",
+            "minecraft:iron_block",
+            ""
+          ],
+          "count": 1
+        },
+        {
+          "type": "h",
           "text": "Boiler"
         },
         {

@@ -108,6 +108,7 @@ public final class SetpointGameTests {
         test("level_loop_holds_setpoint", SetpointGameTests::levelLoopHoldsSetpoint, 2400);
         test("controller_links_itself", SetpointGameTests::controllerLinksItself, 2400);
         test("stirling_engine_runs_a_pump", SetpointGameTests::stirlingEngineRunsAPump, 400);
+        test("a_cable_carries_power_to_a_pump", SetpointGameTests::aCableCarriesPowerToAPump, 400);
         test("biogas_generator_runs_on_seeds", SetpointGameTests::biogasGeneratorRunsOnSeeds, 200);
         test("generator_keeps_fuel_when_idle", SetpointGameTests::generatorKeepsFuelWhenIdle, 200);
         test("tank_bucket_slots", SetpointGameTests::tankBucketSlots, 100);
@@ -172,6 +173,8 @@ public final class SetpointGameTests {
         test("a_gas_valve_splits_the_line", SetpointGameTests::aGasValveSplitsTheLine, 40);
         test("pcv_holds_a_gas_line", SetpointGameTests::pcvHoldsAGasLine, 1400);
         test("a_burner_fires_a_boiler_on_diesel", SetpointGameTests::aBurnerFiresABoilerOnDiesel, 300);
+        test("a_wind_turbine_powers_a_pump_by_cable", SetpointGameTests::aWindTurbinePowersAPumpByCable, 400);
+        SHOWCASE.add("a_wind_turbine_powers_a_pump_by_cable");
         test("the_showcase_plant_runs", SetpointGameTests::theShowcasePlantRuns, 18400);
         ALONE.add("the_showcase_plant_runs");
         SHOWCASE.add("the_showcase_plant_runs");
@@ -426,6 +429,22 @@ public final class SetpointGameTests {
         });
     }
 
+    /** A Stirling engine three blocks away powers the pump through a power cable that bends round a corner. */
+    private static void aCableCarriesPowerToAPump(GameTestHelper helper) {
+        buildLine(helper, false);
+        for (BlockPos cable : new BlockPos[] {new BlockPos(3, 0, 1), new BlockPos(3, 0, 2), new BlockPos(3, 0, 3), new BlockPos(4, 0, 3), new BlockPos(5, 0, 3)}) {
+            helper.setBlock(cable, SetpointContent.POWER_CABLE.get());
+        }
+        helper.setBlock(5, 0, 4, SetpointContent.STIRLING_ENGINE.get());
+        StirlingEngineBlockEntity engine = helper.getBlockEntity(new BlockPos(5, 0, 4), StirlingEngineBlockEntity.class);
+        engine.insertFromHand(new ItemStack(Items.COAL, 4));
+        fill(helper, SOURCE, 8_000);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(helper.getBlockState(new BlockPos(3, 0, 1)).getValue(io.hookdev.setpoint.block.PowerCableBlock.CONNECTIONS.get(Direction.UP)), "the cable should join the pump above it");
+            helper.assertTrue(helper.getBlockEntity(DESTINATION, TankBlockEntity.class).amount() >= 1_000, "the cable should carry the engine's power to the pump");
+        });
+    }
+
     private static void biogasGeneratorRunsOnSeeds(GameTestHelper helper) {
         helper.setBlock(1, 1, 1, SetpointContent.BIOGAS_GENERATOR.get());
         BiogasGeneratorBlockEntity generator = helper.getBlockEntity(new BlockPos(1, 1, 1), BiogasGeneratorBlockEntity.class);
@@ -513,16 +532,45 @@ public final class SetpointGameTests {
             helper.assertTrue(console.drawing() != null, "the console should hold the plant's P&ID");
             java.util.List<String> problems = new java.util.ArrayList<>();
             for (var r : console.readings()) {
+                // only the plant itself: the console also sees the machines of other tests next to the bench
+                BlockPos at = r.pos().subtract(origin);
+                if (at.getX() < 0 || at.getZ() < 0 || at.getX() > io.hookdev.setpoint.showcase.Showcase.WIDTH || at.getZ() > io.hookdev.setpoint.showcase.Showcase.FULL_DEPTH) continue;
                 if (r.kind().equals("PUMP") && !r.status().equals("RUNNING") && !r.status().equals("NO FLOW")) problems.add(r.tag() + " " + r.status()); // no flow: a pump against a full vessel, not a fault
-                if (r.severity() == io.hookdev.setpoint.console.Reading.ALARM && r.pos().distManhattan(origin) < 80) problems.add(r.tag() + " ALARM " + r.alarms());
+                if (r.severity() == io.hookdev.setpoint.console.Reading.ALARM) problems.add(r.tag() + " ALARM " + r.alarms());
                 if (r.kind().equals("COLUMN") && !r.status().equals("RUNNING")) problems.add(r.tag() + " " + r.status());
                 if (r.kind().equals("FLARE") && r.status().contains("OUT")) problems.add(r.tag() + " " + r.status());
                 if (r.kind().startsWith("LIC") || r.kind().startsWith("PIC") || r.kind().equals("CONTROLLER")) if (!r.status().equals("AUTO")) problems.add(r.tag() + " " + r.status());
             }
             var boiler = (BoilerBlockEntity) level.getBlockEntity(origin.offset(7, 1, 2));
             if (!boiler.firing()) problems.add("boiler not firing");
+            var wind = (io.hookdev.setpoint.block.entity.WindTurbineBlockEntity) level.getBlockEntity(origin.offset(0, 0, 20));
+            if (wind.status().equals("ESD") || wind.status().equals("CALM")) problems.add("wind turbine " + wind.status());
+            if (io.hookdev.setpoint.power.PowerNetwork.of(level, origin.offset(5, -1, 10)).machines() < 4) problems.add("the cable should reach the turbine, both pumps and the steam turbine");
             helper.assertTrue(problems.isEmpty(), "after fifteen minutes the showcase plant should still run: " + problems + "  —  " + report);
             helper.succeed();
+        });
+    }
+
+    /**
+     * A wind turbine stands thirty blocks high with its tower and nacelle, makes power in the wind of a clear day, and a
+     * cable carries it to a pump. Broken at its foot, the whole turbine goes.
+     */
+    private static void aWindTurbinePowersAPumpByCable(GameTestHelper helper) {
+        BlockPos foot = new BlockPos(18, 3, 10);
+        BlockState state = SetpointContent.WIND_TURBINE.get().defaultBlockState().setValue(io.hookdev.setpoint.block.WindTurbineBlock.FACING, Direction.SOUTH);
+        helper.setBlock(foot, state);
+        state.getBlock().setPlacedBy(helper.getLevel(), helper.absolutePos(foot), helper.getBlockState(foot), null, new ItemStack(SetpointContent.WIND_TURBINE_ITEM.get()));
+        helper.assertBlockPresent(SetpointContent.WIND_TURBINE_PART.get(), foot.above(io.hookdev.setpoint.block.WindTurbineBlock.TOWER));
+        helper.setBlock(17, 3, 10, SetpointContent.POWER_CABLE.get());
+        helper.setBlock(16, 3, 10, SetpointContent.POWER_CABLE.get());
+        helper.setBlock(15, 3, 10, SetpointContent.PUMP.get().defaultBlockState().setValue(PumpBlock.FACING, Direction.NORTH));
+        helper.setBlock(15, 4, 10, Blocks.REDSTONE_BLOCK); // stopped: it takes power without running dry (and alarming the console tests nearby)
+        var turbine = helper.getBlockEntity(foot, io.hookdev.setpoint.block.entity.WindTurbineBlockEntity.class);
+        helper.succeedWhen(() -> {
+            helper.assertTrue(turbine.windSpeed() > io.hookdev.setpoint.block.entity.WindTurbineBlockEntity.CUT_IN, "a clear day should have enough wind, has " + turbine.windSpeed());
+            helper.assertTrue(helper.getBlockEntity(new BlockPos(15, 3, 10), io.hookdev.setpoint.block.entity.PumpBlockEntity.class).energy().getAmountAsInt() > 0, "the cable should carry the turbine's power to the pump");
+            helper.destroyBlock(foot);
+            helper.assertBlockNotPresent(SetpointContent.WIND_TURBINE_PART.get(), foot.above(io.hookdev.setpoint.block.WindTurbineBlock.TOWER));
         });
     }
 
@@ -895,11 +943,11 @@ public final class SetpointGameTests {
             if (block.get() == SetpointContent.TANK_PART.get() || block.get() == SetpointContent.PALLET_PART.get()
                     || block.get() == SetpointContent.ROOF_TANK_PART.get() || block.get() == SetpointContent.GAS_SPHERE_PART.get()
                     || block.get() == SetpointContent.PUMPJACK_PART.get() || block.get() == SetpointContent.COLUMN_PART.get()
-                    || block.get() == SetpointContent.FLARE_PART.get()) continue; // parts: their base drops
+                    || block.get() == SetpointContent.FLARE_PART.get() || block.get() == SetpointContent.WIND_TURBINE_PART.get()) continue; // parts: their base drops
             if (block.get() == SetpointContent.PALLET_TRUCK_MODEL.get() || block.get() == SetpointContent.FORKLIFT_MODEL.get()
                     || block.get() == SetpointContent.FLOATING_ROOF_TANK_MODEL.get() || block.get() == SetpointContent.GAS_SPHERE_MODEL.get()
                     || block.get() == SetpointContent.PUMPJACK_MODEL.get() || block.get() == SetpointContent.COLUMN_MODEL.get()
-                    || block.get() == SetpointContent.CONTROL_ROOM_MODEL.get() || block.get() == SetpointContent.FLARE_MODEL.get()) continue; // only hold models
+                    || block.get() == SetpointContent.CONTROL_ROOM_MODEL.get() || block.get() == SetpointContent.FLARE_MODEL.get() || block.get() == SetpointContent.WIND_TURBINE_MODEL.get()) continue; // only hold models
             BlockState state = block.get() == SetpointContent.HANDRAIL.get() // a handrail is as many as the sides it rails: one here
                     ? block.get().defaultBlockState().setValue(io.hookdev.setpoint.block.HandrailBlock.EDGES.get(Direction.NORTH), true) : block.get().defaultBlockState();
             var drops = Block.getDrops(state, helper.getLevel(), pos, null, null, new ItemStack(Items.DIAMOND_PICKAXE));
@@ -925,8 +973,11 @@ public final class SetpointGameTests {
             helper.assertBlockProperty(pos, ConsoleBlock.ALARM, true);
             console.acknowledge();
             helper.runAfterDelay(5, () -> {
-                helper.assertFalse(console.alarms().hasUnacknowledged(), "everything should be acknowledged");
-                helper.assertBlockProperty(pos, ConsoleBlock.ALARM, false);
+                // its own pump's alarm: the console also sees the machines of other tests nearby, which may alarm just now
+                String pump = helper.getBlockEntity(PUMP, PumpBlockEntity.class).tag();
+                helper.assertTrue(console.alarms().list().stream().filter(alarm -> alarm.tag().equals(pump)).allMatch(alarm -> alarm.state() == AlarmList.State.ACTIVE_ACK),
+                        "the pump's alarm should be acknowledged");
+                if (!console.alarms().hasUnacknowledged()) helper.assertBlockProperty(pos, ConsoleBlock.ALARM, false);
                 helper.succeed();
             });
         });

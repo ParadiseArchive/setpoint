@@ -1,0 +1,28 @@
+{
+  "variants": {
+    "facing=north,stopped=false": {
+      "model": "setpoint:block/wind_turbine"
+    },
+    "facing=north,stopped=true": {
+      "model": "setpoint:block/wind_turbine"
+    },
+    "facing=east,stopped=false": {
+      "model": "setpoint:block/wind_turbine"
+    },
+    "facing=east,stopped=true": {
+      "model": "setpoint:block/wind_turbine"
+    },
+    "facing=south,stopped=false": {
+      "model": "setpoint:block/wind_turbine"
+    },
+    "facing=south,stopped=true": {
+      "model": "setpoint:block/wind_turbine"
+    },
+    "facing=west,stopped=false": {
+      "model": "setpoint:block/wind_turbine"
+    },
+    "facing=west,stopped=true": {
+      "model": "setpoint:block/wind_turbine"
+    }
+  }
+}

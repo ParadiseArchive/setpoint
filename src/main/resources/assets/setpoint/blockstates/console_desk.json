@@ -1,6 +1,32 @@
 {
   "variants": {
-    "undefined": {
+    "alarm=false,facing=north": {
+      "model": "setpoint:block/console_desk"
+    },
+    "alarm=true,facing=north": {
+      "model": "setpoint:block/console_desk"
+    },
+    "alarm=false,facing=east": {
+      "model": "setpoint:block/console_desk",
+      "y": 90
+    },
+    "alarm=true,facing=east": {
+      "model": "setpoint:block/console_desk",
+      "y": 90
+    },
+    "alarm=false,facing=south": {
+      "model": "setpoint:block/console_desk",
+      "y": 180
+    },
+    "alarm=true,facing=south": {
+      "model": "setpoint:block/console_desk",
+      "y": 180
+    },
+    "alarm=false,facing=west": {
+      "model": "setpoint:block/console_desk",
+      "y": 270
+    },
+    "alarm=true,facing=west": {
       "model": "setpoint:block/console_desk",
       "y": 270
     }

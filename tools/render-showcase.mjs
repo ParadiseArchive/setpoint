@@ -276,6 +276,8 @@ render('compressor', [{ model: 'compressor_on', y: E }]);
 for (const name of ['fuel_cell', 'ammonia_reactor', 'fertilizer_mixer']) render(name, [{ model: name + '_on', y: S }]);
 render('gas_cylinder_ammonia', [{ model: 'gas_cylinder', tints: [[0xe8, 0xc5, 0x47]] }], 6);
 render('gas_pipe', gasPipe([0, 0, 0], [E, W_, S]));
+const powerCable = (at, arms) => [{ model: 'power_cable_core', at }, ...arms.map((y) => ({ model: 'power_cable_arm', at, y }))];
+render('power_cable', powerCable([0, 0, 0], [E, W_, S]));
 render('gas_cylinder', [{ model: 'gas_cylinder', tints: [GAS_TINT.hydrogen] }], 6);
 render('gas_cylinders', Object.values(GAS_TINT).map((t, i) => ({ model: 'gas_cylinder', at: [i * 0.75, 0, -i * 0.75], tints: [t] })), 4);
 // an electrolyser filling a cylinder of hydrogen through a gas pipe
@@ -487,6 +489,28 @@ const pumpjack = (crankDeg) => {
   return parts;
 };
 render('pumpjack', pumpjack(60), 3);
+// the wind turbine, put together like WindTurbineRenderer does: the tower narrowing to the top, the rotor toward the
+// camera and turned a little, its blades stretched from one short model
+const windTurbine = (rotorDeg) => {
+  const parts = [];
+  const ry = (deg) => { const a = deg * Math.PI / 180; return ([x, y, z]) => [x * Math.cos(a) + z * Math.sin(a), y, -x * Math.sin(a) + z * Math.cos(a)]; };
+  const rz = (deg) => { const a = deg * Math.PI / 180; return ([x, y, z]) => [x * Math.cos(a) - y * Math.sin(a), x * Math.sin(a) + y * Math.cos(a), z]; };
+  const mv = (dx, dy, dz) => ([x, y, z]) => [x + dx, y + dy, z + dz];
+  const sc = (kx, ky, kz) => ([x, y, z]) => [x * kx, y * ky, z * kz];
+  const piece = (name, frame) => {
+    const steps = [ry(25), ...frame, mv(-8, 0, -8)];
+    parts.push({ model: 'wind_turbine_' + name, xf: (p) => steps.reduceRight((q, step) => step(q), p) });
+  };
+  const TOWER = 30, BLADE = 11;
+  piece('foot', []);
+  for (let up = 1; up < TOWER; up++) { const w = 1 - 0.4 * up / TOWER; piece('tower', [mv(0, up * 16, 0), sc(w, 1, w)]); }
+  piece('nacelle', [mv(0, TOWER * 16, 0)]);
+  const hub = [mv(0, TOWER * 16 + 5, 15), rz(rotorDeg)];
+  piece('hub', hub);
+  for (let b = 0; b < 3; b++) piece('blade', [...hub, rz(b * 120), mv(0, 3, 1.5), ry(12), sc(1, BLADE - 3 / 16, 1)]);
+  return parts;
+};
+render('wind_turbine', windTurbine(20), 1);
 // the distillation column, put together like DistillationColumnRenderer does (COLUMN_SHIFT in gen-assets.mjs)
 const COLUMN_SHIFT = { shell: [0, 0, 0], head: [0, 0, 0], ring: [0, 0, -8], reboiler: [0, 0, 0], condenser: [0, 0, 0], nozzle: [0, 8, 0] };
 const distillationColumn = () => {

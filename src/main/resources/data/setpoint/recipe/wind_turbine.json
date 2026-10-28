@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "Q": "minecraft:quartz_block",
+    "C": "minecraft:copper_block",
+    "I": "minecraft:iron_block"
+  },
+  "pattern": [
+    "QCQ",
+    " I ",
+    " I "
+  ],
+  "result": {
+    "id": "setpoint:wind_turbine"
+  }
+}

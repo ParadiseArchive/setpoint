@@ -1,0 +1,6 @@
+{
+  "model": {
+    "type": "minecraft:model",
+    "model": "setpoint:block/power_cable_item"
+  }
+}

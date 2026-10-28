@@ -33,10 +33,10 @@ public class FlareSound extends AbstractTickableSoundInstance {
         follow();
     }
 
-    /** A pilot flame hisses quietly; a full flare roars and carries for a long way (sounds.json gives it a long reach). */
+    /** A pilot flame hisses quietly; a full flare rushes, never louder than a machine nearby (sounds.json gives it its reach). */
     private void follow() {
         float load = flare.shownLoad(1);
-        volume = load < 1 ? 0.15f : Math.min(2.0f, 0.4f + load / 250f);
+        volume = load < 1 ? 0.06f : Math.min(0.6f, 0.2f + load / 500f);
         pitch = Math.max(0.6f, 1.0f - load / 2000f);
     }
 

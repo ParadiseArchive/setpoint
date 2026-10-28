@@ -37,7 +37,7 @@ import net.minecraft.world.level.chunk.LevelChunk;
 public final class PlantScanner {
     /** How far a console sees, in blocks, in every direction. */
     public static final int RANGE = 32;
-    private static final List<String> KIND_ORDER = List.of("LIC", "FIC", "PIC", "PUMP", "VALVE", "FT", "PT", "TANK", "IBC", "DRUM", "LT", "BOILER", "PSV", "TURBINE", "GEN", "INTAKE", "ELECTROLYSER", "N2 GEN", "COMPRESSOR", "FUEL CELL", "REACTOR", "MIXER", "SPHERE", "CYLINDER", "PUMPJACK", "COLUMN", "FLARE");
+    private static final List<String> KIND_ORDER = List.of("LIC", "FIC", "PIC", "PUMP", "VALVE", "FT", "PT", "TANK", "IBC", "DRUM", "LT", "BOILER", "PSV", "TURBINE", "GEN", "WIND", "INTAKE", "ELECTROLYSER", "N2 GEN", "COMPRESSOR", "FUEL CELL", "REACTOR", "MIXER", "SPHERE", "CYLINDER", "PUMPJACK", "COLUMN", "FLARE");
 
     private PlantScanner() {}
 
@@ -181,6 +181,12 @@ public final class PlantScanner {
             return new Reading(be.getBlockPos(), generator.tag(), "GEN", generator.status(), ok ? Reading.NORMAL : Reading.ATTENTION,
                     generator.status().equals("RUNNING") ? io.hookdev.setpoint.block.entity.DieselGeneratorBlockEntity.POWER + " FE/t" : "0 FE/t",
                     List.of("DIESEL %"), new float[]{(float) level}, List.of());
+        }
+        if (be instanceof io.hookdev.setpoint.block.entity.WindTurbineBlockEntity turbine) {
+            boolean ok = !turbine.status().equals("ESD");
+            return new Reading(be.getBlockPos(), turbine.tag(), "WIND", turbine.status(), ok ? Reading.NORMAL : Reading.ATTENTION,
+                    String.format("%.1f m/s  %d FE/t", turbine.windSpeed(), turbine.output()),
+                    List.of("WIND m/s"), new float[]{(float) turbine.windSpeed()}, List.of());
         }
         if (be instanceof io.hookdev.setpoint.block.entity.BurnerBlockEntity burner) {
             boolean ok = burner.status().startsWith("BURNING") || burner.status().equals("IDLE");
